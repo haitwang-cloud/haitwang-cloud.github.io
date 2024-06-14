@@ -1,7 +1,7 @@
 +++
 title = 'OCI runtime create failed: expected cgroupsPath'
 date = 2024-06-14T16:58:03+08:00
-draft = true
+draft = false
 +++
 
 > 本文是针对作者遇到的`OCI runtime create failed: expected cgroupsPath to be of format \"slice:prefix:name\" for systemd cgroups, got \"/kubepods/burstable/..."`的问题总结

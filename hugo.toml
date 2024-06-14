@@ -2,3 +2,18 @@ baseURL = 'https://tim-wang-tecg-blog.pages.dev/'
 languageCode = 'zh-CN'
 title = 'Tim Wang的技术博客'
 theme = "paper"
+
+[[menu.main]]
+name = "Istio"
+url = "/istio/"
+weight = 1
+
+[[menu.main]]
+name = "K8s"
+url = "/k8s/"
+weight = 2
+
+[[menu.main]]
+name = "GPU"
+url = "/gpu/"
+weight = 3

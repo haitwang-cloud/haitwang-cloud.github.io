@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>K8s on Tim Wang的技术博客</title>
+    <link>http://localhost:1313/k8s/</link>
+    <description>Recent content in K8s on Tim Wang的技术博客</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Fri, 14 Jun 2024 16:58:03 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/k8s/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>OCI runtime create failed: expected cgroupsPath</title>
+      <link>http://localhost:1313/k8s/oci-error/</link>
+      <pubDate>Fri, 14 Jun 2024 16:58:03 +0800</pubDate>
+      <guid>http://localhost:1313/k8s/oci-error/</guid>
+      <description>本文是针对作者遇到的OCI runtime create failed: expected cgroupsPath to be of format \&amp;quot;slice:prefix:name\&amp;quot; for systemd cgroups, got \&amp;quot;/kubepods/burstable/...&amp;quot;的问题总结&#xA;问题总结 问题描述 在特定的k8s node上不能通过containerd启动pod,pod的状态一直是ContainerCreating,通过kubectl describe pod查看pod的状态,发现如下错误:&#xA;OCI runtime create failed: runc create failed: expected cgroupsPath to be of format &amp;#34;slice:prefix:name&amp;#34; for systemd cgroups k8s集群信息 k8s版本: v1.26.13 containerd版本: 1.6.24 Linnux kernel版本: 6.6.20-amd64 Linux发行版: Garden Linux 1443.0 kubeProxyVersion: v1.26.13 kubeletVersion: v1.26.13 问题分析 此问题是因为kubelet配置为使用cgroupfs cgroup驱动程序，而containerd配置为使用sytemd cgroup驱动程序。&#xA;解决方法 为了解决上面的问题，可以从以下两种方式中选择一种：&#xA;让containerd使用cgroupfs驱动程序，需要从/etc/containerd/config.toml中删除SystemdCgroup = true行。 让kubelet使用systemd驱动程序，需要将KubeletConfiguration中的cgroupDriver设置为&amp;quot;systemd&amp;quot;。 扩展阅读 查看Kubelet配置 Kubelet的配置文件通常位于/var/lib/kubelet/位置，可以通过查看该文件来确认Kubelet的cgroup驱动程序配置。关于其他CRIs的配置文件位置可以参考Container Runtimes。</description>
+    </item>
+  </channel>
+</rss>

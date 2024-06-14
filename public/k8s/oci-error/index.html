@@ -1,0 +1,358 @@
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #faf8f1"
+  lang="zh-CN"
+>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>OCI runtime create failed: expected cgroupsPath - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本文是针对作者遇到的OCI runtime create failed: expected cgroupsPath to be of format \&quot;slice:prefix:name\&quot; for systemd cgroups, got \&quot;/kubepods/burstable/...&quot;的问题总结
+问题总结 问题描述 在特定的k8s node上不能通过containerd启动pod,pod的状态一直是ContainerCreating,通过kubectl describe pod查看pod的状态,发现如下错误:
+OCI runtime create failed: runc create failed: expected cgroupsPath to be of format &#34;slice:prefix:name&#34; for systemd cgroups k8s集群信息 k8s版本: v1.26.13 containerd版本: 1.6.24 Linnux kernel版本: 6.6.20-amd64 Linux发行版: Garden Linux 1443.0 kubeProxyVersion: v1.26.13 kubeletVersion: v1.26.13 问题分析 此问题是因为kubelet配置为使用cgroupfs cgroup驱动程序，而containerd配置为使用sytemd cgroup驱动程序。
+解决方法 为了解决上面的问题，可以从以下两种方式中选择一种：
+让containerd使用cgroupfs驱动程序，需要从/etc/containerd/config.toml中删除SystemdCgroup = true行。 让kubelet使用systemd驱动程序，需要将KubeletConfiguration中的cgroupDriver设置为&quot;systemd&quot;。 扩展阅读 查看Kubelet配置 Kubelet的配置文件通常位于/var/lib/kubelet/位置，可以通过查看该文件来确认Kubelet的cgroup驱动程序配置。关于其他CRIs的配置文件位置可以参考Container Runtimes。" />
+  <meta name="author" content="Tim Wang的技术博客" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+    <nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-6">
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/istio/"
+        >Istio</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/k8s/"
+        >K8s</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/gpu/"
+        >GPU</a
+      >
+      
+    </nav>
+    
+
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">OCI runtime create failed: expected cgroupsPath</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 14, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文是针对作者遇到的<code>OCI runtime create failed: expected cgroupsPath to be of format \&quot;slice:prefix:name\&quot; for systemd cgroups, got \&quot;/kubepods/burstable/...&quot;</code>的问题总结</p>
+</blockquote>
+<h2 id="问题总结">问题总结</h2>
+<h3 id="问题描述">问题描述</h3>
+<p>在特定的k8s node上不能通过<code>containerd</code>启动pod,pod的状态一直是<code>ContainerCreating</code>,通过<code>kubectl describe pod</code>查看pod的状态,发现如下错误:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>OCI runtime create failed: runc create failed: expected cgroupsPath to be of format <span style="color:#e6db74">&#34;slice:prefix:name&#34;</span> <span style="color:#66d9ef">for</span> systemd cgroups
+</span></span></code></pre></div><h3 id="k8s集群信息">k8s集群信息</h3>
+<ul>
+<li>k8s版本: <code>v1.26.13</code></li>
+<li>containerd版本: <code>1.6.24</code></li>
+<li>Linnux kernel版本: <code>6.6.20-amd64</code></li>
+<li>Linux发行版: <code>Garden Linux 1443.0</code></li>
+<li>kubeProxyVersion: <code>v1.26.13</code></li>
+<li>kubeletVersion: <code>v1.26.13</code></li>
+</ul>
+<h3 id="问题分析">问题分析</h3>
+<p>此问题是因为<code>kubelet</code>配置为使用<code>cgroupfs</code> cgroup驱动程序，而<code>containerd</code>配置为使用<code>sytemd</code> cgroup驱动程序。</p>
+<h3 id="解决方法">解决方法</h3>
+<p>为了解决上面的问题，可以从以下两种方式中选择一种：</p>
+<ul>
+<li>让<code>containerd</code>使用<code>cgroupfs</code>驱动程序，需要从<code>/etc/containerd/config.toml</code>中删除<code>SystemdCgroup = true</code>行。</li>
+<li>让<code>kubelet</code>使用<code>systemd</code>驱动程序，需要将<a href="https://kubernetes.io/docs/tasks/administer-cluster/kubelet-config-file/"><code>KubeletConfiguration</code></a>中的<code>cgroupDriver</code>设置为<code>&quot;systemd&quot;</code>。</li>
+</ul>
+<h2 id="扩展阅读">扩展阅读</h2>
+<h3 id="查看kubelet配置">查看<code>Kubelet</code>配置</h3>
+<p><code>Kubelet</code>的配置文件通常位于<code>/var/lib/kubelet/</code>位置，可以通过查看该文件来确认<code>Kubelet</code>的cgroup驱动程序配置。关于其他CRIs的配置文件位置可以参考<a href="https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd">Container Runtimes</a>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>~ ls -lh /var/lib/kubelet/
+</span></span><span style="display:flex;"><span>total 48K
+</span></span><span style="display:flex;"><span>-rw-r--r--  <span style="color:#ae81ff">1</span> root root 1.5K Mar <span style="color:#ae81ff">27</span> 01:35 ca.crt
+</span></span><span style="display:flex;"><span>d---------  <span style="color:#ae81ff">2</span> root root 4.0K Mar <span style="color:#ae81ff">27</span> 01:35 config
+</span></span><span style="display:flex;"><span>-rw-------  <span style="color:#ae81ff">1</span> root root   <span style="color:#ae81ff">62</span> Mar <span style="color:#ae81ff">27</span> 01:35 cpu_manager_state
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> root root 4.0K Mar <span style="color:#ae81ff">27</span> 03:06 device-plugins
+</span></span><span style="display:flex;"><span>-rw-------  <span style="color:#ae81ff">1</span> root root 2.4K Mar <span style="color:#ae81ff">27</span> 01:35 kubeconfig-real
+</span></span><span style="display:flex;"><span>-rw-------  <span style="color:#ae81ff">1</span> root root   <span style="color:#ae81ff">61</span> Mar <span style="color:#ae81ff">27</span> 01:35 memory_manager_state
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> root root 4.0K Mar <span style="color:#ae81ff">27</span> 01:35 pki
+</span></span><span style="display:flex;"><span>drwxr-x---  <span style="color:#ae81ff">6</span> root root 4.0K Mar <span style="color:#ae81ff">27</span> 03:06 plugins
+</span></span><span style="display:flex;"><span>drwxr-x---  <span style="color:#ae81ff">2</span> root root 4.0K Mar <span style="color:#ae81ff">27</span> 01:36 plugins_registry
+</span></span><span style="display:flex;"><span>drwxr-x---  <span style="color:#ae81ff">2</span> root root 4.0K Mar <span style="color:#ae81ff">27</span> 01:35 pod-resources
+</span></span><span style="display:flex;"><span>drwxr-x--- <span style="color:#ae81ff">27</span> root root 4.0K Mar <span style="color:#ae81ff">27</span> 06:23 pods
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> root root 4.0K Mar <span style="color:#ae81ff">27</span> 01:35 volumeplugins
+</span></span></code></pre></div><h3 id="查看containerd配置">查看<code>containerd</code>配置</h3>
+<p><code>containerd</code>的配置文件通常位于<code>/etc/containerd/config.toml</code>位置，可以通过查看该文件来确认<code>containerd</code>的cgroup驱动程序配置。关于其他CRIs的配置文件位置可以参考<a href="https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd">Container Runtimes</a>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>        <span style="color:#f92672">[</span>plugins.<span style="color:#e6db74">&#34;io.containerd.grpc.v1.cri&#34;</span>.containerd.runtimes.runc<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>          base_runtime_spec <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>          cni_conf_dir <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>          cni_max_conf_num <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>          container_annotations <span style="color:#f92672">=</span> <span style="color:#f92672">[]</span>
+</span></span><span style="display:flex;"><span>          pod_annotations <span style="color:#f92672">=</span> <span style="color:#f92672">[]</span>
+</span></span><span style="display:flex;"><span>          privileged_without_host_devices <span style="color:#f92672">=</span> false
+</span></span><span style="display:flex;"><span>          runtime_engine <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>          runtime_path <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>          runtime_root <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>          runtime_type <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;io.containerd.runc.v2&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">[</span>plugins.<span style="color:#e6db74">&#34;io.containerd.grpc.v1.cri&#34;</span>.containerd.runtimes.runc.options<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>            BinaryName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>            CriuImagePath <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>            CriuPath <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>            CriuWorkPath <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>            IoGid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>            IoUid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>            NoNewKeyring <span style="color:#f92672">=</span> false
+</span></span><span style="display:flex;"><span>            NoPivotRoot <span style="color:#f92672">=</span> false
+</span></span><span style="display:flex;"><span>            Root <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>            ShimCgroup <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>            SystemdCgroup <span style="color:#f92672">=</span> true
+</span></span></code></pre></div><h3 id="查看linux-node上的cgroup版本">查看Linux node上的<code>Cgroup</code>版本</h3>
+<p>cgroup 版本取决于正在使用的 Linux 发行版和操作系统上配置的默认 cgroup 版本。 要检查你的发行版使用的是哪个 cgroup 版本，请在该节点上运行 stat -fc %T /sys/fs/cgroup/ 命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>   $ stat -fc %T /sys/fs/cgroup/
+</span></span></code></pre></div><p>如果输出为 cgroup2fs，则表示你用的是cgroup v2。
+如果输出为 tmpfs，则表示你用的是cgroup v1。</p>
+<p>关于cgroup v1和cgroup v2的更多信息，请参考<a href="https://kubernetes.io/docs/setup/production-environment/container-runtimes/#control-groups-cgroups">Control Groups (Cgroups)</a>。</p>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a href="https://github.com/containerd/containerd/issues/4857">Kubernetes: OCI runtime create failed: expected cgroupsPath to be of format &ldquo;slice:prefix:name&rdquo; for systemd cgroups</a></li>
+<li><a href="https://kubernetes.io/docs/tasks/administer-cluster/kubelet-config-file/">Set Kubelet Parameters Via A Configuration File</a></li>
+<li><a href="https://kubernetes.io/docs/setup/production-environment/container-runtimes/#systemd-cgroup-driver">Container Runtimes</a></li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

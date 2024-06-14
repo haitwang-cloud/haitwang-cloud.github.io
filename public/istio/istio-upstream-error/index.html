@@ -1,0 +1,389 @@
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #faf8f1"
+  lang="zh-CN"
+>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>【译】Istio上游连接重置502错误分析与排查指南 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本文是How to debug Istio Upstream Reset 502 UPE (old 503 UC)的中文翻译版本，内容有删减
+Istio 是一个复杂的系统。对于应用程序来说，它的主要组件是 sidecar 容器 Istio-Proxy，它代理 Pod 中所有容器的流量。而这可能会导致一些问题。
+问题重现🐛 在一个拥有超过 40 个不同微服务的大型系统中，QA工程师在单个端点上发现了一个bug。这该端点是 POST 端点，它返回分块（chunked）数据。
+然后我们发现 Istio 返回了 502 错误，Istio日志中还有一个额外的标志：upstream_reset_before_response_started。然而应用程序日志证实了结果是正确的。
+在旧版本的 Istio 中，它会返回 503 错误，带有 UC 标志。
+问题分析⛏️ 让我们看看 curl 的响应，以及 Istio-proxy 的日志：
+kubectl exec -it curl-0 -- curl http://http-chunked:8080/wrong -v &lt; HTTP/1.1 502 Bad Gateway &lt; content-length: 87 &lt; content-type: text/plain &lt; date: Sun, 24 Apr 2022 12:28:28 GMT &lt; server: istio-envoy &lt; x-envoy-decorator-operation: http-chunked." />
+  <meta name="author" content="Tim Wang的技术博客" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+    <nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-6">
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/istio/"
+        >Istio</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/k8s/"
+        >K8s</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/gpu/"
+        >GPU</a
+      >
+      
+    </nav>
+    
+
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">【译】Istio上游连接重置502错误分析与排查指南</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 14, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文是<a href="https://mjasion.pl/posts/kubernetes/how-to-debug-istio-upstream-reset/">How to debug Istio Upstream Reset 502 UPE (old 503 UC)</a>的中文翻译版本，内容有删减</p>
+</blockquote>
+<p><a href="https://istio.io/">Istio</a> 是一个复杂的系统。对于应用程序来说，它的主要组件是 sidecar 容器 Istio-Proxy，它代理 Pod 中所有容器的流量。而这可能会导致一些问题。</p>
+<h2 id="问题重现">问题重现🐛</h2>
+<p>在一个拥有超过 40 个不同微服务的大型系统中，QA工程师在单个端点上发现了一个bug。这该端点是 POST 端点，它返回分块（chunked）数据。</p>
+<p>然后我们发现 Istio 返回了 502 错误，Istio日志中还有一个额外的标志：<code>upstream_reset_before_response_started</code>。然而应用程序日志证实了结果是正确的。</p>
+<blockquote>
+<p>在旧版本的 Istio 中，它会返回 <code>503</code> 错误，带有 <code>UC</code> 标志。</p>
+</blockquote>
+<h2 id="问题分析">问题分析⛏️</h2>
+<p>让我们看看 <code>curl</code> 的响应，以及 Istio-proxy 的日志：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>kubectl exec -it curl-0 -- curl http://http-chunked:8080/wrong -v
+</span></span><span style="display:flex;"><span>&lt; HTTP/1.1 <span style="color:#ae81ff">502</span> Bad Gateway
+</span></span><span style="display:flex;"><span>&lt; content-length: <span style="color:#ae81ff">87</span>
+</span></span><span style="display:flex;"><span>&lt; content-type: text/plain
+</span></span><span style="display:flex;"><span>&lt; date: Sun, <span style="color:#ae81ff">24</span> Apr <span style="color:#ae81ff">2022</span> 12:28:28 GMT
+</span></span><span style="display:flex;"><span>&lt; server: istio-envoy
+</span></span><span style="display:flex;"><span>&lt; x-envoy-decorator-operation: http-chunked.default.svc.cluster.local:8080/*
+</span></span><span style="display:flex;"><span>upstream connect error or disconnect/reset before headers. reset reason: protocol error
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ kubectl logs http-chunked-0 -c istio-proxy
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>2022-04-24T12:23:37.047Z<span style="color:#f92672">]</span> <span style="color:#e6db74">&#34;GET /wrong HTTP/1.1&#34;</span> <span style="color:#ae81ff">502</span> UPE upstream_reset_before_response_started<span style="color:#f92672">{</span>protocol_error<span style="color:#f92672">}</span> - <span style="color:#e6db74">&#34;-&#34;</span> <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">87</span> <span style="color:#ae81ff">1001</span> - <span style="color:#e6db74">&#34;-&#34;</span> <span style="color:#e6db74">&#34;curl/7.80.0&#34;</span> <span style="color:#e6db74">&#34;3987a4cb-2e0e-4de6-af66-7e3447600c73&#34;</span> <span style="color:#e6db74">&#34;http-chunked:8080&#34;</span> <span style="color:#e6db74">&#34;10.244.0.17:8080&#34;</span> inbound|8080<span style="color:#f92672">||</span> 127.0.0.6:39063 10.244.0.17:8080 10.244.0.14:35500 - default
+</span></span></code></pre></div><h2 id="侦查问题">侦查🕵️问题</h2>
+<p>为了分析整个应用程序的流量，我们可以使用 <code>tcpdump</code> 和 <code>Wireshark</code>。此时Istio-proxy 作为 <code>sidecar</code> 运行，并将所有出入 pod 的流量路由到自己的代理进行处理。</p>
+<p><img src="./pics/istio-01.png" alt=""></p>
+<p>有三种方式可以用来嗅探流量：</p>
+<ol>
+<li>在<code>istio-proxy</code>中运行<code>tcpdump</code></li>
+<li>使用 <code>kubectl</code> 插件 <code>ksinff</code> ，它可以从 pod 中转储数据包<a href="https://github.com/eldadru/ksniff">github repo</a></li>
+<li>额外添加一个容器到 pod 中，该容器具有 <code>root</code> 权限和<code>tcpdump</code> 的权限</li>
+</ol>
+<p>上述第一种方式方案默认是不起作用的，因为 <code>istio-proxy</code> 是以非 root 权限运行的。第三种方式是第一种和第二种方案都不起作用时的备选方案。让我们尝试一下 <a href="https://github.com/eldadru/ksniff">ksniff</a></p>
+<h3 id="什么是-ksniff-">什么是 ksniff 🛠️</h3>
+<p><code>ksniff</code> 是一个插件，它可以：</p>
+<ul>
+<li>确定哪个node运行着带有应用程序的 Pod,</li>
+<li>然后部署一个自己的 pod，和node的affinity绑定，并绑定到主机网络，</li>
+<li>在笔记本的 Wireshark 中记录从应用程序中获取的网络数据包
+让我们来执行一下，来嗅探我们的应用程序的网络数据包：</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>kubectl sniff http-chunked-0 -c istio-proxy -p -f <span style="color:#e6db74">&#39;-i lo&#39;</span> -n default
+</span></span></code></pre></div><blockquote>
+<p><strong>参数解析</strong></p>
+<ul>
+<li><code>-p</code>是用来支持在非priviledged的pod上运行，可以查看<a href="https://github.com/eldadru/ksniff#non-privileged-and-scratch-pods">文档</a>来获取更多的信息</li>
+<li><code>-f '-i lo'</code> 传递给 tcpdump 的过滤器，我们想要在 Pod 内部的localhost上嗅探流量</li>
+</ul>
+</blockquote>
+<p>如果此时没有问题，并且你的系统在 PATH 中安装了 Wireshark，<code>ksniff</code> 应该会打开一个新的窗口
+<img src="./pics/istio-02.png" alt=""></p>
+<h3 id="寻找本因-">寻找本因 🔎</h3>
+<p>Wireshark 将会持续跟踪新的数据包记录。这使得我们很难找到我们想要查找的网络数据。我们可以使用filters来帮助搜索。通过设置请求路径、方法、响应代码，我们可以使用filters来找到我们的数据包：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>http.request.uri <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;/wrong&#34;</span>
+</span></span></code></pre></div><p>现在它只显示了一个数据包，即我们需要的请求。Wireshark 允许我们显示整个 TCP 会话：</p>
+<ul>
+<li>右键单击数据包,</li>
+<li>选择 <code>Conversation Filter</code>,</li>
+<li>选择 <code>TCP</code>.</li>
+</ul>
+<p>Wireshark将应用一个filter，然后我们就可以在Wireshark看到 Istio 代理容器和应用程序容器之间的整个通信！</p>
+<p><img src="./pics/istio-03.png" alt=""></p>
+<p>让我们仔细看看上图。前三个记录是TCP三次握手数据包。之后是我们发送的 GET 请求。最有趣的是最后两个数据包。应用程序容器返回了 HTTP 200 OK 响应。<code>istio-proxy</code>随后用 <code>RST</code> 数据包关闭了连接。</p>
+<p><img src="./pics/istio-04.png" alt=""></p>
+<p>这正是我们在日志中看到的 <code>upstream_reset_before_response_started{protocol_error}</code>，但root cause此时仍不明确。</p>
+<h3 id="wireshark的瑞士军刀-">Wireshark的瑞士军刀 🪛</h3>
+<p>然而从多个数据包体中读取 HTTP 数据流的具体细节很困难。但 Wireshark 也有解决办法。我们可以在Wireshark看到来自 L7 层即应用层的的数据。在我们的例子中，它是 HTTP 协议。</p>
+<p>右键单击单个数据包，进入 <code>Follow</code> 选项卡，选择 <code>TCP Stream</code></p>
+<p><img src="./pics/istio-05.png" alt=""></p>
+<p>现在，我们可以检查来自 <code>istio-proxy</code> 的请求是什么，以及应用程序的响应是什么。从上面的图片中，你能有什么启发吗？</p>
+<p>仔细看一下响应，会发现有一个重复的<code>Transfer-Encoding</code> 头。一个以大写字母开头，另一个没有。</p>
+<p>然后，我找到了 Istio 中的这个 <a href="https://github.com/istio/istio/issues/24753#issuecomment-656380098">issue</a>。其中最重要的两点是：</p>
+<blockquote>
+<ol>
+<li>根据 RFC，<code>transfer-encoding: chunked</code> 和 <code>transfer-encoding: chunked, chunked</code> 是等价的</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="2">
+<li><code>transfer-encoding: chunked, chunked</code> 与 <code>transfer-encoding: chunked</code> 的语义不同</li>
+</ol>
+</blockquote>
+<p>为什么HTTP响应被认为是double-chunked的呢？根据 <a href="https://datatracker.ietf.org/doc/html/rfc7230#section-4">Section 4</a> 中的 Transfer Codings，传输编码名称是<strong>不区分大小写</strong>的。</p>
+<h2 id="总结-">总结 📓</h2>
+<p>正如你所看到的，Istio 是我们应用程序中的HTTP 的守护者👮‍♂️。如果应用程序返回了一个double-chunked 响应，那么 Istio 就要求它，否则它就会拒绝处理请求。而<code>curl</code> 会忽略这种不一致性。</p>
+<h3 id="istio-和-transfer-encoding-的技术细节补充">Istio 和 Transfer-Encoding 的技术细节补充</h3>
+<p>好的，以下是针对上述内容的 Istio 和 Transfer-Encoding 的技术细节：</p>
+<h4 id="istio-支持以下-http-传输编码">Istio 支持以下 HTTP 传输编码：</h4>
+<ul>
+<li>chunked：将响应分成多个块，每个块以长度为 1 到 2 个字节的十六进制数表示。</li>
+<li>identity：将响应原样传输。</li>
+<li>deflate：使用 DEFLATE 压缩算法压缩响应。</li>
+<li>gzip：使用 GZIP 压缩算法压缩响应。
+Istio 使用 HTTP 传输编码来实现以下功能：</li>
+</ul>
+<h4 id="transfer-encoding-头">Transfer-Encoding 头</h4>
+<p><code>Transfer-Encoding</code> 头用于指定 HTTP 响应使用何种传输编码。Transfer-Encoding 头的格式如下：</p>
+<p><code>Transfer-Encoding</code>: <code>&lt;transfer-encoding&gt;</code>
+其中，<code>&lt;transfer-encoding&gt;</code> 是传输编码的名称。</p>
+<p>在 Istio 中，如果应用程序返回的响应中包含重复的 <code>Transfer-Encoding</code> 头，Istio 将拒绝该响应。这是因为 Istio 要求响应中只能包含一个 <code>Transfer-Encoding</code> 头。</p>
+<h2 id="如何复现-">如何复现 🏭</h2>
+<p>你可以在 <a href="https://github.com/mjasion/istio-upstream-reset">Github repository</a> 找到重现这个问题的代码。</p>
+<p>上述示例应用程序暴露了两个端点：</p>
+<ul>
+<li><code>/correct</code> -  创建一个流式响应，它返回一个正确的响应</li>
+<li><code>/wrong</code> - 它返回一个错误的响应，因为它的 <code>Transfer-Encoding</code> 是大写<code>Chunked</code>，而不是 小写<code>chunked</code>。</li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

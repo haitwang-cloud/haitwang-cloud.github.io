@@ -6,7 +6,14 @@
     <description>Recent content in Istio on Tim Wang的技术博客</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
-    <lastBuildDate></lastBuildDate>
+    <lastBuildDate>Fri, 14 Jun 2024 17:47:42 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/istio/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【译】Istio上游连接重置502错误分析与排查指南</title>
+      <link>http://localhost:1313/istio/istio-upstream-error/</link>
+      <pubDate>Fri, 14 Jun 2024 17:47:42 +0800</pubDate>
+      <guid>http://localhost:1313/istio/istio-upstream-error/</guid>
+      <description>本文是How to debug Istio Upstream Reset 502 UPE (old 503 UC)的中文翻译版本，内容有删减&#xA;Istio 是一个复杂的系统。对于应用程序来说，它的主要组件是 sidecar 容器 Istio-Proxy，它代理 Pod 中所有容器的流量。而这可能会导致一些问题。&#xA;问题重现🐛 在一个拥有超过 40 个不同微服务的大型系统中，QA工程师在单个端点上发现了一个bug。这该端点是 POST 端点，它返回分块（chunked）数据。&#xA;然后我们发现 Istio 返回了 502 错误，Istio日志中还有一个额外的标志：upstream_reset_before_response_started。然而应用程序日志证实了结果是正确的。&#xA;在旧版本的 Istio 中，它会返回 503 错误，带有 UC 标志。&#xA;问题分析⛏️ 让我们看看 curl 的响应，以及 Istio-proxy 的日志：&#xA;kubectl exec -it curl-0 -- curl http://http-chunked:8080/wrong -v &amp;lt; HTTP/1.1 502 Bad Gateway &amp;lt; content-length: 87 &amp;lt; content-type: text/plain &amp;lt; date: Sun, 24 Apr 2022 12:28:28 GMT &amp;lt; server: istio-envoy &amp;lt; x-envoy-decorator-operation: http-chunked.</description>
+    </item>
   </channel>
 </rss>

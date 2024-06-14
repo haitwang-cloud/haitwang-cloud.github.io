@@ -6,7 +6,14 @@
     <description>Recent content in GPU on Tim Wang的技术博客</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
-    <lastBuildDate></lastBuildDate>
+    <lastBuildDate>Fri, 14 Jun 2024 17:42:52 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/gpu/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>如何解决 `Failed to initialize NVML: Unknown Error` 问题</title>
+      <link>http://localhost:1313/gpu/nvml-error/</link>
+      <pubDate>Fri, 14 Jun 2024 17:42:52 +0800</pubDate>
+      <guid>http://localhost:1313/gpu/nvml-error/</guid>
+      <description>本文是NOTICE: Containers losing access to GPUs with error: &amp;ldquo;Failed to initialize NVML: Unknown Error&amp;rdquo;的中文翻译版本，内容有删减，亲测该方法有效。&#xA;如何解决 Failed to initialize NVML: Unknown Error 问题 概述 在某些特定的情况下，我们发现k8s容器可能会突然从最初连接到的GPU上分离。我们已经确定了这个问题的根本原因，并确定了可能发生这种情况的受影响环境。在本文档的末尾提供了受影响环境的解决方法，直到发布适当的修复为止。&#xA;问题总结 我们发现当使用container来管理GPU工作负载时，用户container可能会突然失去对GPU的访问权限。这种情况发生在使用systemd来管理容器的cgroups时，当触发重新加载任何包含对NVIDIA GPU的引用的Unit文件时（例如，通过执行systemctl daemon-reload）。&#xA;当你的container失去对GPU的访问权限时，你可能会看到类似于以下错误消息：&#xA;Failed to initialize NVML: Unknown Error 一旦发生上述 ⬆️，就需要手动删除受影响的container，然后重新启动它们。&#xA;当container重新启动（手动或自动，取决于是否使用容器编排平台），它将重新获得对GPU的访问权限。&#xA;此问题的根源在于，最近版本的runc要求在/dev/char下面为注入到容器中的任何设备节点提供符号链接。不幸的是，NVIDIA设备并没有这些符号链接，NVIDIA GPU驱动也没有（当前）提供自动创建这些链接的方法&#xA;受影响的环境 如果你使用runc并在高级容器运行时（CRI）启用systemd cgroup管理的环境，那么你可能会受到这个问题的影响&#xA;如果你没有使用systemd来管理cgroup，那么它就不会受到这个问题的影响。 下面是可能会受影响的的环境的详尽列表:&#xA;使用containerd/runc的Docker环境 特定条件 启用了systemd的cgroup驱动程序（例如，在/etc/docker/daemon.json中设置了参数&amp;quot;exec-opts&amp;quot;: [&amp;quot;native.cgroupdriver=systemd&amp;quot;]） 使用了更新的Docker版本，其中systemd cgroup管理被默认设置的（即，在Ubuntu 22.04上）。 Note如果你要检查Docker是否使用systemd cgroup管理，运行以下命令（下面的输出表示启用了systemd cgroup驱动程序）&#xA;$ docker info ... Cgroup Driver: systemd Cgroup Version: 1 使用containerd/runc的Kubernetes环境 特定条件 在containerd配置文件（通常位于：/etc/containerd/config.toml）中设置SystemdCgroup = true，如下所示： [plugins.</description>
+    </item>
   </channel>
 </rss>

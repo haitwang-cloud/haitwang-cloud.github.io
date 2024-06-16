@@ -1,0 +1,468 @@
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #faf8f1"
+  lang="zh-CN"
+>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>k8s 默认的调度器工作机制和策略 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="参考文章: https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/kube-scheduler/
+默认调度器 Kubernetes 调度队列 activeQueue 在 activeQ 里的 Pod,都是下一个调度周期需要调度的对象 当你在 Kubernetes 集群里新创建一个 Pod 的时候,调度器会将这个 Pod 入队到 activeQ 里面 unschedulableQueue 它存储那些由于某种原因而无法被调度的 Pod 当一个 unschedulableQ 里的 Pod 被更新之后,调度器会自动把这个 Pod 移动到 activeQ 里,从而给这些调度失败的 Pod “重新做人”的机会 k8s-scheduler control path Informer Path 启动一系列 Informer,用来监听(Watch)Etcd 中 Pod、Node、Service 等与调度相关的 API 对象的变化。比如,当一个待调度 Pod(即:它的 nodeName 字段是空的)被创建出来之后,调度器就会通过 Pod Informer 的 Handler,将这个待调度 Pod 添加进调度队列 Kubernetes 的调度队列是一个 PriorityQueue(优先级队列) Scheduling Path Scheduling Path 的主要逻辑,就是不断地从调度队列里出队一个 Pod。然后,调用 Predicates 算法进行“过滤”。这一步“过滤”得到的一组 Node,就是所有可以运行这个 Pod 的宿主机列表。
+k8s-scheduler 调度过程 Predicate 从集群所有的节点中,根据调度算法挑选出所有可以运行该 Pod 的节点;" />
+  <meta name="author" content="Tim Wang的技术博客" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+    <nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-6">
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/istio/"
+        >Istio</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/k8s/"
+        >K8s</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/gpu/"
+        >GPU</a
+      >
+      
+    </nav>
+    
+
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">k8s 默认的调度器工作机制和策略</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 16, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><h2 id="参考文章">参考文章:</h2>
+<p><a href="https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/kube-scheduler/">https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/kube-scheduler/</a></p>
+<h1 id="默认调度器"><strong>默认调度器</strong></h1>
+<h3 id="kubernetes-调度队列">Kubernetes <strong>调度队列</strong></h3>
+<h3 id="activequeue">activeQueue</h3>
+<ul>
+<li>在 activeQ 里的 Pod,都是下一个调度周期需要调度的对象</li>
+<li>当你在 Kubernetes 集群里新创建一个 Pod 的时候,<strong>调度器</strong>会将这个 Pod 入队到 activeQ 里面</li>
+</ul>
+<h3 id="unschedulablequeue">unschedulableQueue</h3>
+<ul>
+<li>它存储那些由于某种原因而无法被调度的 Pod</li>
+<li>当一个 unschedulableQ 里的 Pod 被更新之后,<strong>调度器</strong>会自动把这个 Pod 移动到 activeQ 里,从而给这些调度失败的 Pod “重新做人”的机会</li>
+</ul>
+<h2 id="k8s-scheduler-control-path">k8s-scheduler control path</h2>
+<h3 id="informer-path">Informer Path</h3>
+<ul>
+<li>启动一系列 Informer,用来<strong>监听</strong>(Watch)Etcd 中 Pod、Node、Service 等与调度相关的 API 对象的变化。比如,当一个待调度 Pod(即:它的 nodeName 字段是空的)被创建出来之后,<strong>调度器</strong>就会通过 Pod Informer 的 Handler,将这个待调度 Pod 添加进<strong>调度队列</strong></li>
+<li>Kubernetes 的<strong>调度队列</strong>是一个 PriorityQueue(优先级队列)</li>
+</ul>
+<h3 id="scheduling-path">Scheduling Path</h3>
+<p>Scheduling Path 的主要逻辑,就是不断地从<strong>调度队列</strong>里出队一个 Pod。然后,调用 Predicates <strong>算法</strong>进行“过滤”。这一步“过滤”得到的一组 Node,就是所有可以运行这个 Pod 的宿主机列表。</p>
+<h2 id="k8s-scheduler-调度过程">k8s-scheduler <strong>调度过程</strong></h2>
+<h3 id="predicate"><strong>Predicate</strong></h3>
+<p>从集群所有的节点中,根据<strong>调度算法</strong>挑选出所有可以运行该 Pod 的节点;</p>
+<h3 id="priority"><strong>Priority</strong></h3>
+<p>从第一步的结果中,再根据<strong>调度算法</strong>挑选一个最符合条件的节点作为最终结果。</p>
+<p><img src="/pics/scheduler-arch.webp" alt="调度机制"></p>
+<h2 id="调度特性"><strong>调度特性</strong></h2>
+<ul>
+<li>在 Scheduling Path 上,<strong>调度器</strong>会启动多个 Goroutine 以节点为粒度并发执行 Predicates <strong>算法</strong>,从而提高这一阶段的执行效率。而与之类似的,Priorities <strong>算法</strong>也会以 MapReduce 的方式并行计算然后再进行汇总。而在这些所有需要并发的路径上,<strong>调度器</strong>会避免设置任何全局的竞争资源,从而免去了使用锁进行同步带来的巨大的性能损耗</li>
+<li><strong>算法</strong>执行完成后,<strong>调度器</strong>就需要将 Pod 对象的 nodeName 字段的值,修改为上述 Node 的名字。这个步骤在 Kubernetes 里面被称作 Bind。</li>
+<li>Kubernetes 的默认<strong>调度器</strong>在 Bind 阶段,只会更新 Scheduler Cache 里的 Pod 和 Node 的信息。这种基于“乐观”假设的 API 对象更新方式,在 Kubernetes 里被称作 Assume</li>
+<li>Assume 之后,<strong>调度器</strong>才会创建一个 Goroutine 来异步地向 APIServer 发起更新 Pod 的请求,来真正完成 Bind 操作。如果这次异步的 Bind 过程失败了,其实也没有太大关系,等 Scheduler Cache 同步之后一切就会恢复正常</li>
+</ul>
+<h2 id="scheduler-framework">Scheduler Framework</h2>
+<p><img src="/pics/schedule-plugin.webp" alt="调度机制"></p>
+<p>Kubernetes <strong>默认调度器</strong>的可扩展性设计,每一个绿色的箭头都是一个可以插入自定义逻辑的接口</p>
+<h1 id="默认调度器调度策略解析"><strong><strong>默认调度器调度策略解析</strong></strong></h1>
+<h2 id="predicate-1"><strong>Predicate</strong></h2>
+<p>在具体执行的时候, 当开始调度一个 Pod 时,Kubernetes <strong>调度器</strong>会同时启动 16 个 Goroutine,来并发地为集群里的所有 Node 计算 Predicates,最后返回可以运行这个 Pod 的宿主机列表。</p>
+<h2 id="generalpredicates">GeneralPredicates</h2>
+<h3 id="资源限制类">资源限制类</h3>
+<ul>
+<li>PodFitsResources:检查 CPU、内存资源是否足够</li>
+<li>PodFitsHostPorts:<strong>检查 hostPort 端口冲突</strong></li>
+</ul>
+<h3 id="标签匹配类">标签匹配类</h3>
+<ul>
+<li>MatchNodeSelector:<strong>检查节点标签匹配</strong></li>
+<li>CheckServiceAffinity:<strong>优化服务亲和性调度</strong></li>
+</ul>
+<h3 id="节点状态类">节点状态类</h3>
+<ul>
+<li>CheckNodeCondition:<strong>检查节点就绪状态</strong></li>
+<li>CheckNodeLabelPresence:<strong>检查节点必须标签</strong></li>
+</ul>
+<h3 id="污点容忍类">污点容忍类</h3>
+<ul>
+<li>PodToleratesNodeTaints:<strong>检查污点容忍</strong></li>
+</ul>
+<h2 id="卷相关类">卷相关类</h2>
+<ul>
+<li>CheckVolumeBinding:<strong>检查存储卷的绑定模式</strong>是否与 Pod 的请求相匹配。</li>
+<li>NoDiskConflict:<strong>检查已经挂载的卷不会与 Pod 申请的卷存在冲突</strong>。</li>
+<li>MaxEBSVolumeCount:<strong>检查节点上可挂载的最大 EBS 卷数量</strong>。</li>
+<li>MaxGCEPDVolumeCount:<strong>检查节点可挂载的最大 GCE PD 卷数量</strong>。</li>
+<li>MaxAzureDiskVolumeCount:<strong>检查节点上可用的 Azure 磁盘数量</strong>。</li>
+<li>MaxCSIVolumeCountPred:<strong>检查节点上可挂载的最大 CSI 卷数量</strong>。</li>
+<li>NoVolumeZoneConflict:<strong>检查请求的卷不会与拓扑域的限制冲突</strong></li>
+</ul>
+<h2 id="priority-1"><strong>Priority</strong></h2>
+<p>在 Predicates 阶段完成了节点的“过滤”之后,Priorities 阶段的工作就是为这些节点打分。</p>
+<h3 id="priorities分类">Priorities分类</h3>
+<p>常见的默认 Priorities 包含:</p>
+<ul>
+<li>LeastRequestedPriority:得分基于节点上已请求的资源量,请求越少得分越高。</li>
+<li>BalancedResourceAllocation:<strong>优化 CPU 和内存使用率,避免析构</strong>。</li>
+<li>ServiceSpreadingPriority:<strong>尽量均匀分布服务的 Pod</strong>。</li>
+<li>EqualPriority:所有节点优先级相同。</li>
+<li>ImageLocalityPriority:倾向于已经具有镜像的节点。</li>
+<li>NodeAffinityPriority:<strong>优先匹配节点亲和性的节点</strong>。</li>
+<li>NodePreferAvoidPodsPriority:倾向于避开包含特定 pod 的节点。</li>
+<li>TaintTolerationPriority:<strong>优先 Toleration 匹配 Node 的 taint</strong>。</li>
+<li>InterPodAffinityPriority:<strong>优先匹配 Pod 亲和性的节点</strong></li>
+</ul>
+<h3 id="leastrequestedpriority">LeastRequestedPriority</h3>
+<p>得分基于节点上已请求的资源量,请求越少得分越高</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>score <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>cpu<span style="color:#f92672">((</span>capacity-sum<span style="color:#f92672">(</span>requested<span style="color:#f92672">))</span>10/capacity<span style="color:#f92672">)</span> + memory<span style="color:#f92672">((</span>capacity-sum<span style="color:#f92672">(</span>requested<span style="color:#f92672">))</span>10/capacity<span style="color:#f92672">))</span>/2
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>apiVersion: v1
+</span></span><span style="display:flex;"><span>kind: Pod  
+</span></span><span style="display:flex;"><span>spec:
+</span></span><span style="display:flex;"><span>  priorityClassName: system-cluster-critical
+</span></span><span style="display:flex;"><span>// 通过设置 priorityClassName 为系统集群关键类,可以使用 LeastRequestedPriority,把 Pod 调度到请求资源少的节点。
+</span></span></code></pre></div><h3 id="balancedresourceallocation">BalancedResourceAllocation</h3>
+<p><strong>优化 CPU 和内存使用率,避免析构</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>apiVersion: v1
+</span></span><span style="display:flex;"><span>kind: Pod
+</span></span><span style="display:flex;"><span>spec:
+</span></span><span style="display:flex;"><span>  priorityClassName: balanced-resource
+</span></span></code></pre></div><h3 id="servicespreadingpriority">ServiceSpreadingPriority</h3>
+<p><strong>尽量均匀分布服务的 Pod</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>apiVersion: v1  
+</span></span><span style="display:flex;"><span>kind: Pod
+</span></span><span style="display:flex;"><span>spec:
+</span></span><span style="display:flex;"><span>  affinity:  
+</span></span><span style="display:flex;"><span>    podAntiAffinity:
+</span></span><span style="display:flex;"><span>      preferredDuringSchedulingIgnoredDuringExecution:
+</span></span><span style="display:flex;"><span>      - weight: <span style="color:#ae81ff">100</span>
+</span></span><span style="display:flex;"><span>        podAffinityTerm:
+</span></span><span style="display:flex;"><span>          labelSelector:
+</span></span><span style="display:flex;"><span>            matchExpressions:
+</span></span><span style="display:flex;"><span>            - key: app
+</span></span><span style="display:flex;"><span>              operator: In
+</span></span><span style="display:flex;"><span>              values:
+</span></span><span style="display:flex;"><span>              - store
+</span></span><span style="display:flex;"><span>          topologyKey: kubernetes.io/hostname
+</span></span><span style="display:flex;"><span>// 这里使用 podAntiAffinity 让具有 app<span style="color:#f92672">=</span>store 标签的 Pod 尽量分布到各个节点上。  
+</span></span></code></pre></div><h3 id="nodeaffinitypriority">NodeAffinityPriority</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>apiVersion: v1
+</span></span><span style="display:flex;"><span>kind: Pod
+</span></span><span style="display:flex;"><span>spec:
+</span></span><span style="display:flex;"><span>  affinity:
+</span></span><span style="display:flex;"><span>    nodeAffinity:
+</span></span><span style="display:flex;"><span>      requiredDuringSchedulingIgnoredDuringExecution:
+</span></span><span style="display:flex;"><span>        nodeSelectorTerms:
+</span></span><span style="display:flex;"><span>        - matchExpressions:
+</span></span><span style="display:flex;"><span>          - key: gpu 
+</span></span><span style="display:flex;"><span>            operator: Exists
+</span></span><span style="display:flex;"><span>//这里使用 nodeAffinity 让 Pod 优先调度到有 GPU 的节点上。
+</span></span></code></pre></div><h1 id="优先级与抢占机制"><strong><strong>优先级与抢占机制</strong></strong></h1>
+<h2 id="优先级priority-"><strong>优先级</strong>(Priority )</h2>
+<p><strong>优先级</strong>机制用于给不同的 Pod 分配一个权重,以确定哪些 Pod 更重要,应该更优先地被调度。默认<strong>调度器</strong>使用<strong>优先级</strong>来对节点上的所有 Pod 进行排序,从而决定哪些 Pod 可以首先获得可用资源并被调度。</p>
+<ul>
+<li>Pod 可以通过设置 <strong><code>spec.priorityClassName</code></strong> 字段来定义自己的<strong>优先级</strong>。每个 <strong><code>priorityClassName</code></strong> 都对应一个优先级值,这些值可以配置在 kube-scheduler 的配置文件中。默认情况下,Kubernetes 预定义了几个优先级类,例如 system-node-critical、system-cluster-critical 等,它们用于标记重要的系统 Pod。</li>
+<li><strong>优先级</strong>机制不是强制性的,如果 Pod 没有指定 <strong><code>priorityClassName</code></strong>,它将被赋予默认的优先级。</li>
+<li>PriorityClass 和Pod使用 priority class例子</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>apiVersion: scheduling.k8s.io/v1beta1 
+</span></span><span style="display:flex;"><span>kind: PriorityClass
+</span></span><span style="display:flex;"><span>metadata:
+</span></span><span style="display:flex;"><span>  name: high-priority
+</span></span><span style="display:flex;"><span>value: <span style="color:#ae81ff">1000000</span>
+</span></span><span style="display:flex;"><span>globalDefault: false
+</span></span><span style="display:flex;"><span>description: <span style="color:#e6db74">&#34;This priority class should be used for high priority service pods only.&#34;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">labels</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">env</span>: <span style="color:#ae81ff">test  </span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">containers</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">nginx</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">imagePullPolicy</span>: <span style="color:#ae81ff">IfNotPresent</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">priorityClassName</span>: <span style="color:#ae81ff">high-priority</span>
+</span></span></code></pre></div><h2 id="抢占preemption"><strong>抢占</strong>(Preemption)</h2>
+<h3 id="抢占机制"><strong>抢占机制</strong></h3>
+<p><strong>抢占机制</strong>允许 Kubernetes 在节点资源不足时,通过驱逐较低优先级的 Pod 来为优先级更高的 Pod 腾出资源。</p>
+<ul>
+<li>节点资源不足时,kube-scheduler 将按照<strong>优先级</strong>从高到低的顺序检查 Pod,直到找到可以驱逐的低优先级 Pod 来释放资源。被驱逐的 Pod 将会被重新调度到其他节点上。</li>
+<li><strong>抢占机制</strong>通过 kube-scheduler 自动完成,无需用户手动干预。但需要注意的是,某些 Pod 可能会被标记为不可抢占,以防止它们在资源不足时被驱逐。</li>
+<li>当抢占过程发生时,抢占者并不会立刻被调度到被抢占的 Node 上。事实上,调度器只会将抢占者的 spec.nominatedNodeName 字段,设置为被抢占的 Node 的名字。然后,抢占者会重新进入下一个调度周期,然后在新的调度周期里来决定是不是要运行在被抢占的节点上。这当然也就意味着,即使在下一个调度周期,调度器也不会保证抢占者一定会运行在被抢占的节点上</li>
+<li>鉴于优雅退出期间,集群的可调度性可能会发生的变化,把抢占者交给下一个调度周期再处理,是一个非常合理的选择</li>
+</ul>
+<h2 id="kubernetes-抢占调度流程">Kubernetes <strong>抢占</strong>调度流程</h2>
+<h3 id="执行流程">执行流程</h3>
+<ol>
+<li>当一个Pod被标记为<strong>抢占</strong>(preemption)时,<strong>调度器</strong>会为其查找符合条件的牺牲Pod。</li>
+<li><strong>调度器</strong>会根据<strong>优先级</strong>、资源请求、调度器配置等条件来选择牺牲Pod。</li>
+<li>其中,<strong>优先级</strong>最低的Pod最有可能被选为牺牲Pod。此外,资源请求越大的Pod被抢占的可能性也越大。</li>
+<li>在找到可行的牺牲Pod后,<strong>调度器</strong>会发出抢占动作,回收牺牲Pod所在Node上的对应资源。</li>
+<li>被抢占的牺牲Pod会被删除或驱逐,释放节点资源。</li>
+<li>释放出的资源会为抢占Pod提供运行所需的资源,从而实现抢占Pod的调度。</li>
+<li>在抢占过程中,<strong>调度器</strong>会尽量确保服务质量,最小化对EXISTING工作负载的影响。</li>
+<li>如果在合理时间内无法找到合适的牺牲Pod,则抢占操作会被取消</li>
+</ol>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/diff-of-affinity-and-taint/"
+      ><span>k8s Affinity与 taint/toleration的区别</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

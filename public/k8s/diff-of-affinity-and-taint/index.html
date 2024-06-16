@@ -1,0 +1,390 @@
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #faf8f1"
+  lang="zh-CN"
+>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>k8s Affinity与 taint/toleration的区别 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="k8s Affinity与 taint/toleration的区别解释 k8s taint toleration的介绍和使用 参考文章: https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/taint-and-toleration/
+Kubernetes 中 Taint 和 Toleration 是配合使用来进行污点容忍的机制,可以用来避免 Pod 被调度到不合适的 Node 上。
+Taint 的作用: Taint 应用于 Node 上,用于标记该 Node 不宜调度某些 Pod。添加 Taint 后,如果 Pod 没有对应 Toleration,则不会被调度到该 Node。
+Taint 效果取决于其效果:
+NoSchedule:表示不能将 Pod 调度到该 Node。 PreferNoSchedule:表示尽量避免将 Pod 调度到该 Node。 NoExecute:表示不能将 Pod 调度到该 Node,如果已在 Node 上运行也会驱逐。 Toleration 的作用: Toleration 设置在 Pod 上,用于容忍(Tolerate)某些 Taint。如果 Pod 可以容忍 Node 的 Taint,则可以调度到该 Node。
+Toleration 指定三个参数:
+key:Taint 的 key operator:TolerationOperator 操作符,如 &ldquo;Equal&rdquo;、&ldquo;Exists&rdquo; effect:Taint 效果,可选 NoSchedule、PreferNoSchedule 或 NoExecute Taint 和 Toleration 的使用:" />
+  <meta name="author" content="Tim Wang的技术博客" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+    <nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-6">
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/istio/"
+        >Istio</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/k8s/"
+        >K8s</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/gpu/"
+        >GPU</a
+      >
+      
+    </nav>
+    
+
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">k8s Affinity与 taint/toleration的区别</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 16, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><h1 id="k8s-affinity与-tainttoleration的区别解释">k8s <strong>Affinity与 taint/toleration的区别解释</strong></h1>
+<h2 id="k8s-taint-toleration的介绍和使用">k8s <strong>taint toleration的介绍和使用</strong></h2>
+<p>参考文章: <a href="https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/taint-and-toleration/">https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/taint-and-toleration/</a></p>
+<p>Kubernetes 中 Taint 和 Toleration 是配合使用来进行污点容忍的机制,可以用来避免 Pod 被调度到不合适的 Node 上。</p>
+<h3 id="taint-的作用"><strong>Taint 的作用:</strong></h3>
+<p>Taint 应用于 Node 上,用于标记该 Node 不宜调度某些 Pod。添加 Taint 后,如果 Pod 没有对应 Toleration,则不会被调度到该 Node。</p>
+<p>Taint 效果取决于其效果:</p>
+<ul>
+<li>NoSchedule:表示不能将 Pod 调度到该 Node。</li>
+<li>PreferNoSchedule:表示尽量避免将 Pod 调度到该 Node。</li>
+<li>NoExecute:表示不能将 Pod 调度到该 Node,如果已在 Node 上运行也会驱逐。</li>
+</ul>
+<h3 id="toleration-的作用"><strong>Toleration 的作用:</strong></h3>
+<p>Toleration 设置在 Pod 上,用于容忍(Tolerate)某些 Taint。如果 Pod 可以容忍 Node 的 Taint,则可以调度到该 Node。</p>
+<p>Toleration 指定三个参数:</p>
+<ul>
+<li>key:Taint 的 key</li>
+<li>operator:TolerationOperator 操作符,如 &ldquo;Equal&rdquo;、&ldquo;Exists&rdquo;</li>
+<li>effect:Taint 效果,可选 NoSchedule、PreferNoSchedule 或 NoExecute</li>
+</ul>
+<p><strong>Taint 和 Toleration 的使用:</strong></p>
+<ol>
+<li>
+<p>在 Node 上添加 Taint:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#ae81ff">kubectl taint nodes node1 key=value:NoSchedule</span>
+</span></span></code></pre></div></li>
+<li>
+<p>在 Pod spec 中添加 Toleration:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">tolerations</span>:
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">key</span>: <span style="color:#e6db74">&#34;key&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">operator</span>: <span style="color:#e6db74">&#34;Equal&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#34;value&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">effect</span>: <span style="color:#e6db74">&#34;NoSchedule&#34;</span>
+</span></span></code></pre></div></li>
+<li>
+<p>这样带有 Toleration 的 Pod 就可以调度到被 Taint 的 Node 上了。</p>
+</li>
+</ol>
+<p>总结:Taint 和 Toleration 实现污点容忍,可以灵活控制 Pod 的调度,避免调度到不合适的 Node。</p>
+<h2 id="k8s-affinity的介绍和使用">k8s Affinity<strong>的介绍和使用</strong></h2>
+<h3 id="参考文章">参考文章：</h3>
+<p><a href="https://kubernetes.io/zh-cn/docs/reference/kubernetes-api/workload-resources/pod-v1/#NodeAffinity">https://kubernetes.io/zh-cn/docs/reference/kubernetes-api/workload-resources/pod-v1/#NodeAffinity</a></p>
+<p>Kubernetes 中的 Affinity 主要分为 nodeAffinity、podAffinity 和 podAntiAffinity 三种,用于 attract 和 repel Pod 在 Node 上的调度。</p>
+<h3 id="nodeaffinity"><strong>nodeAffinity</strong></h3>
+<p>nodeAffinity 根据节点的标签引入吸引 Pod 到特定节点的作用力。例如:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">nodeAffinity</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">requiredDuringSchedulingIgnoredDuringExecution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">nodeSelectorTerms</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">matchExpressions</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">key</span>: <span style="color:#ae81ff">disktype</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">operator</span>: <span style="color:#ae81ff">In</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">values</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#ae81ff">ssd</span>
+</span></span></code></pre></div><p>这个示例会尽量将 Pod 调度到带有 label <code>disktype=ssd</code> 的 Node 上。</p>
+<h3 id="podaffinity"><strong>podAffinity</strong></h3>
+<p>podAffinity 试图将属于同一个服务的 Pod 调度到相同的拓扑域,例如:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">podAffinity</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">requiredDuringSchedulingIgnoredDuringExecution</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">labelSelector</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">matchExpressions</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">key</span>: <span style="color:#ae81ff">app</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">operator</span>: <span style="color:#ae81ff">In</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">values</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#ae81ff">store</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">topologyKey</span>: <span style="color:#e6db74">&#34;kubernetes.io/hostname&#34;</span>
+</span></span></code></pre></div><p>这个示例会尽量将标签为 <code>app=store</code> 的 Pod 调度到相同 Node。</p>
+<h3 id="podantiaffinity"><strong>podAntiAffinity</strong></h3>
+<p>podAntiAffinity 与 podAffinity 相反,尽量将 Pod 分散到不同拓扑域,例如:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">podAntiAffinity</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">requiredDuringSchedulingIgnoredDuringExecution</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">labelSelector</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">matchExpressions</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">key</span>: <span style="color:#ae81ff">app</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">operator</span>: <span style="color:#ae81ff">In</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">values</span>:
+</span></span><span style="display:flex;"><span>          - <span style="color:#ae81ff">web</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">topologyKey</span>: <span style="color:#e6db74">&#34;kubernetes.io/hostname&#34;</span>
+</span></span></code></pre></div><p>这个示例会尽量不将 <code>app=web</code> 的 Pod 调度到相同 Node。</p>
+<p>综上,Affinity 提供了强大的调度吸引策略,能满足复杂的业务需求。</p>
+<h2 id="affinity与-taint-toleration的区别"><strong>Affinity与 taint toleration的</strong>区别</h2>
+<p>Affinity 和 taint toleration 在 Kubernetes 中都是用于影响 Pod 的调度的机制,主要区别如下:</p>
+<ul>
+<li>Affinity 是一种让 Pod 被吸引到满足指定规则的节点上的机制。它分为 nodeAffinity、podAffinity 和 podAntiAffinity 两种。</li>
+<li>nodeAffinity 允许 Pod 根据节点的标签来调度,podAffinity 和 podAntiAffinity 分别定义了 Pod 之间的亲和性和反亲和性。</li>
+<li>Taint 和 toleration 则是让节点可以排斥不符合要求的 Pod 的机制。Taint 应用于节点上,toleration 应用于 Pod 上。</li>
+<li>如果 Pod 可以容忍(tolerate)节点的 taint,则该 Pod 可以被调度到该节点上,否则不能。</li>
+<li>Affinity 是“吸引”机制,taint toleration 是“排斥”机制。前者增加调度到目标节点的可能性,后者减少不合适节点的可能性。</li>
+<li><strong>Affinity 优先于 taint toleration。如果一个节点既有匹配的亲和性要求,又存在不可容忍的 taint,那么 Pod 还是会被调度到该节点</strong>。</li>
+<li>通常 Affinity 和 taint toleration 结合使用,实现让指定的 Pod 优先调度到特定节点的效果。</li>
+</ul>
+<p>总体来说,Affinity 是 positives 的吸引策略,taint toleration 是 negatives 的排斥策略。两者共同形成 Kubernetes 强大的调度机制。</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8s-schedule-road-path/"
+      ><span class="mr-1.5">←</span><span>k8s 默认的调度器工作机制和策略</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8s_informers/"
+      ><span>[译]K8s informers的介绍</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,448 @@
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #faf8f1"
+  lang="zh-CN"
+>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>[译]Kubernetes headless Service介绍 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本文由 headless-services-in-kubernetes的中文翻译版本，内容有删减
+Kubernetes headless Service是一个没有专用负载均衡器的service。这种类型的Service 通常用于有状态的应用程序。例如数据库，这些应用要求必须为每个实例维护一致的网络标识。如果客户端需要连接所有 Pod，则无法使用常规 Kubernetes的 ClusterIP Service来完成此操作。Service将无法将每个连接转发到随机选择的容器。
+常规的Service是如何工作的？（How does Regular Service Object Works?） 接下来我们通过下面的yaml配置文件来创建一个常规的Kubernetes ClusterIP Service。
+cat &lt;&lt;EOF | kubectl apply -f - --- apiVersion: apps/v1 kind: Deployment metadata: name: normal-nginx labels: app: normal-nginx # Deployment labels to match with replicaset labels and pods labels spec: replicas: 3 selector: matchLabels: app: normal-nginx # Replicaset to manage pods with labels template: metadata: labels: app: normal-nginx # Pods labels spec: containers: - name: nginx image: nginx --- apiVersion: v1 # v1 is the default API version." />
+  <meta name="author" content="Tim Wang的技术博客" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+    <nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-6">
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/istio/"
+        >Istio</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/k8s/"
+        >K8s</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/gpu/"
+        >GPU</a
+      >
+      
+    </nav>
+    
+
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">[译]Kubernetes headless Service介绍</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 16, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文由 <a href="https://www.goglides.dev/bkpandey/headless-services-in-kubernetes-what-why-and-how-39fl">headless-services-in-kubernetes</a>的中文翻译版本，内容有删减</p>
+</blockquote>
+<p>Kubernetes headless Service是一个没有专用负载均衡器的service。这种类型的Service 通常用于<strong>有状态的</strong>应用程序。例如数据库，这些应用要求必须为每个实例维护一致的网络标识。如果客户端需要连接所有 Pod，则无法使用常规 Kubernetes的 ClusterIP Service来完成此操作。Service将无法将每个连接转发到随机选择的容器。</p>
+<h3 id="常规的service是如何工作的how-does-regular-service-object-works">常规的Service是如何工作的？（How does Regular Service Object Works?）</h3>
+<p>接下来我们通过下面的yaml配置文件来创建一个常规的Kubernetes ClusterIP Service。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>cat <span style="color:#e6db74">&lt;&lt;EOF | kubectl apply -f -
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">---
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">apiVersion: apps/v1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">kind: Deployment
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">metadata:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  name: normal-nginx
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  labels:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    app: normal-nginx # Deployment labels to match with replicaset labels and pods labels
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">spec:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  replicas: 3
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  selector:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    matchLabels:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      app: normal-nginx # Replicaset to manage pods with labels
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  template:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    metadata:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      labels:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        app: normal-nginx # Pods labels
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    spec:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      containers:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        - name: nginx
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          image: nginx
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">---
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">apiVersion: v1 # v1 is the default API version. It is the latest version of the Core API.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">kind: Service # Service is a collection of Pods that are running on a host.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">metadata:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  name: normal-nginx # name of the service
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  labels:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    app: normal-nginx # label for the service
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">spec:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  selector:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    app: normal-nginx # label for the service
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  ports:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  - port: 80 # port to expose
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    targetPort: 80 # container port
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    protocol: TCP # protocol to use for the port mapping ( example TCP, UDP, or SCTP)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  type: ClusterIP # type of service to create, ClusterIP is the default. Others are NodePort, LoadBalancer, and ExternalName.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">EOF</span>
+</span></span></code></pre></div><p>Output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>deployment.apps/normal-nginx created
+</span></span><span style="display:flex;"><span>service/normal-nginx created
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">``</span>
+</span></span><span style="display:flex;"><span>接下来我们通过下面的命令来验证我们的Service是否创建成功。
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">```</span>Shell 
+</span></span><span style="display:flex;"><span>kubectl get svc -o wide | grep normal-nginx
+</span></span></code></pre></div><p>Output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>normal-nginx   ClusterIP  10.96.141.251  &lt;none&gt;    80/TCP  48s   app<span style="color:#f92672">=</span>normal-nginx
+</span></span></code></pre></div><p>然后是 <code>normal-nginx</code> pods的验证。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>kubectl get pods -o wide | grep normal-nginx
+</span></span></code></pre></div><p>Output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>normal-nginx-d98bff4-jk65q    1/1   Running  <span style="color:#ae81ff">0</span>     74s   10.244.2.20  kind-worker2  &lt;none&gt;      &lt;none&gt;
+</span></span><span style="display:flex;"><span>normal-nginx-d98bff4-sbzf9    1/1   Running  <span style="color:#ae81ff">0</span>     74s   10.244.1.19  kind-worker  &lt;none&gt;      &lt;none&gt;
+</span></span><span style="display:flex;"><span>normal-nginx-d98bff4-wbj7q    1/1   Running  <span style="color:#ae81ff">0</span>     74s   10.244.2.19  kind-worker2  &lt;none&gt;      &lt;none&gt;
+</span></span></code></pre></div><p>Now if you run <code>nslookup</code> to <code>normal-nginx</code> service object you will see following output:<br>
+现在，如果您运行 <code>nslookup</code> 到 <code>normal-nginx</code> 服务对象，您将看到以下输出：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>kubectl run -it --rm debug --image<span style="color:#f92672">=</span>tutum/dnsutils --restart<span style="color:#f92672">=</span>Never nslookup normal-nginx
+</span></span></code></pre></div><p>Output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>Server:     10.96.0.10
+</span></span><span style="display:flex;"><span>Address:    10.96.0.10#53
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Name:   normal-nginx.default.svc.cluster.local
+</span></span><span style="display:flex;"><span>Address: 10.96.141.251
+</span></span><span style="display:flex;"><span>pod <span style="color:#e6db74">&#34;debug&#34;</span> deleted
+</span></span></code></pre></div><p><code>nslookup normal-nginx</code> 的结果是 <code>ClusterIP</code> 地址。</p>
+<h3 id="headless-service是如何工作的how-does-headless-service-object-works">Headless Service是如何工作的（How does Headless Service Object Works?</h3>
+<p>对于客户端来说，要连接到所有的pod，它需要知道每个pod的IP地址。一种选择是让客户端调用Kubernetes API server，并通过API调用获取pod和IP地址的列表。但是，使用APIserver并不理想，因为您应该始终努力减少API调用以提高性能。另一种选择是使用Headless Service，它将为您提供一个静态IP地址列表，您可以使用该列表连接到pod。</p>
+<p><a href="https://www.goglides.dev/images/K3aFm27H4vF5tsNCAVipQdzUHLGkEHB_ZuiF0zsv0ZY/w:880/mb:500000/ar:1/aHR0cHM6Ly93d3ct/Z29nbGlkZXMtZGV2/LnMzLmFtYXpvbmF3/cy5jb20vdXBsb2Fk/cy9hcnRpY2xlcy8y/bXVpOWZsZHhqOXpm/b2wzdDl5Ny5wbmc"><img src="https://www.goglides.dev/images/K3aFm27H4vF5tsNCAVipQdzUHLGkEHB_ZuiF0zsv0ZY/w:880/mb:500000/ar:1/aHR0cHM6Ly93d3ct/Z29nbGlkZXMtZGV2/LnMzLmFtYXpvbmF3/cy5jb20vdXBsb2Fk/cy9hcnRpY2xlcy8y/bXVpOWZsZHhqOXpm/b2wzdDl5Ny5wbmc" alt=""></a></p>
+<p>Kubernetes 允许客户端查找服务中pod的IP地址。通常，当您查找服务地址时，您会得到一个单独的IP地址：负载均衡器或ClusterIP的地址。如果您使用Headless Service时，那么Kubernetes将为您提供所有pod的IP地址列表。客户端可以通过执行DNS A记录查找来查找服务的所有pod的IPs。然后，客户端可以使用该信息连接到一个、多个或所有pod。</p>
+<p>Headless service在进行单个pod的健康检查时也很有用。使用常规Service时，健康检查是在负载均衡器上执行的，该负载均衡器仅将流量转发到pod。这意味着pod可能不健康，但负载均衡器永远不会知道，因为它只是转发流量。使用headless service时，健康检查是在单个pod上执行的，因此您可以确保流量路由到健康的pod。</p>
+<p>接下来，我们来运行相同的测试。首先，创建部署对象和headless service。在服务规范中将clusterIP字段设置为None意味着Kubernetes将不会为服务分配集群IP地址，您可以按照以下方式执行：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>cat <span style="color:#e6db74">&lt;&lt;EOF | kubectl apply -f -
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">apiVersion: apps/v1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">kind: Deployment
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">metadata:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  name: headless-nginx
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  labels:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    app: headless-nginx # Deployment labels to match with replicaset labels and pods labels
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">spec:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  replicas: 3
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  selector:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    matchLabels:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      app: headless-nginx # Replicaset to manage pods with labels
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  template:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    metadata:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      labels:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        app: headless-nginx # Pods labels
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    spec:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      containers:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        - name: nginx
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          image: nginx
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">---
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">apiVersion: v1 # v1 is the default API version. It is the latest version of the Core API.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">kind: Service # Service is a collection of Pods that are running on a host.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">metadata:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  name: headless-nginx # name of the service
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  labels:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    app: headless-nginx # label for the service
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">spec:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  selector:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    app: headless-nginx # label for the service
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  clusterIP: None # this is will point directly to pods, nslookup will rerun pod ips
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  ports:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  - port: 80 # port to expose
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    targetPort: 80 # container port
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    protocol: TCP # protocol to use for the port mapping ( example TCP, UDP, or SCTP)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  type: ClusterIP # type of service to create, ClusterIP is the default. Others are NodePort, LoadBalancer, and ExternalName.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">EOF</span>
+</span></span></code></pre></div><p>你会得到下面的输出</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>deployment.apps/headless-nginx created
+</span></span><span style="display:flex;"><span>service/headless-nginx created
+</span></span></code></pre></div><p>继续验证</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>kubectl get svc -o wide
+</span></span></code></pre></div><p>Output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>NAME       TYPE    CLUSTER-IP  EXTERNAL-IP  PORT<span style="color:#f92672">(</span>S<span style="color:#f92672">)</span>  AGE   SELECTOR
+</span></span><span style="display:flex;"><span>headless-nginx  ClusterIP  None     &lt;none&gt;    80/TCP  43s   app<span style="color:#f92672">=</span>headless-nginx
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>kubectl get pods -o wide
+</span></span></code></pre></div><p>Output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>NAME               READY  STATUS  RESTARTS  AGE  IP      NODE      NOMINATED NODE  READINESS GATES
+</span></span><span style="display:flex;"><span>headless-nginx-5795b5d5db-9sv8k  1/1   Running  <span style="color:#ae81ff">0</span>     71s  10.244.2.18  kind-worker2  &lt;none&gt;      &lt;none&gt;
+</span></span><span style="display:flex;"><span>headless-nginx-5795b5d5db-d5xmn  1/1   Running  <span style="color:#ae81ff">0</span>     71s  10.244.1.18  kind-worker  &lt;none&gt;      &lt;none&gt;
+</span></span><span style="display:flex;"><span>headless-nginx-5795b5d5db-dgwzq  1/1   Running  <span style="color:#ae81ff">0</span>     71s  10.244.1.17  kind-worker  &lt;none&gt;      &lt;none&gt;
+</span></span></code></pre></div><p>接下来运行<code>nslookup</code>测试，如下所示</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>kubectl run -it --rm debug --image<span style="color:#f92672">=</span>tutum/dnsutils --restart<span style="color:#f92672">=</span>Never nslookup headless-nginx
+</span></span></code></pre></div><p>Output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>Server:     10.96.0.10
+</span></span><span style="display:flex;"><span>Address:    10.96.0.10#53
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Name:   headless-nginx.default.svc.cluster.local
+</span></span><span style="display:flex;"><span>Address: 10.244.1.18
+</span></span><span style="display:flex;"><span>Name:   headless-nginx.default.svc.cluster.local
+</span></span><span style="display:flex;"><span>Address: 10.244.1.17
+</span></span><span style="display:flex;"><span>Name:   headless-nginx.default.svc.cluster.local
+</span></span><span style="display:flex;"><span>Address: 10.244.2.18
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pod <span style="color:#e6db74">&#34;debug&#34;</span> deleted
+</span></span></code></pre></div><p>可以看到，<code>nslookup</code>命令为headless service返回了三个IP地址。</p>
+<h3 id="headless-servicey应用场景some-of-the-use-cases-of-headless-service">headless servicey应用场景（Some of the use cases of headless service）</h3>
+<ul>
+<li>数据库复制和集群：数据库中的数据在两个或多个数据库之间同步。MongoDB，Couchbase等服务使用headless服务来集群和同步数据库之间的数据。</li>
+<li>创建有状态服务：StatefulSet是用于管理有状态应用程序的工作负载API对象。它管理一组Pod的部署和缩放，并提供有关这些Pod的顺序和唯一性的保证。Headless服务使用稳定的主机名和IP地址暴露StatefulSet的Pod。RabbitMQ或Kafka（或任何其他消息代理服务）可以使用有状态集来部署到Kubernetes。</li>
+<li>容器编排:不建议将容器编排工具（如marathon，kube-scheduler等）直接暴露给互联网，但headless服务可以帮助您在内部暴露这些工具，并使它们从外部世界保持安全。</li>
+<li>TLS终止：使用headless服务，我们可以在任何节点上终止TLS，然后可以在未加密的连接上进行通信。</li>
+<li>服务发现：正如我们在示例中看到的，headless服务可以用于执行<code>nslookup</code>命令并获取Pod的IP地址。</li>
+</ul>
+<h3 id="headless-service的缺点drawbacks-of-headless-service">headless service的缺点(Drawbacks of headless service)</h3>
+<p>Headless service也存在一些缺点。主要的一个是它可能更难调试，因为您必须查看单个pod，而不是单个负载均衡器。这通常不是一个大问题，因为大多数服务都有某种日志记录，可以帮助您调试问题。</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/learning-k8s-by-running-app/"
+      ><span class="mr-1.5">←</span><span>从应用开发者的角度来学习K8S</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8s-vs-k3s/"
+      ><span>[译]K3s与K8s的区别是什么?</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

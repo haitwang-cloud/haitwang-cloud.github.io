@@ -1,0 +1,445 @@
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #faf8f1"
+  lang="zh-CN"
+>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>[译]在K8s controller-runtime和client-go中实现速率限制 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本文是Rate Limiting in controller-runtime and client-go的中文翻译版本，内容有删减
+如果你已经编写过 Kubernetes controller，那么你可能熟悉controller-runtime, 或至少了解 client-go。 controller-runtime 是一个构建控制器的框架，允许用户设置多个控制器，并由控制器管理器进行管理。在幕后， controller-runtime 使用 client-go与 Kubernetes API Server 进行通信，以监视资源的变化并将其传递给相关的控制器。它处理了许多与控制器相关的方面，包括缓存、队列等。其中一个组件是 速率限制（rate limiting）。
+什么是rate limiting? 这部分内容是对速率限制的基本概述。如果你已经对这些概念非常熟悉，可以跳过本节，但这些内容可能有助于后续部分的框架构建。
+自计算机网络问世以来，限流（Rate Limiting）就一直存在于软件中，而在此之前，它也存在于许多其他人类流程中。实际上，在讨论限流时，你可能会发现与你日常执行的任务以及公司和社区的组织模式存在许多相似之处。
+限流对于实现任何两方之间的有效通信都是必要的。软件通过在不同的执行过程之间传递消息进行通信，无论是通过操作系统、专用硬件设备、网络还是三者的组合。在客户端-服务器模型中，客户端通常会请求服务器代表其执行某些工作。服务器执行这些工作需要时间，这意味着如果许多客户端同时要求服务器执行工作，而服务器没有足够的容量来处理它们，那么服务器就需要做出选择。
+此时服务器可以：
+丢弃没有响应的请求。 等待请求的响应，直到可以完全执行工作。 响应请求，指示当前无法执行工作，但客户端应在将来的某个时间再次提出请求。 将工作添加到队列中，并响应请求，告知客户端在完成工作时会通知客户端。 如果客户端和服务器彼此非常了解（即它们对彼此的通信模式非常熟悉），那么上述任何一种方法都可以作为有效的通信模型。想想你与生活中其他人的关系。你可能认识那些以各种方式进行沟通的人，但如果通信方式是彼此熟知的，你可能能够与所有这些人有效地合作。
+举个例子，我的伴侣喜欢提前计划事情，不喜欢意外变化。另一方面，我的大学室友不喜欢计划，更喜欢在最后一刻做决定。我可能更喜欢其中一种沟通方式，但是我非常了解他们两个，因为我们可以相互调整我们的沟通模式，所以我可以与任何一方有效地相处。
+不幸的是，与人类一样，软件也可能不可靠。例如，服务器可能会表示它将在将来的某个时间响应请求，要求客户端在该时间再次请求执行工作，但客户端与服务器之间的连接可能被阻塞，导致请求被丢弃。同样地，客户端可能会收到回复，表示工作在将来的某个时间才能执行，但它可能会继续请求立即执行工作。因为这些原因（以及我们今天不会探讨的许多其他原因），服务器端和客户端的限流都是构建可伸缩、可靠系统所必需的。
+因为 controller-runtime 和 client-go 是构建 Kubernetes 控制器的框架，而控制器是 Kubernetes API 服务器的客户端，所以今天我们主要关注客户端的限流。
+什么是控制器（controller） 如果你对controller-runtime已经非常熟悉的话，可以跳过这一节。 controller-runtime 主要通过执行一个由controller abstraction实现并传递给框架的reconciliation loop）来向使用者暴露控制器抽象。以下是一个简单的 Reconciler 示例，可传递给 controller-runtime 控制器：
+type Reconciler struct {} func (r *Reconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) { fmt." />
+  <meta name="author" content="Tim Wang的技术博客" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+    <nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-6">
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/istio/"
+        >Istio</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/k8s/"
+        >K8s</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/gpu/"
+        >GPU</a
+      >
+      
+    </nav>
+    
+
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">[译]在K8s controller-runtime和client-go中实现速率限制</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 16, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文是<a href="https://danielmangum.com/posts/controller-runtime-client-go-rate-limiting/">Rate Limiting in controller-runtime and client-go</a>的中文翻译版本，内容有删减</p>
+</blockquote>
+<p>如果你已经编写过 <a href="https://kubernetes.io/docs/concepts/architecture/controller/">Kubernetes controller</a>，那么你可能熟悉<a href="https://github.com/kubernetes-sigs/controller-runtime">controller-runtime</a>, 或至少了解 <a href="https://github.com/kubernetes/client-go">client-go</a>。 <code>controller-runtime</code> 是一个构建控制器的框架，允许用户设置多个控制器，并由控制器管理器进行管理。在幕后， <code>controller-runtime</code> 使用 <code>client-go</code>与 <a href="https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/">Kubernetes API Server</a> 进行通信，以监视资源的变化并将其传递给相关的控制器。它处理了许多与控制器相关的方面，包括缓存、队列等。其中一个组件是 <strong>速率限制</strong>（rate limiting）。</p>
+<h2 id="什么是rate-limiting">什么是rate limiting?</h2>
+<blockquote>
+<p>这部分内容是对速率限制的基本概述。如果你已经对这些概念非常熟悉，可以跳过本节，但这些内容可能有助于后续部分的框架构建。</p>
+</blockquote>
+<p>自计算机网络问世以来，限流（Rate Limiting）就一直存在于软件中，而在此之前，它也存在于许多其他人类流程中。实际上，在讨论限流时，你可能会发现与你日常执行的任务以及公司和社区的组织模式存在许多相似之处。</p>
+<p>限流对于实现任何两方之间的有效通信都是必要的。软件通过在不同的执行过程之间传递消息进行通信，无论是通过操作系统、专用硬件设备、网络还是三者的组合。在客户端-服务器模型中，客户端通常会请求服务器代表其执行某些工作。服务器执行这些工作需要时间，这意味着如果许多客户端同时要求服务器执行工作，而服务器没有足够的容量来处理它们，那么服务器就需要做出选择。</p>
+<p>此时服务器可以：</p>
+<ol>
+<li>丢弃没有响应的请求。</li>
+<li>等待请求的响应，直到可以完全执行工作。</li>
+<li>响应请求，指示当前无法执行工作，但客户端应在将来的某个时间再次提出请求。</li>
+<li>将工作添加到队列中，并响应请求，告知客户端在完成工作时会通知客户端。</li>
+</ol>
+<p>如果客户端和服务器彼此非常了解（即它们对彼此的通信模式非常熟悉），那么上述任何一种方法都可以作为有效的通信模型。想想你与生活中其他人的关系。你可能认识那些以各种方式进行沟通的人，但如果通信方式是彼此熟知的，你可能能够与所有这些人有效地合作。</p>
+<blockquote>
+<p>举个例子，我的伴侣喜欢提前计划事情，不喜欢意外变化。另一方面，我的大学室友不喜欢计划，更喜欢在最后一刻做决定。我可能更喜欢其中一种沟通方式，但是我非常了解他们两个，因为我们可以相互调整我们的沟通模式，所以我可以与任何一方有效地相处。</p>
+</blockquote>
+<p>不幸的是，与人类一样，软件也可能不可靠。例如，服务器可能会表示它将在将来的某个时间响应请求，要求客户端在该时间再次请求执行工作，但客户端与服务器之间的连接可能被阻塞，导致请求被丢弃。同样地，客户端可能会收到回复，表示工作在将来的某个时间才能执行，但它可能会继续请求立即执行工作。因为这些原因（以及我们今天不会探讨的许多其他原因），服务器端和客户端的限流都是构建可伸缩、可靠系统所必需的。</p>
+<p>因为 <code>controller-runtime</code> 和 <code>client-go</code> 是构建 Kubernetes 控制器的框架，而控制器是 Kubernetes API 服务器的客户端，所以今天我们主要关注客户端的限流。</p>
+<h2 id="什么是控制器controller">什么是控制器（controller）</h2>
+<blockquote>
+<p>如果你对<code>controller-runtime</code>已经非常熟悉的话，可以跳过这一节。
+<code>controller-runtime</code> 主要通过执行一个由<a href="https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/controller/controller.go#L61">controller abstraction</a>实现并传递给框架的<a href="https://book.kubebuilder.io/cronjob-tutorial/controller-implementation.html#implementing-a-controller">reconciliation loop</a>）来向使用者暴露控制器抽象。以下是一个简单的 <a href="https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/reconcile/reconcile.go#L89"><code>Reconciler</code></a> 示例，可传递给 <code>controller-runtime</code> 控制器：</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Reconciler</span> <span style="color:#66d9ef">struct</span> {}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Reconciler</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Reconciling something!&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><blockquote>
+<p>这是一个更加复杂的<a href="https://github.com/crossplane/crossplane/blob/5f239dbb7c399a8d544518be2be23ad16f98a71d/internal/controller/pkg/manager/reconciler.go#L216">reconciliation loop</a>的例子.</p>
+</blockquote>
+<p><code>controller-runtime</code> 通过控制器的<a href="https://en.wikipedia.org/wiki/Builder_pattern">builder pattern</a>接受上面的 reconciliation loop ，它允许使用者指定应该触发此 reconciliation 的资源。下面是一个控制器的例子，它将在 <code>Pod</code> 上的任何 CRUD 操作触发：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Named</span>(<span style="color:#e6db74">&#34;my-pod-controller&#34;</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Complete</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Reconciler</span>{})
+</span></span></code></pre></div><p>暂时忽略控制器管理器（<code>mgr</code>），你可以看到我们传递了一个控制器的名称（<code>my-pod-controller</code>），我们希望它调和的类型（<code>v1.Pod</code>），以及实际执行调和的 <code>&amp;Reconciler{}</code>。还有其他选项可以在控制器构建器中传递，我们稍后会探讨一些选项（以及一些我们不会讨论的选项），以进一步自定义其行为。</p>
+<p>每个 <code>Reconciler</code> 都需要实现 <code>Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error)</code> 方法。当<code>watched</code>对象发生更改时，<code>controller-runtime</code> 将调用该方法。触发对象的信息（在本例中是 Pod）通过 <a href="https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/reconcile/reconcile.go#L47"><code>reconcile.Request</code></a> 传递。在<code>reconciliation</code>中，使用者可以选择使用这些信息通过 <code>client-go</code> 或 controller-runtime 提供的 <a href="https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/client/interfaces.go#L100"><code>Client</code></a> 抽象从 API 服务器获取对象。让我们对 <code>Reconciler</code>进行更详细的扩展：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Reconciler</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Client</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Reconciler</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>{}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">NamespacedName</span>, <span style="color:#a6e22e">p</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Name</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>现在我们用<a href="https://github.com/kubernetes/apimachinery/blob/c93b0f84892eb6bcbc80b312ae70729d8168bc7e/pkg/types/namespacedname.go#L27"><code>NamespacedName</code></a>来获取需要reconciliation的对象。我们可能无法从 API 服务器获取对象，在这种情况下我们返回<code>err</code>。否则，我们将返回<code>nil</code>。</p>
+<blockquote>
+<p>请注意，当我们说向 API 服务器发出请求时，这并不一定意味着我们正在通过网络调用来访问对象。如前所述，<code>controller-runtime</code> 使用<a href="https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/cache/cache.go#L41">caching</a>来使控制器管理器管理的控制器的操作更有效。我们不会深入探讨缓存是如何执行的，但如果有足够多的人发现这篇文章有用，我会写一篇关于缓存的文章。</p>
+</blockquote>
+<p>下面是一些关于kubernetes控制器的介绍的文章：</p>
+<ul>
+<li><a href="https://book.kubebuilder.io/cronjob-tutorial/cronjob-tutorial.html">Kubebuilder CronJob Tutorial</a></li>
+<li><a href="https://engineering.bitnami.com/articles/a-deep-dive-into-kubernetes-controllers.html">“A deep dive into Kubernetes controllers” - Bitnami Blog</a></li>
+<li><a href="https://youtu.be/4ceaeaLYaPs">Building an Enterprise Infrastructure Control Plane on Kubernetes</a></li>
+<li><a href="https://youtu.be/slX2nAFHeK0">TGI Kubernetes 145: Duck Typing in Kubernetes</a></li>
+</ul>
+<h3 id="当失败时会发生什么">当失败时会发生什么？</h3>
+<p>让我们来看一下 <a href="https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/reconcile/reconcile.go#L27"><code>reconcile.Result</code> struct</a> 结构体，看看我们告诉 <code>controller-runtime</code> 接下来该做什么的选项</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#75715e">// Result contains the result of a Reconciler invocation.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Result</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Requeue tells the Controller to requeue the reconcile key.  Defaults to false.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">Requeue</span> <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// RequeueAfter if greater than 0, tells the Controller to requeue the reconcile key after the Duration.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// Implies that Requeue is true, there is no need to set Requeue to true at the same time as RequeueAfter.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">RequeueAfter</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>因此，我们可以选择在一段时间后重新进入队列，立即重新进入队列，或者根本不重新进入队列。然后还有我们返回的<code>error</code>。这些值的排列组合以及<code>controller-runtime</code>如何对它们做出响应如下所述（您也可以直接查看<a href="https://github.com/kubernetes-sigs/controller-runtime/blob/16bf3ad036b908d897543c415fcc0bafc5cec711/pkg/internal/controller/controller.go#L297">源代码</a>)</p>
+<!-- raw HTML omitted -->
+<p>我们在这里主要关注前两种情况，后两种情况相当容易理解。前两种情况基本上会导致相同的结果（在记录日志和指标方面可能会有些差异）。具体调用的方法是 <code>c.Queue.AddRateLimited(req)</code>。这与 <code>RequeueAfter</code>  的结果类似，只是在那种情况下调用的是 <code>c.Queue.AddAfter(req, result.RequeueAfter)</code>，我们会传递确切的时间，等待将请求重新加入队列。那么在限流情况下我们要等待多久呢？</p>
+<h3 id="默认的controller-rate-limiter">默认的Controller Rate Limiter</h3>
+<p>在之前讨论限流时，我们聚焦于在特定客户端和特定服务器之间的通信失败的情况。你会注意到，<code>controller-runtime</code> 没有进行相同的设置。在我们的 <code>Reconciler</code> 中，当无法从 API 服务器获取对象时，我们返回了一个错误，但这并不是必须的。实际上，我们也可以在不涉及 API 服务器的条件下返回错误，例如 <code>Pod</code> 的状态不符合某种条件。<code>controller-runtime</code> 必须适应一般的错误情况，因此默认情况下采用了一种相当通用的限流策略。</p>
+<p>默认的rate limit借鉴于<code>client-go</code>，并且在控制器构建期间设置<a href="https://github.com/kubernetes-sigs/controller-runtime/blob/16bf3ad036b908d897543c415fcc0bafc5cec711/pkg/controller/controller.go#L117">源代码</a>。让我们跳转到<code>client-go</code>代码库，看看这个<code>workqueue.DefaultControllerRateLimiter()</code>是什么样的：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#75715e">// DefaultControllerRateLimiter is a no-arg constructor for a default rate limiter for a workqueue.  It has
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// both overall and per-item rate limiting.  The overall is a token bucket and the per-item is exponential
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">DefaultControllerRateLimiter</span>() <span style="color:#a6e22e">RateLimiter</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">NewMaxOfRateLimiter</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">NewItemExponentialFailureRateLimiter</span>(<span style="color:#ae81ff">5</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>, <span style="color:#ae81ff">1000</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>),
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 10 qps, 100 bucket size.  This is only for retry speed and its only the overall factor (not per item)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">BucketRateLimiter</span>{<span style="color:#a6e22e">Limiter</span>: <span style="color:#a6e22e">rate</span>.<span style="color:#a6e22e">NewLimiter</span>(<span style="color:#a6e22e">rate</span>.<span style="color:#a6e22e">Limit</span>(<span style="color:#ae81ff">10</span>), <span style="color:#ae81ff">100</span>)},
+</span></span><span style="display:flex;"><span>  )
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>仅仅通过查看注释，我们就可以对其进行相当准确的了解.它返回一个<a href="https://github.com/kubernetes/client-go/blob/20732a1bc198ab57de644af498fa75e73fa44c08/util/workqueue/default_rate_limiters.go#L191"><code>MaxOfRateLimiter</code></a> 正如你所猜测的那样，它会接收传递给它的每个<code>RateLimiter</code>的值，并在调用实现了<code>RateLimiterInterface</code> <a href="https://github.com/kubernetes/client-go/blob/20732a1bc198ab57de644af498fa75e73fa44c08/util/workqueue/rate_limiting_queue.go#L20">method calls</a> 方法调用时返回最大值。</p>
+<p>此时传入函数的<a href="https://github.com/kubernetes/client-go/blob/20732a1bc198ab57de644af498fa75e73fa44c08/util/workqueue/default_rate_limiters.go#L67">ItemExponentialFailureRateLimiter</a>和<a href="https://github.com/kubernetes/client-go/blob/20732a1bc198ab57de644af498fa75e73fa44c08/util/workqueue/default_rate_limiters.go#L48"><code>BucketRateLimiter</code></a>。我们可以从注释中得到有用的提示,即前者是“每个项”的<code>RateLimiter</code>,而后者只是“总体”的<code>RateLimiter</code>。</p>
+<p>首先看一下<code>ItemExponentialFailureRateLimiter</code>，我们可以看到它内部有一个存储失败次数的<code>map</code>名为failures，一个基础延迟<code>baseDelay</code>和一个最大延迟<code>maxDelay</code>（还有一个<code>failuresLock</code>互斥锁，这是由于<code>controller-runtime</code>允许对单个控制器进行并发调用的原因）。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#75715e">// ItemExponentialFailureRateLimiter does a simple baseDelay*2^&lt;num-failures&gt; limit
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// dealing with max failures and expiration are up to the caller
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ItemExponentialFailureRateLimiter</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">failuresLock</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">failures</span>     <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">interface</span>{}]<span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">baseDelay</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">maxDelay</span>  <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>通过结构体的描述，我们可以看到用于速率限制的实际公式：<code>baseDelay*2^&lt;num-failures&gt;</code>。这是一种非常常见的算法，被称为<strong>指数退避</strong>（exponential backoff）。可以简化为“对于每个连续的失败，我们将等待时间加倍以再次尝试”。如预期的那样，只要我们继续失败，我们等待的时间将以指数形式增长，这意味着等待时间可能会变得非常长。为了防止这种情况发生，我们传递了一个<code>maxDelay</code>，表示无论情况如何恶化，我们都不希望等待超过该值的时间。</p>
+<p>这里的另一个重要概念是这个速率限制器<strong>ItemExponentialFailureRateLimiter</strong>。这意味着在我们的示例控制器中,如果我们在<code>default</code>命名空间中名为<code>one</code>的<code>Pod</code>连续失败,并且我们的重新入队延迟呈指数增长,如果此时在<code>default</code>命名空间中名为<code>two</code>的<code>Pod</code>第一次失败时,我们不会开始有很大的延迟。</p>
+<p>如果使用默认的基础延迟0.005秒和最大延迟1000秒，我们得到的重新入队退避如下所示：
+<img src="./pics/rl-1.png" alt=""></p>
+<p>非常好!如果我们正在处理的某个对象持续导致错误,我们将退回到只尝试每16.67分钟(<code>1000秒</code>)一次,这非常不频繁。在延迟最短的第一秒内,我们只会重新入队大约7次</p>
+<p><img src="./pics/rl-2.png" alt=""></p>
+<p>然而，在一个大型集群中，比如负责管理您组织的所有基础架构的Kubernetes <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/">CustomResourceDefinitions</a>，一个单独的控制器可能需要处理许多对象。在考虑速率限制时，我们通常通过 <em>maximum requests per second</em> （或在这种情况下是最大重新入队次数）来量化一个策略的积极性。如果我们只使用<strong>ItemExponentialFailureRateLimiter</strong>速率限制器，那么这个数字是无限制的。例如，假设一个单独的控制器正在监视10,000个对象，并且它们都在同一时刻持续失败，那么在第一秒内将重新入队大约70,000到80,000次。</p>
+<blockquote>
+<p>注意：我们所有的测量都是近似值，因为我们没有考虑实际处理的执行时间。此外，我们没有考虑由informer报告的对象实际更改导致的入队操作。然而，这些概念仍然成立，尤其是上限是无界的。</p>
+</blockquote>
+<p>这就是<code>BucketRateLimiter</code>发挥作用的地方。它是对golang <a href="https://github.com/golang/time/tree/master/rate"><code>golang.org/x/time/rate</code></a> 包中的<a href="https://github.com/golang/time/blob/7e3f01d253248a0a5694eb5b7376dfea18b6397e/rate/rate.go#L55"><code>Limiter</code></a>的wrapper。<code>Limiter</code>的文档告诉我们：<em>非正式地说，在任何足够大的时间间隔内，Limiter将速率限制为每秒r个令牌，最大突发大小为b个事件</em>。它是<a href="https://en.wikipedia.org/wiki/Token_bucket">令牌桶算法</a>的一种实现，并防止了上述最坏情况的发生。在<code>client-go</code>中，传递给<code>BucketRateLimiter</code>的默认值告诉我们桶开始时有100个令牌，这也是它可以容纳的最大值，并且将以每秒10个令牌的速率进行补充。100个令牌的限制被称为_maximum burst_，因为它限制了同时可能发生的重新入队次数。此时如果我们同时有10,000个对象在失败的协调的例子，单独使用<code>BucketRateLimiter</code>会使我们的图表更加友好。</p>
+<p><img src="./pics/rl-4.png" alt=""></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">BucketRateLimiter</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">*</span><span style="color:#a6e22e">rate</span>.<span style="color:#a6e22e">Limiter</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><img src="./pics/rl-3.png" alt=""></p>
+<p>正如本文中的大多数示例一样，这是一个人为制造的场景，但它用来表示概念。在<code>t=0</code>时，前100次失败的协调立即重新入队，因为令牌桶中有一个可用的令牌，这意味着它们可以立即添加回队列（即<code>BucketRateLimiter</code>的<code>When()</code>方法的调用返回延迟<code>0s</code>）。第101次失败尝试将令牌放入令牌桶时发现它是空的，并被告知等待约0.1s以获取下一个可用令牌（因为我们的速率是每秒10个令牌）。第102次失败尝试也看到令牌桶为空，并被告知等待约0.2s以获取下一个可用令牌。在每次新令牌添加到令牌桶之前，每次后续失败都会增加延迟。最终，失败的发生希望会变得不太频繁，这意味着令牌桶可以重新填满到最大的100个令牌，并且能够容纳未来的大量突发事件。</p>
+<p>令牌桶速率限制策略也可以防止<a href="https://en.wikipedia.org/wiki/Thundering_herd_problem">thundering herd</a>问题,其中所有项都按同一时间表重新入队,这意味着在退避间隔时会出现大量峰值。仅仅增加每个项速率限制器的延迟不能提供相同的保护,因为尽管重新入队之间的延迟可能更长,但所有项可能在相同的未来时间重新入队,从而对客户端和服务器造成巨大压力。</p>
+<p>现在我们已经看到了<code>ItemExponentialFailureRateLimiter</code>和<code>BucketRateLimiter</code>在单独使用时的工作情况，你可能想知道当它们与<code>MaxOfRateLimiter</code>一起使用时会是什么样子。在我们一直研究的最坏情况下，它看起来很像BucketRateLimiter图表的稍微平滑版本。为什么会这样呢？对于前100次失败尝试来说，<code>BucketRateLimiter</code>会告诉它们可以立即重新入队，但是<code>ItemExponentialFailureRateLimiter</code>会说：“not so fast”，因为0.005 * 2^0大于0，所以它将被<code>MaxOfRateLimiter</code>选中作为返回的延迟值。</p>
+<p>类似地，在另一种情况下，第101次失败发生在已经失败了5次或更多次的项目上，<code>BucketRateLimiter</code>会说它需要等待0.1秒才能获得一个可用的令牌，但是<code>ItemExponentialFailureRateLimiter</code>会说它需要等待更长的时间（<code>0.005 * 2^5 = 0.16</code>）。<code>MaxOfRateLimiter</code>将选择后者。</p>
+<p>然而,在大多数情况下,不会有10,000个独特的对象同时都返回失败,每秒的重新入队看起来会像一条曲线,位于由<code>BucketRateLimiter</code>建立的最大控制器重新入队限制以下的某个位置。</p>
+<h3 id="使用你自己的rate-limiter">使用你自己的Rate Limiter</h3>
+<p>既然我们已经探索了默认实现,是时候考虑它是否适合你的用例了。如果不适用,你可以<a href="https://github.com/kubernetes-sigs/controller-runtime/issues/631">supply your own rate limiter</a>。在构建我们的示例控制器时允许我们覆盖<code>RateLimiter</code>控制器选项</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Named</span>(<span style="color:#e6db74">&#34;my-pod-controller&#34;</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithOptions</span>(<span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">RateLimiter</span>: <span style="color:#a6e22e">coolpackage</span>.<span style="color:#a6e22e">NewAwesomeRateLimiter</span>(), 
+</span></span><span style="display:flex;"><span>    }).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Complete</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Reconciler</span>{})
+</span></span></code></pre></div><p>以下是您可能希望传递自己的速率限制器的几个例子：</p>
+<ul>
+<li>覆盖controller-runtime默认使用的速率限制器的默认值。例如，您可能希望采用更或更少激进的每项策略。</li>
+<li>完全使用不同的速率限制策略。client-go还提供了一个<a href="https://github.com/kubernetes/client-go/blob/20732a1bc198ab57de644af498fa75e73fa44c08/util/workqueue/default_rate_limiters.go#L125">ItemFastSlowRateLimiter</a>，在某些情况下可能更有意义。</li>
+<li>在不同的层级进行速率限制。也许您有许多控制器都在访问同一个外部API，您希望限制控制器管理器级别每秒发生的次数。将相同的BucketRateLimiter传递给所有控制器将提供该效果。</li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8s-vs-k3s/"
+      ><span class="mr-1.5">←</span><span>[译]K3s与K8s的区别是什么?</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/oci-error/"
+      ><span>OCI runtime create failed: expected cgroupsPath</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

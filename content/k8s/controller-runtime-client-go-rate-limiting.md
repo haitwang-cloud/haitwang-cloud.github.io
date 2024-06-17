@@ -4,41 +4,34 @@ date = 2024-06-16T16:02:23+08:00
 draft = false
 +++
 
-> 本文是[Rate Limiting in controller-runtime and client-go](https://danielmangum.com/posts/controller-runtime-client-go-rate-limiting/)的中文翻译版本，内容有删减
+这是旨在澄清、易懂和完整的版本：
 
-如果你已经编写过 [Kubernetes controller](https://kubernetes.io/docs/concepts/architecture/controller/)，那么你可能熟悉[controller-runtime](https://github.com/kubernetes-sigs/controller-runtime), 或至少了解 [client-go](https://github.com/kubernetes/client-go)。 `controller-runtime` 是一个构建控制器的框架，允许用户设置多个控制器，并由控制器管理器进行管理。在幕后， `controller-runtime` 使用 `client-go`与 [Kubernetes API Server](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) 进行通信，以监视资源的变化并将其传递给相关的控制器。它处理了许多与控制器相关的方面，包括缓存、队列等。其中一个组件是 __速率限制__（rate limiting）。
+本文章是 [controller-runtime 和 client-go 中的速率限制](https://danielmangum.com/posts/controller-runtime-client-go-rate-limiting/) 的中文翻译。内容有所删减。
 
-## 什么是rate limiting? 
+如果您曾经编写过 [Kubernetes 控制器](https://kubernetes.io/docs/concepts/architecture/controller/)，您可能熟悉 [controller-runtime](https://github.com/kubernetes-sigs/controller-runtime)，或者至少了解 [client-go](https://github.com/kubernetes/client-go)。 `controller-runtime` 是用于构建控制器的框架，允许用户设置多个控制器，并由控制器管理器进行管理。在幕后，`controller-runtime` 使用 `client-go` 与 [Kubernetes API 服务器](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) 进行通信，以监视资源变化并将其传递给相关的控制器。它处理了许多与控制器相关的方面，包括缓存、队列等。其中一个组件是速率限制。
 
+## 速率限制是什么？
 
-> 这部分内容是对速率限制的基本概述。如果你已经对这些概念非常熟悉，可以跳过本节，但这些内容可能有助于后续部分的框架构建。
+自从计算机网络问世以来，限流（Rate Limiting）就一直存在于软件中，在此之前也存在于许多其他人类流程中。当讨论限流时，您可能会发现与您日常执行任务、公司和社区组织模式有许多相似之处。
 
-自计算机网络问世以来，限流（Rate Limiting）就一直存在于软件中，而在此之前，它也存在于许多其他人类流程中。实际上，在讨论限流时，你可能会发现与你日常执行的任务以及公司和社区的组织模式存在许多相似之处。
+在实现任何两方之间的有效通信时，限流是必要的。软件通过在不同的执行过程之间传递消息进行通信，无论是通过操作系统、专用硬件设备、网络还是三者的组合。在客户端-服务器模型中，客户端通常会请求服务器代表其执行工作。服务器执行这些工作需要时间，这意味着如果有许多客户端同时请求服务器执行工作，而服务器容量不足以处理这些请求，服务器就需要做出选择。
 
- 限流对于实现任何两方之间的有效通信都是必要的。软件通过在不同的执行过程之间传递消息进行通信，无论是通过操作系统、专用硬件设备、网络还是三者的组合。在客户端-服务器模型中，客户端通常会请求服务器代表其执行某些工作。服务器执行这些工作需要时间，这意味着如果许多客户端同时要求服务器执行工作，而服务器没有足够的容量来处理它们，那么服务器就需要做出选择。
- 
- 此时服务器可以： 
+服务器可以选择：
+1. 丢弃没有响应的请求。
+2. 等待请求的响应，直到可以完全执行工作。
+3. 响应请求，指示当前无法执行工作，但客户端应在未来的某个时间再次请求执行工作。
+4. 将工作添加到队列中，并响应请求，告知客户端在完成工作时会通知客户端。
 
-1.  丢弃没有响应的请求。
-2.  等待请求的响应，直到可以完全执行工作。
-3.  响应请求，指示当前无法执行工作，但客户端应在将来的某个时间再次提出请求。
-4.  将工作添加到队列中，并响应请求，告知客户端在完成工作时会通知客户端。
+如果客户端和服务器彼此非常了解（即它们对彼此的通信模式非常熟悉），那么上述任何一种方法都可以作为有效的通信模型。想象一下您与生活中其他人的关系。您可能会认识那些以各种方式进行沟通的人，但如果通信方式是彼此了解的，您可能能够与所有这些人有效地合作。
 
-如果客户端和服务器彼此非常了解（即它们对彼此的通信模式非常熟悉），那么上述任何一种方法都可以作为有效的通信模型。想想你与生活中其他人的关系。你可能认识那些以各种方式进行沟通的人，但如果通信方式是彼此熟知的，你可能能够与所有这些人有效地合作。
+不幸的是，与人类一样，软件也可能不可靠。例如，服务器可能会表示将在未来的某个时间响应请求，要求客户端在该时间再次请求执行工作，但客户端与服务器之间的连接可能被阻塞，导致请求被丢弃。同样地，客户端可能会收到回复，表示工作在未来的某个时间才能执行，但它可能会继续请求立即执行工作。因为这些原因以及其他许多原因（我们今天不会讨论的），服务器端和客户端的限流对于构建可扩展、可靠的系统至关重要。
 
-> 举个例子，我的伴侣喜欢提前计划事情，不喜欢意外变化。另一方面，我的大学室友不喜欢计划，更喜欢在最后一刻做决定。我可能更喜欢其中一种沟通方式，但是我非常了解他们两个，因为我们可以相互调整我们的沟通模式，所以我可以与任何一方有效地相处。
+由于 `controller-runtime` 和 `client-go` 是构建 Kubernetes 控制器的框架，而控制器是 Kubernetes API 服务器的客户端，所以今天我们将重点关注客户端的限流。
 
-不幸的是，与人类一样，软件也可能不可靠。例如，服务器可能会表示它将在将来的某个时间响应请求，要求客户端在该时间再次请求执行工作，但客户端与服务器之间的连接可能被阻塞，导致请求被丢弃。同样地，客户端可能会收到回复，表示工作在将来的某个时间才能执行，但它可能会继续请求立即执行工作。因为这些原因（以及我们今天不会探讨的许多其他原因），服务器端和客户端的限流都是构建可伸缩、可靠系统所必需的。
+## 控制器是什么？
 
-因为 `controller-runtime` 和 `client-go` 是构建 Kubernetes 控制器的框架，而控制器是 Kubernetes API 服务器的客户端，所以今天我们主要关注客户端的限流。
-
-
-
-## 什么是控制器（controller）
-
-> 如果你对`controller-runtime`已经非常熟悉的话，可以跳过这一节。
-`controller-runtime` 主要通过执行一个由[controller abstraction](https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/controller/controller.go#L61)实现并传递给框架的[reconciliation loop](https://book.kubebuilder.io/cronjob-tutorial/controller-implementation.html#implementing-a-controller)）来向使用者暴露控制器抽象。以下是一个简单的 [`Reconciler`](https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/reconcile/reconcile.go#L89) 示例，可传递给 `controller-runtime` 控制器：
-
+如果您对 `controller-runtime` 已经非常了解，可以跳过这一部分。
+`controller-runtime` 主要通过执行一个由 [controller abstraction](https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/controller/controller.go#L61) 实现并传递给框架的 [reconciliation loop](https://book.kubebuilder.io/cronjob-tutorial/controller-implementation.html#implementing-a-controller)）向使用者提供控制器抽象。以下是一个简单的 [`Reconciler`](https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/reconcile/reconcile.go#L89) 示例，可传递给 `controller-runtime` 控制器：
 
 ```golang
 type Reconciler struct {}
@@ -48,12 +41,11 @@ func (r *Reconciler) Reconcile(ctx context.Context, req reconcile.Request) (reco
     return reconcile.Result{}, nil
 }
 
-
 ```
 
-> 这是一个更加复杂的[reconciliation loop](https://github.com/crossplane/crossplane/blob/5f239dbb7c399a8d544518be2be23ad16f98a71d/internal/controller/pkg/manager/reconciler.go#L216)的例子.
+这是一个更加复杂的 [reconciliation loop](https://github.com/crossplane/crossplane/blob/5f239dbb7c399a8d544518be2be23ad16f98a71d/internal/controller/pkg/manager/reconciler.go#L216) 的例子。
 
-`controller-runtime` 通过控制器的[builder pattern](https://en.wikipedia.org/wiki/Builder_pattern)接受上面的 reconciliation loop ，它允许使用者指定应该触发此 reconciliation 的资源。下面是一个控制器的例子，它将在 `Pod` 上的任何 CRUD 操作触发：
+`controller-runtime` 通过控制器的 [builder pattern](https://en.wikipedia.org/wiki/Builder_pattern) 接受上述 reconciliation loop，允许使用者指定应该触发此 reconciliation 的资源。下面是一个控制器的例子，它会对 `Pod` 上的任何 CRUD 操作做出响应：
 
 ```golang
 ctrl.NewControllerManagedBy(mgr).
@@ -62,9 +54,9 @@ ctrl.NewControllerManagedBy(mgr).
     Complete(&Reconciler{})
 ```
 
-暂时忽略控制器管理器（`mgr`），你可以看到我们传递了一个控制器的名称（`my-pod-controller`），我们希望它调和的类型（`v1.Pod`），以及实际执行调和的 `&Reconciler{}`。还有其他选项可以在控制器构建器中传递，我们稍后会探讨一些选项（以及一些我们不会讨论的选项），以进一步自定义其行为。
+暂时忽略控制器管理器（`mgr`），您可以看到我们传递了一个控制器的名称（`my-pod-controller`），我们希望它调和的类型（`v1.Pod`），以及实际执行调和的 `&Reconciler{}`。还有其他选项可以在控制器构建器中传递，我们稍后会探讨一些选项（以及一些我们不会讨论的选项），以进一步自定义其行为。
 
-每个 `Reconciler` 都需要实现 `Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error)` 方法。当`watched`对象发生更改时，`controller-runtime` 将调用该方法。触发对象的信息（在本例中是 Pod）通过 [`reconcile.Request`](https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/reconcile/reconcile.go#L47) 传递。在`reconciliation`中，使用者可以选择使用这些信息通过 `client-go` 或 controller-runtime 提供的 [`Client`](https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/client/interfaces.go#L100) 抽象从 API 服务器获取对象。让我们对 `Reconciler`进行更详细的扩展：
+每个 `Reconciler` 都需要实现 `Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error)` 方法。当 `watched` 对象发生更改时，`controller-runtime` 将调用该方法。触发对象的信息（在本例中是 Pod）通过 [`reconcile.Request`](https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/reconcile/reconcile.go#L47) 传递。在 `reconciliation` 中，使用者可以选择使用这些信息通过 `client-go` 或 controller-runtime 提供的 [`Client`](https://github.com/kubernetes-sigs/controller-runtime/blob/e1a725df2743147795e5dfc8275365f7ada24805/pkg/client/interfaces.go#L100) 抽象从 API 服务器获取对象。让我们对 `Reconciler` 进行更详细的扩展：
 
 ```Golang
 type Reconciler struct {
@@ -111,13 +103,13 @@ type Result struct {
 
 <table><thead><tr><th>Requeue</th><th>RequeueAfter</th><th>Error</th><th>Result</th></tr></thead><tbody><tr><td>any</td><td>any</td><td>!nil</td><td>Requeue with rate limiting.</td></tr><tr><td>true</td><td>0</td><td>nil</td><td>Requeue with rate limiting.</td></tr><tr><td>any</td><td>&gt;0</td><td>nil</td><td>Requeue after specified <code>RequeueAfter</code>.</td></tr><tr><td>false</td><td>0</td><td>nil</td><td>Do not requeue.</td></tr></tbody></table>
 
-我们在这里主要关注前两种情况，后两种情况相当容易理解。前两种情况基本上会导致相同的结果（在记录日志和指标方面可能会有些差异）。具体调用的方法是 `c.Queue.AddRateLimited(req)`。这与 `RequeueAfter`  的结果类似，只是在那种情况下调用的是 `c.Queue.AddAfter(req, result.RequeueAfter)`，我们会传递确切的时间，等待将请求重新加入队列。那么在限流情况下我们要等待多久呢？
+我们主要关注前两种情况，在这些情况下可能会导致相同的结果（在记录日志和指标方面可能略有不同）。 方法调用是 `c.Queue.AddRateLimited(req)`。 这类似于 `RequeueAfter`，只是它使用了 `c.Queue.AddAfter(req, result.RequeueAfter)` 在另一种情况下重新排队请求，并传递确切的时间。 在限流情况下需要等待多久？
 
-### 默认的Controller Rate Limiter
+### 默认控制器限流器
 
-在之前讨论限流时，我们聚焦于在特定客户端和特定服务器之间的通信失败的情况。你会注意到，`controller-runtime` 没有进行相同的设置。在我们的 `Reconciler` 中，当无法从 API 服务器获取对象时，我们返回了一个错误，但这并不是必须的。实际上，我们也可以在不涉及 API 服务器的条件下返回错误，例如 `Pod` 的状态不符合某种条件。`controller-runtime` 必须适应一般的错误情况，因此默认情况下采用了一种相当通用的限流策略。
+在之前的限流讨论中，我们侧重于特定客户端和服务器之间通信失败的情况。 但是，`controller-runtime` 没有相同的设定。 在我们的 `Reconciler` 中，如果无法从 API 服务器获取对象，我们会返回错误，但这并非必须。 实际上，我们也可以在没有涉及 API 服务器的情况下返回错误，例如，如果 `Pod` 的状态不符合某些条件。 `controller-runtime` 必须适应不同的错误情况，因此默认情况下采用一种相当通用的限流策略。
 
-默认的rate limit借鉴于`client-go`，并且在控制器构建期间设置[源代码](https://github.com/kubernetes-sigs/controller-runtime/blob/16bf3ad036b908d897543c415fcc0bafc5cec711/pkg/controller/controller.go#L117)。让我们跳转到`client-go`代码库，看看这个`workqueue.DefaultControllerRateLimiter()`是什么样的：
+默认的限流器受`client-go` 的启发，并在控制器构建期间设置[源代码](https://github.com/kubernetes-sigs/controller-runtime/blob/16bf3ad036b908d897543c415fcc0bafc5cec711/pkg/controller/controller.go#L117)。 让我们转到`client-go` 代码库，看看`workqueue.DefaultControllerRateLimiter()` 是如何定义的：
 
 ```golang
 // DefaultControllerRateLimiter is a no-arg constructor for a default rate limiter for a workqueue.  It has
@@ -192,9 +184,9 @@ type BucketRateLimiter struct {
 然而,在大多数情况下,不会有10,000个独特的对象同时都返回失败,每秒的重新入队看起来会像一条曲线,位于由`BucketRateLimiter`建立的最大控制器重新入队限制以下的某个位置。
 
 
-### 使用你自己的Rate Limiter
+### 使用您自己的速率限制器
 
-既然我们已经探索了默认实现,是时候考虑它是否适合你的用例了。如果不适用,你可以[supply your own rate limiter](https://github.com/kubernetes-sigs/controller-runtime/issues/631)。在构建我们的示例控制器时允许我们覆盖`RateLimiter`控制器选项
+既然我们已经了解了默认实现，现在是时候考虑它是否适合您的情况了。如果不适合，您可以[提供自己的速率限制器](https://github.com/kubernetes-sigs/controller-runtime/issues/631)。在构建我们示例的控制器时，允许我们覆盖`RateLimiter`选项。
 
 ```go
 ctrl.NewControllerManagedBy(mgr).
@@ -206,7 +198,7 @@ ctrl.NewControllerManagedBy(mgr).
     Complete(&Reconciler{})
 ```
 
-以下是您可能希望传递自己的速率限制器的几个例子：
-* 覆盖controller-runtime默认使用的速率限制器的默认值。例如，您可能希望采用更或更少激进的每项策略。
-* 完全使用不同的速率限制策略。client-go还提供了一个[ItemFastSlowRateLimiter](https://github.com/kubernetes/client-go/blob/20732a1bc198ab57de644af498fa75e73fa44c08/util/workqueue/default\_rate\_limiters.go#L125)，在某些情况下可能更有意义。
-* 在不同的层级进行速率限制。也许您有许多控制器都在访问同一个外部API，您希望限制控制器管理器级别每秒发生的次数。将相同的BucketRateLimiter传递给所有控制器将提供该效果。
+以下是您可能需要传递自定义速率限制器的几个示例：
+- 覆盖controller-runtime默认使用的速率限制器的默认设置。例如，您可能想采取更为激进或保守的策略。
+- 完全采用不同的速率限制策略。client-go还提供了一个[ItemFastSlowRateLimiter](https://github.com/kubernetes/client-go/blob/20732a1bc198ab57de644af498fa75e73fa44c08/util/workqueue/default_rate_limiters.go#L125)，在某些情况下可能更为合适。
+- 在不同层级上进行速率限制。也许您有多个控制器都在访问同一个外部API，此时您希望限制控制器管理器级别每秒发生的操作次数。将相同的BucketRateLimiter传递给所有控制器将产生这种效果。

@@ -2,10 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/k8s/k8s-schedule-road-path/</loc>
-    <lastmod>2024-06-16T16:22:37+08:00</lastmod>
-  </url><url>
     <loc>http://localhost:1313/</loc>
+    <lastmod>2024-06-18T10:14:37+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/k8s/object-stores-and-indexers/</loc>
+    <lastmod>2024-06-18T10:14:37+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/k8s/oom-killed-by-client-go-label-select/</loc>
+    <lastmod>2024-06-18T10:06:09+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/k8s/using-the-helm-tpl-function/</loc>
+    <lastmod>2024-06-18T09:49:53+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/k8s/k8s-cloud-provider/</loc>
+    <lastmod>2024-06-17T16:59:46+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/k8s/k8s-schedule-road-path/</loc>
     <lastmod>2024-06-16T16:22:37+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/k8s/diff-of-affinity-and-taint/</loc>

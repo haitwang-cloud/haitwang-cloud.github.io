@@ -1,0 +1,387 @@
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #faf8f1"
+  lang="zh-CN"
+>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>深入了解Kubernetes控制器对象存储（object stores）和索引器（indexers） - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本文是Understanding Kubernetes controllers part II – object stores and indexers的中文翻译版本，内容有删减
+基本上，我们已经学会了如何使用 Kubernetes Go client来检索 Kubernetes 资源的信息，因此我们可以在我们的controller中简单地执行这个操作。然而，这有点低效。假设，例如，你正在使用多个工作线程，就像我们所做的那样。那么你可能会一遍又一遍地检索相同的信息，对 API 服务器造成很大负载。为了避免这种情况，可以使用一种特殊的 Kubernetes Informers 类型，称为index informers，它们构建一个线程安全的对象存储作为缓存。当集群的状态发生变化时，Informer 不仅会调用我们controller的处理函数，还会执行必要的更新以保持缓存的最新状态。由于缓存具有处理索引的额外能力，因此被称为 Indexer。因此，在今天的文章末尾，以下图片将呈现出来。
+在本文的其余部分，我们将更详细地讨论索引器及其与 Informer 的交互，而在下一篇文章中，我们将学习如何创建和使用 Informer，并深入了解它们的内部运作。
+Watches and resource versions 在我们讨论 Informers 和 Indexers 之前，我们必须了解客户端可以使用的基本机制，以跟踪集群状态。为了实现这一点，Kubernetes API 提供了一种称为 watch 的机制。最好通过一个例子来解释这个概念。
+在继续之前，请确保你有一个运行中的 Kubernetes 集群。我们将使用 curl 直接与 API 进行交互。为了避免必须在请求中添加令牌或证书，我们将使用 kubectl 代理机制。因此，请在另一个单独的终端中运行：
+$ kubectl proxy 此时你应该看到一个消息，表示该代理正在本地主机的某个端口上监听（通常是8001）。发送到该端口的任何请求将被转发到 Kubernetes API 服务器。为了访问我们的集群，让我们首先启动一个单独的 HTTPD。
+$ kubectl run alpine --image=httpd:alpine 然后我们使用CURL来获取默认命名空间中正在运行的 pod 列表。
+$ curl localhost:8001/api/v1/namespaces/default/pods { &#34;kind&#34;: &#34;PodList&#34;, &#34;apiVersion&#34;: &#34;v1&#34;, &#34;metadata&#34;: { &#34;selfLink&#34;: &#34;/api/v1/namespaces/default/pods&#34;, &#34;resourceVersion&#34;: &#34;6834&#34; }, &#34;items&#34;: [ { &#34;metadata&#34;: { &#34;name&#34;: &#34;alpine-56cf65bbfc-tzqqx&#34;, &#34;generateName&#34;: &#34;alpine-56cf65bbfc-&#34;, &#34;namespace&#34;: &#34;default&#34;, &#34;selfLink&#34;: &#34;/api/v1/namespaces/default/pods/alpine-56cf65bbfc-tzqqx&#34;, &#34;uid&#34;: &#34;584ddf85-5f8d-11e9-80c0-080027696a3f&#34;, &#34;resourceVersion&#34;: &#34;6671&#34;, --- REDACTED --- 正如预期的那样，你将获得一个 JSON 编码的对象类型 PodList。有趣的部分是元数据中的数据。你会看到有一个字段 resourceVersion。本质上，资源版本是一个随时间增加的数字，它唯一地标识集群的某个状态。" />
+  <meta name="author" content="Tim Wang的技术博客" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+    <nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-6">
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/istio/"
+        >Istio</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/k8s/"
+        >K8s</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/gpu/"
+        >GPU</a
+      >
+      
+    </nav>
+    
+
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">深入了解Kubernetes控制器对象存储（object stores）和索引器（indexers）</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 18, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文是<a href="https://leftasexercise.com/2019/07/11/understanding-kubernetes-controllers-part-ii-object-stores-and-indexers/">Understanding Kubernetes controllers part II – object stores and indexers</a>的中文翻译版本，内容有删减</p>
+</blockquote>
+<p>基本上，我们已经学会了如何使用 Kubernetes Go client来检索 Kubernetes 资源的信息，因此我们可以在我们的controller中简单地执行这个操作。然而，这有点低效。假设，例如，你正在使用多个工作线程，就像我们所做的那样。那么你可能会一遍又一遍地检索相同的信息，对 API 服务器造成很大负载。为了避免这种情况，可以使用一种特殊的 Kubernetes Informers 类型，称为<strong>index informers</strong>，它们构建一个线程安全的对象存储作为缓存。当集群的状态发生变化时，Informer 不仅会调用我们<code>controller</code>的处理函数，还会执行必要的更新以保持缓存的最新状态。由于缓存具有处理索引的额外能力，因此被称为 <strong>Indexer</strong>。因此，在今天的文章末尾，以下图片将呈现出来。</p>
+<p><img src="./pics/indexer01.png" alt=""></p>
+<p>在本文的其余部分，我们将更详细地讨论索引器及其与 Informer 的交互，而在下一篇文章中，我们将学习如何创建和使用 Informer，并深入了解它们的内部运作。</p>
+<h2 id="watches-and-resource-versions">Watches and resource versions</h2>
+<p>在我们讨论 Informers 和 Indexers 之前，我们必须了解客户端可以使用的基本机制，以跟踪集群状态。为了实现这一点，<a href="https://kubernetes.io/docs/reference/using-api/api-concepts/">Kubernetes API</a> 提供了一种称为 <strong>watch</strong> 的机制。最好通过一个例子来解释这个概念。</p>
+<p>在继续之前，请确保你有一个运行中的 Kubernetes 集群。我们将使用 curl 直接与 API 进行交互。为了避免必须在请求中添加令牌或证书，我们将使用 kubectl 代理机制。因此，请在另一个单独的终端中运行：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ kubectl proxy
+</span></span></code></pre></div><p>此时你应该看到一个消息，表示该代理正在本地主机的某个端口上监听（通常是8001）。发送到该端口的任何请求将被转发到 Kubernetes API 服务器。为了访问我们的集群，让我们首先启动一个单独的 HTTPD。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ kubectl run alpine --image<span style="color:#f92672">=</span>httpd:alpine
+</span></span></code></pre></div><p>然后我们使用<code>CURL</code>来获取默认命名空间中正在运行的 pod 列表。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ curl localhost:8001/api/v1/namespaces/default/pods
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;kind&#34;</span>: <span style="color:#e6db74">&#34;PodList&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;apiVersion&#34;</span>: <span style="color:#e6db74">&#34;v1&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;metadata&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;selfLink&#34;</span>: <span style="color:#e6db74">&#34;/api/v1/namespaces/default/pods&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;resourceVersion&#34;</span>: <span style="color:#e6db74">&#34;6834&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;items&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;metadata&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;alpine-56cf65bbfc-tzqqx&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;generateName&#34;</span>: <span style="color:#e6db74">&#34;alpine-56cf65bbfc-&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;namespace&#34;</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;selfLink&#34;</span>: <span style="color:#e6db74">&#34;/api/v1/namespaces/default/pods/alpine-56cf65bbfc-tzqqx&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;uid&#34;</span>: <span style="color:#e6db74">&#34;584ddf85-5f8d-11e9-80c0-080027696a3f&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;resourceVersion&#34;</span>: <span style="color:#e6db74">&#34;6671&#34;</span>,
+</span></span><span style="display:flex;"><span>--- REDACTED ---
+</span></span></code></pre></div><p>正如预期的那样，你将获得一个 JSON 编码的对象类型 <em>PodList</em>。有趣的部分是元数据中的数据。你会看到有一个字段 <em>resourceVersion</em>。本质上，资源版本是一个随时间增加的数字，它唯一地标识集群的某个状态。</p>
+<p>现在，Kubernetes API允许您请求<strong>watch</strong>，并以此资源版本作为起点。要手动完成此操作，请输入</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ curl -v localhost:8001/api/v1/namespaces/default/pods?watch<span style="color:#f92672">=</span>1&amp;resourceVersion<span style="color:#f92672">=</span><span style="color:#ae81ff">6834</span>
+</span></span></code></pre></div><p>如果我们查看输出，你会发现这个请求返回了一个带有传输编码“chunked”的 HTTP 响应。这在 <a href="https://tools.ietf.org/html/rfc7230#section-4.1">RFC 7230</a> 中有规定，并将客户端置于流模式，即连接将保持打开状态，API server将继续以小块的方式发送更新。这将使 curl 进入后台运行，同时 curl 将继续将接收到的数据打印到终端。如果你现在在集群中创建额外的 pod 或删除现有的 pod，你将继续看到接收到的通知，通知你有关事件的信息。每个通知都包含一个类型（ADDED、MODIFIED、ERROR 或 DELETED）和一个<a href="https://kubernetes.io/docs/reference/kubernetes-api/cluster-resources/event-v1/">Event</a>。</p>
+<p>这为我们提供了一种以高效的方式获取集群完整状态的方法。我们首先使用普通的 API 请求列出所有资源。然后，我们记住响应中的资源版本，并将该资源版本作为监视的起点。每当我们收到关于更改的通知时，我们相应地更新本地数据。基本上，这正是<code>Informer</code>和<code>Indexer</code>组合所做的事情。</p>
+<h2 id="caching-mechanisms-and-indexers">Caching mechanisms and indexers</h2>
+<p>一个indexer是一个实现了接口 <em>cache.Indexer</em> 的对象。这个接口是从 <em>cache.Store</em> 派生出来的，所以让我们先来研究一下它。它的定义在 <a href="https://github.com/kubernetes/client-go/blob/master/tools/cache/store.go">store.go</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Store</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">List</span>() []<span style="color:#66d9ef">interface</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ListKeys</span>() []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#a6e22e">item</span> <span style="color:#66d9ef">interface</span>{}, <span style="color:#a6e22e">exists</span> <span style="color:#66d9ef">bool</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">GetByKey</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) (<span style="color:#a6e22e">item</span> <span style="color:#66d9ef">interface</span>{}, <span style="color:#a6e22e">exists</span> <span style="color:#66d9ef">bool</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Replace</span>([]<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Resync</span>() <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>所以 store 基本上是一个我们可以向其中添加对象、检索对象、更新对象或删除对象的东西。接口本身并不对键做任何假设，但是当你创建一个新的 store 时，你提供了一个<strong>key function</strong>，它从一个对象中提取键，并具有以下签名。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#e6db74">`type KeyFunc func(obj interface{}) (string, error)`</span>
+</span></span></code></pre></div><p>使用<a href="https://github.com/kubernetes/client-go/blob/master/tools/cache/store.go">store</a>是非常方便和简单的，你可以在<a href="https://github.com/christianb93/kubernetes-client-examples/blob/master/example4/main.go">这里</a>找到一个简短的例子。</p>
+<p>让我们验证一下，正如上面的图表所述，<code>Informer</code> 和 <code>Lister</code>都引用了相同的索引器。为了查看这一点，让我们看一下我们的 <a href="https://github.com/kubernetes/sample-controller/blob/master/controller.go">sample controller</a> 的创建过程。</p>
+<p>当由函数<code>_NewController_</code> 创建一个新controller时，此函数接受一个 <code>_DeploymentInformer_</code> 和一个 <code>_FooInformer_</code>。这些都是提供对相应资源的实际 <code>Informer</code> 和 <code>Lister</code> 访问的接口。让我们以 <code>_FooInformer_</code> 为例。<code>Lister</code> 的实际创建方法如下。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">f</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">fooInformer</span>) <span style="color:#a6e22e">Lister</span>() <span style="color:#a6e22e">v1alpha1</span>.<span style="color:#a6e22e">FooLister</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">v1alpha1</span>.<span style="color:#a6e22e">NewFooLister</span>(<span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Informer</span>().<span style="color:#a6e22e">GetIndexer</span>())
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>Informer</code>和<code>Indexer</code>之间的通信是通过函数 <code>_handleDeltas_</code> 完成的，该函数接收一个 <code>_Delta_ </code>对象列表，其定义在 <a href="https://github.com/kubernetes/client-go/blob/master/tools/cache/delta_fifo.go">delta_fifo.go</a> 中（我们将在下一篇文章中了解更多关于这是如何工作的）。如果我们查看这个函数，我们会发现它不仅调用所有注册的处理函数（通过 <code>_processor_</code>），而且根据 <code>delta</code> 的类型还调用存储的 <code>_Add_</code>、<code>_Update_</code> 和 <code>_Delete_</code> 方法。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// DeltaFIFOOptions is the configuration parameters for DeltaFIFO. All are
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// optional.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">DeltaFIFOOptions</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// KeyFunction is used to figure out what key an object should have. (It&#39;s
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// exposed in the returned DeltaFIFO&#39;s KeyOf() method, with additional
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// handling around deleted objects and queue state).
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// Optional, the default is MetaNamespaceKeyFunc.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">KeyFunction</span> <span style="color:#a6e22e">KeyFunc</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// KnownObjects is expected to return a list of keys that the consumer of
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// this queue &#34;knows about&#34;. It is used to decide which items are missing
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// when Replace() is called; &#39;Deleted&#39; deltas are produced for the missing items.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// KnownObjects may be nil if you can tolerate missing deletions on Replace().
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">KnownObjects</span> <span style="color:#a6e22e">KeyListerGetter</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// EmitDeltaTypeReplaced indicates that the queue consumer
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// understands the Replaced DeltaType. Before the `Replaced` event type was
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// added, calls to Replace() were handled the same as Sync(). For
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// backwards-compatibility purposes, this is false by default.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// When true, `Replaced` events will be sent for items passed to a Replace() call.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// When false, `Sync` events will be sent instead.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">EmitDeltaTypeReplaced</span> <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// If set, will be called for objects before enqueueing them. Please
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// see the comment on TransformFunc for details.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Transformer</span> <span style="color:#a6e22e">TransformFunc</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>我们现在对sample controller的工作原理有了一个相当完整的了解。<code>Informer</code>利用Kubernetes API及其基于资源版本的监视机制来获取集群状态的更新。这些更新用于维护一个对象存储，反映集群的当前状态，并调用定义的事件处理函数。<code>controller</code>向<code>Informer</code>注册其函数，以在资源发生更改时调用这些函数。然后，它可以访问对象存储，轻松检索资源的当前状态，并采取必要的措施推动系统朝向目标状态发展。</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/bare-metal-kubernetes/"
+      ><span class="mr-1.5">←</span><span>全面解析Bare Metal Kubernetes:必知的关键点</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/oom-killed-by-client-go-label-select/"
+      ><span>Client-go 中的label selector 引起的 CPU Throttling问题</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

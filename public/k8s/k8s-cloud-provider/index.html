@@ -1,0 +1,582 @@
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #faf8f1"
+  lang="zh-CN"
+>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>K8s Cloud Provider源码解析 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="Cloud Provider 介绍 Kubernetes 的 Cloud Provider 机制是将 Kubernetes 与公有云、私有云等基础设施进行对接的关键组件。它主要具有以下功能:
+节点管理:实现节点的生命周期管理,如实例监控、故障检测、节点驱逐等。
+负载均衡:将 Kubernetes 的 Service 对象映射到云平台的负载均衡服务,如 AWS ELB、阿里云 SLB 等。
+存储管理:通过 FlexVolume、CSI 接口与云存储服务集成,为 Pod 提供持久化存储。
+路由管理:在底层网络中设置路由规则,确保 Pod 间的互联互通。
+身份认证:结合云平台的 IAM 服务进行访问权限控制。
+Kubernetes 的 Cloud Provider 接口使得不同的云平台能够实现自己的 Controller Manager 来集成这些功能。目前已有的Cloud Provider主要包括:
+AWS Cloud Provider 阿里云 Cloud Provider vSphere Cloud Provider 启用 Cloud Provider 后,相关的控制组件会部署在 Kubernetes 集群中。
+这种解耦设计降低了 Kubernetes 项目与具体云平台的耦合,允许云供应商进行定制化集成,也使得多云和混合云的管理变得更加复杂。关于 Cloud Provider更多的历史和背景介绍可以参考这篇来自k8s的sig-cloud-providercloud-provider-documentation
+代码分析 本篇主要讨论的是最基础的kubernetes/cloud-provider,它是所有云供应商的基础,也是所有云供应商的实现的基础。
+架构设计 整体的架构如下图所示: 目前它包含的Informers有:
+NodeInformer ServiceInformer 其主要函数包括:
+processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下图所示: 主要代码分析 NodeConditionPredicate func listWithPredicates(nodeLister corelisters." />
+  <meta name="author" content="Tim Wang的技术博客" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  
+
+  
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+    <nav class="lg:ml-12 lg:flex lg:flex-row lg:items-center lg:space-x-6">
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/istio/"
+        >Istio</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/k8s/"
+        >K8s</a
+      >
+      
+      <a
+        class="block text-center text-2xl leading-[5rem] lg:text-base lg:font-normal"
+        href="/gpu/"
+        >GPU</a
+      >
+      
+    </nav>
+    
+
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">K8s Cloud Provider源码解析</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 17, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><h2 id="cloud-provider-介绍">Cloud Provider 介绍</h2>
+<p>Kubernetes 的 Cloud Provider 机制是将 Kubernetes 与公有云、私有云等基础设施进行对接的关键组件。它主要具有以下功能:</p>
+<ol>
+<li>
+<p>节点管理:实现节点的生命周期管理,如实例监控、故障检测、节点驱逐等。</p>
+</li>
+<li>
+<p>负载均衡:将 Kubernetes 的 Service 对象映射到云平台的负载均衡服务,如 AWS ELB、阿里云 SLB 等。</p>
+</li>
+<li>
+<p>存储管理:通过 FlexVolume、CSI 接口与云存储服务集成,为 Pod 提供持久化存储。</p>
+</li>
+<li>
+<p>路由管理:在底层网络中设置路由规则,确保 Pod 间的互联互通。</p>
+</li>
+<li>
+<p>身份认证:结合云平台的 IAM 服务进行访问权限控制。</p>
+</li>
+</ol>
+<p>Kubernetes 的 Cloud Provider 接口使得不同的云平台能够实现自己的 Controller Manager 来集成这些功能。目前已有的Cloud Provider主要包括:</p>
+<ul>
+<li><a href="https://github.com/kubernetes/cloud-provider-aws">AWS Cloud Provider</a></li>
+<li><a href="https://github.com/kubernetes/cloud-provider-alibaba-cloud/tree/master">阿里云 Cloud Provider</a></li>
+<li><a href="https://github.com/kubernetes/cloud-provider-vsphere">vSphere Cloud Provider</a></li>
+</ul>
+<p>启用 Cloud Provider 后,相关的控制组件会部署在 Kubernetes 集群中。</p>
+<p>这种解耦设计降低了 Kubernetes 项目与具体云平台的耦合,允许云供应商进行定制化集成,也使得多云和混合云的管理变得更加复杂。关于 Cloud Provider更多的历史和背景介绍可以参考这篇来自k8s的sig-cloud-provider<a href="https://github.com/kubernetes/enhancements/tree/master/keps/sig-cloud-provider/2393-cloud-provider-documentation">cloud-provider-documentation</a></p>
+<h2 id="代码分析">代码分析</h2>
+<p>本篇主要讨论的是最基础的<a href="https://github.com/kubernetes/cloud-provider">kubernetes/cloud-provider</a>,它是所有云供应商的基础,也是所有云供应商的实现的基础。</p>
+<h3 id="架构设计">架构设计</h3>
+<p>整体的架构如下图所示:
+<img src="./pics/CloudProvider.jpg" alt="">
+目前它包含的Informers有:</p>
+<ul>
+<li>NodeInformer</li>
+<li>ServiceInformer</li>
+</ul>
+<p>其主要函数包括:</p>
+<ul>
+<li>processServiceCreateOrUpdate()</li>
+<li>processServiceDelete()</li>
+</ul>
+<p>它的主要逻辑如下图所示:
+<img src="./pics/svc-controller.jpg" alt=""></p>
+<h3 id="主要代码分析">主要代码分析</h3>
+<h4 id="nodeconditionpredicate">NodeConditionPredicate</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">listWithPredicates</span>(<span style="color:#a6e22e">nodeLister</span> <span style="color:#a6e22e">corelisters</span>.<span style="color:#a6e22e">NodeLister</span>, <span style="color:#a6e22e">predicates</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">NodeConditionPredicate</span>) ([]<span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Node</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">nodes</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">nodeLister</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">Everything</span>())
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">filterWithPredicates</span>(<span style="color:#a6e22e">nodes</span>, <span style="color:#a6e22e">predicates</span><span style="color:#f92672">...</span>), <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">filterWithPredicates</span>(<span style="color:#a6e22e">nodes</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Node</span>, <span style="color:#a6e22e">predicates</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">NodeConditionPredicate</span>) []<span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Node</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">filtered</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Node</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">nodes</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">respectsPredicates</span>(<span style="color:#a6e22e">nodes</span>[<span style="color:#a6e22e">i</span>], <span style="color:#a6e22e">predicates</span><span style="color:#f92672">...</span>) {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">filtered</span> = append(<span style="color:#a6e22e">filtered</span>, <span style="color:#a6e22e">nodes</span>[<span style="color:#a6e22e">i</span>])
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">filtered</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">respectsPredicates</span>(<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Node</span>, <span style="color:#a6e22e">predicates</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">NodeConditionPredicate</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">predicates</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">p</span>(<span style="color:#a6e22e">node</span>) {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这段代码是一个用于过滤 Kubernetes 集群中节点（Node）的函数集合。它利用了一些自定义的类型和接口，允许用户传递一组条件（predicates）来过滤节点列表。</p>
+<p>下面是代码中涉及的关键部分的解释：</p>
+<ol>
+<li>
+<p><code>NodeConditionPredicate</code> 是一个自定义类型，它是一个函数签名类型（function signature）。它表示一个节点条件判断函数，该函数接收一个节点对象 <code>*v1.Node</code> 作为参数，并返回一个布尔值，指示节点是否符合某种条件。</p>
+</li>
+<li>
+<p><code>listWithPredicates</code> 函数接收一个 <code>nodeLister</code> 参数，这是一个用于获取节点列表的接口。它还接收一个或多个 <code>NodeConditionPredicate</code> 参数，这些是用于节点过滤的条件函数。该函数首先通过 <code>nodeLister.List(labels.Everything())</code> 获取所有的节点列表，然后将节点列表传递给 <code>filterWithPredicates</code> 函数进行进一步过滤。</p>
+</li>
+<li>
+<p><code>filterWithPredicates</code> 函数接收一个节点列表 <code>nodes</code> 和一组 <code>NodeConditionPredicate</code> 参数，然后遍历节点列表，并使用 <code>respectsPredicates</code> 函数来判断每个节点是否符合所有的条件。符合所有条件的节点将被添加到 <code>filtered</code> 列表中，最后返回 <code>filtered</code> 列表。</p>
+</li>
+<li>
+<p><code>respectsPredicates</code> 函数接收一个节点对象 <code>node</code> 和一组 <code>NodeConditionPredicate</code> 参数，然后遍历所有的条件函数。如果节点不满足其中任何一个条件函数，则返回 <code>false</code> 表示节点不符合所有条件，否则返回 <code>true</code> 表示节点符合所有条件。</p>
+</li>
+</ol>
+<p>这段代码的目的是为了帮助用户通过传递不同的条件函数来灵活地过滤节点列表，从而选择特定条件下的节点。例如，用户可以定义一个节点是否处于健康状态的条件函数、节点是否满足特定标签的条件函数等，然后通过 <code>listWithPredicates</code> 函数获取符合所有条件的节点列表。</p>
+<h4 id="syncloadbalancerifneeded">syncLoadBalancerIfNeeded</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">wantsLoadBalancer</span>(<span style="color:#a6e22e">service</span>) <span style="color:#f92672">||</span> <span style="color:#a6e22e">needsCleanup</span>(<span style="color:#a6e22e">service</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Delete the load balancer if service no longer wants one, or if service needs cleanup.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">op</span> = <span style="color:#a6e22e">deleteLoadBalancer</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">newStatus</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">LoadBalancerStatus</span>{}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">exists</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">balancer</span>.<span style="color:#a6e22e">GetLoadBalancer</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">clusterName</span>, <span style="color:#a6e22e">service</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;failed to check if load balancer exists before cleanup: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">exists</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">klog</span>.<span style="color:#a6e22e">V</span>(<span style="color:#ae81ff">2</span>).<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;Deleting existing load balancer for service %s&#34;</span>, <span style="color:#a6e22e">key</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">eventRecorder</span>.<span style="color:#a6e22e">Event</span>(<span style="color:#a6e22e">service</span>, <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">EventTypeNormal</span>, <span style="color:#e6db74">&#34;DeletingLoadBalancer&#34;</span>, <span style="color:#e6db74">&#34;Deleting load balancer&#34;</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">balancer</span>.<span style="color:#a6e22e">EnsureLoadBalancerDeleted</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">clusterName</span>, <span style="color:#a6e22e">service</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">cloudprovider</span>.<span style="color:#a6e22e">ImplementedElsewhere</span> {
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">klog</span>.<span style="color:#a6e22e">V</span>(<span style="color:#ae81ff">4</span>).<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;LoadBalancer for service %s implemented by a different controller %s, Ignoring error on deletion&#34;</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">cloud</span>.<span style="color:#a6e22e">ProviderName</span>())
+</span></span><span style="display:flex;"><span>				} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>					<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;failed to delete load balancer: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>				}
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Always remove finalizer when load balancer is deleted, this ensures Services
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">// can be deleted after all corresponding load balancer resources are deleted.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">removeFinalizer</span>(<span style="color:#a6e22e">service</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;failed to remove load balancer cleanup finalizer: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">eventRecorder</span>.<span style="color:#a6e22e">Event</span>(<span style="color:#a6e22e">service</span>, <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">EventTypeNormal</span>, <span style="color:#e6db74">&#34;DeletedLoadBalancer&#34;</span>, <span style="color:#e6db74">&#34;Deleted load balancer&#34;</span>)
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Create or update the load balancer if service wants one.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">op</span> = <span style="color:#a6e22e">ensureLoadBalancer</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">klog</span>.<span style="color:#a6e22e">V</span>(<span style="color:#ae81ff">2</span>).<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;Ensuring load balancer for service %s&#34;</span>, <span style="color:#a6e22e">key</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">eventRecorder</span>.<span style="color:#a6e22e">Event</span>(<span style="color:#a6e22e">service</span>, <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">EventTypeNormal</span>, <span style="color:#e6db74">&#34;EnsuringLoadBalancer&#34;</span>, <span style="color:#e6db74">&#34;Ensuring load balancer&#34;</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Always add a finalizer prior to creating load balancers, this ensures Services
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">// can&#39;t be deleted until all corresponding load balancer resources are also deleted.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">addFinalizer</span>(<span style="color:#a6e22e">service</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;failed to add load balancer cleanup finalizer: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">newStatus</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">ensureLoadBalancer</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">service</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">cloudprovider</span>.<span style="color:#a6e22e">ImplementedElsewhere</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#75715e">// ImplementedElsewhere indicates that the ensureLoadBalancer is a nop and the
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>				<span style="color:#75715e">// functionality is implemented by a different controller.  In this case, we
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>				<span style="color:#75715e">// return immediately without doing anything.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>				<span style="color:#a6e22e">klog</span>.<span style="color:#a6e22e">V</span>(<span style="color:#ae81ff">4</span>).<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;LoadBalancer for service %s implemented by a different controller %s, Ignoring error&#34;</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">cloud</span>.<span style="color:#a6e22e">ProviderName</span>())
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// Use %w deliberately so that a returned RetryError can be handled.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;failed to ensure load balancer: %w&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">newStatus</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;service status returned by EnsureLoadBalancer is nil&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">eventRecorder</span>.<span style="color:#a6e22e">Event</span>(<span style="color:#a6e22e">service</span>, <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">EventTypeNormal</span>, <span style="color:#e6db74">&#34;EnsuredLoadBalancer&#34;</span>, <span style="color:#e6db74">&#34;Ensured load balancer&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></div><p>这段代码是一个处理负载均衡器（Load Balancer）的控制器逻辑，它根据 Service 对象的状态来执行负载均衡器的创建、更新和删除操作。</p>
+<p>首先，代码通过两个条件函数 <code>wantsLoadBalancer(service)</code> 和 <code>needsCleanup(service)</code> 来判断是否需要删除现有的负载均衡器或者创建/更新一个负载均衡器。</p>
+<ol>
+<li>
+<p><code>wantsLoadBalancer(service)</code> 是一个条件函数，它接收一个 Service 对象 <code>service</code> 作为参数，返回一个布尔值。该函数用于判断该 Service 是否需要拥有一个负载均衡器，如果返回 <code>false</code>，则表示 Service 不需要负载均衡器。</p>
+</li>
+<li>
+<p><code>needsCleanup(service)</code> 是另一个条件函数，用于判断是否需要对现有负载均衡器进行清理。它接收一个 Service 对象 <code>service</code> 作为参数，返回一个布尔值，如果返回 <code>true</code>，则表示负载均衡器需要进行清理。</p>
+</li>
+</ol>
+<p>根据这两个条件函数的结果，代码会执行以下两种操作之一：</p>
+<ul>
+<li>
+<p>如果 <code>!wantsLoadBalancer(service) || needsCleanup(service)</code> 条件成立，则表示需要删除现有负载均衡器或进行清理操作。代码会执行以下步骤：</p>
+<ul>
+<li>设置操作类型 <code>op</code> 为 <code>deleteLoadBalancer</code>。</li>
+<li>创建一个空的 <code>v1.LoadBalancerStatus</code> 对象 <code>newStatus</code>。</li>
+<li>通过 <code>c.balancer.GetLoadBalancer(ctx, c.clusterName, service)</code> 检查负载均衡器是否存在。如果存在，则删除该负载均衡器，并删除 Service 对象上的负载均衡器清理 finalizer。</li>
+<li>发送相应的事件，记录删除操作。</li>
+</ul>
+</li>
+<li>
+<p>如果条件 <code>!wantsLoadBalancer(service) || needsCleanup(service)</code> 不成立，则表示需要创建或更新负载均衡器。代码会执行以下步骤：</p>
+<ul>
+<li>设置操作类型 <code>op</code> 为 <code>ensureLoadBalancer</code>。</li>
+<li>添加负载均衡器清理 finalizer 到 Service 对象上。</li>
+<li>调用 <code>c.ensureLoadBalancer(ctx, service)</code> 函数来确保负载均衡器的创建或更新，该函数返回 <code>newStatus</code>，即负载均衡器的状态。</li>
+<li>发送相应的事件，记录创建或更新操作。</li>
+</ul>
+</li>
+</ul>
+<p>值得注意的是，代码中通过 <code>cloudprovider.ImplementedElsewhere</code> 错误码来处理负载均衡器功能被其他控制器实现的情况。在这种情况下，该控制器不执行任何操作，只是记录相应的信息。</p>
+<p>总的来说，这段代码是负责处理 Kubernetes 集群中 Service 对象的负载均衡器操作的逻辑，根据 Service 对象的状态和用户定义的条件函数来进行相应的处理。</p>
+<h4 id="testservicecache">TestServiceCache</h4>
+<p>下面的测试代码展示了一种结构化、测试数据隔离、全面和可维护的测试方法，适用于对复杂逻辑的测试，并能有效保证代码质量和正确性。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>    <span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestServiceCache</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//ServiceCache a common service cache for all the test cases
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">sc</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">serviceCache</span>{<span style="color:#a6e22e">serviceMap</span>: make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">cachedService</span>)}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">testCases</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">testName</span>     <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>   <span style="color:#66d9ef">func</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">checkCacheFn</span> <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>	}{{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">testName</span>: <span style="color:#e6db74">&#34;Add&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>: <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">cS</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">getOrCreate</span>(<span style="color:#e6db74">&#34;addTest&#34;</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">cS</span>.<span style="color:#a6e22e">state</span> = <span style="color:#a6e22e">defaultExternalService</span>()
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//There must be exactly one element
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">serviceMap</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Expected=1 Obtained=%d&#34;</span>, len(<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">serviceMap</span>))
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}, {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">testName</span>: <span style="color:#e6db74">&#34;Del&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>: <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">sc</span>.delete(<span style="color:#e6db74">&#34;addTest&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//Now it should have no element
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">serviceMap</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Expected=0 Obtained=%d&#34;</span>, len(<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">serviceMap</span>))
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}, {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">testName</span>: <span style="color:#e6db74">&#34;Set and Get&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>: <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">set</span>(<span style="color:#e6db74">&#34;addTest&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">cachedService</span>{<span style="color:#a6e22e">state</span>: <span style="color:#a6e22e">defaultExternalService</span>()})
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//Now it should have one element
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">Cs</span>, <span style="color:#66d9ef">bool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;addTest&#34;</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> !<span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;is Available Expected=true Obtained=%v&#34;</span>, <span style="color:#66d9ef">bool</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">Cs</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;cachedService expected:non-nil Obtained=nil&#34;</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}, {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">testName</span>: <span style="color:#e6db74">&#34;ListKeys&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>: <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//Add one more entry here
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">set</span>(<span style="color:#e6db74">&#34;addTest1&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">cachedService</span>{<span style="color:#a6e22e">state</span>: <span style="color:#a6e22e">defaultExternalService</span>()})
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//It should have two elements
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">keys</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">ListKeys</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">keys</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">2</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;elements Expected=2 Obtained=%v&#34;</span>, len(<span style="color:#a6e22e">keys</span>))
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}, {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">testName</span>:   <span style="color:#e6db74">&#34;GetbyKeys&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>: <span style="color:#66d9ef">nil</span>, <span style="color:#75715e">//Nothing to set
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//It should have two elements
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">svc</span>, <span style="color:#a6e22e">isKey</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">GetByKey</span>(<span style="color:#e6db74">&#34;addTest&#34;</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">svc</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">isKey</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">false</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Expected(non-nil, true, nil) Obtained(%v,%v,%v)&#34;</span>, <span style="color:#a6e22e">svc</span>, <span style="color:#a6e22e">isKey</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}, {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">testName</span>:   <span style="color:#e6db74">&#34;allServices&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>: <span style="color:#66d9ef">nil</span>, <span style="color:#75715e">//Nothing to set
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//It should return two elements
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">svcArray</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">allServices</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">svcArray</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">2</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Expected(2) Obtained(%v)&#34;</span>, len(<span style="color:#a6e22e">svcArray</span>))
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">testCases</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">setCacheFn</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">setCacheFn</span>()
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">checkCacheFn</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;%v returned %v&#34;</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">testName</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>每个测试用例都涉及到 serviceCache 结构体的各种操作，包括添加元素、删除元素、获取元素等。通过这些测试用例，可以确保 serviceCache 在各种情况下的行为符合预期，并且能够正确地管理服务对象的状态</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/using-the-helm-tpl-function/"
+      ><span class="mr-1.5">←</span><span>简化Helm Charts部署：使用tpl函数引用Values</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8s-schedule-road-path/"
+      ><span>k8s 默认的调度器工作机制和策略</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

@@ -30,9 +30,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <html
   class="not-ready lg:text-base"
-  style="--bg: #faf8f1"
+  style="--bg: #f8f5d7"
   lang="zh-CN"
 >
   <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
@@ -59,7 +69,7 @@
 import ( metav1 &#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34; appsv1 &#34;k8s.io/api/apps/v1&#34; corev1 &#34;k8s.io/api/core/v1&#34; ) 动机 如果您的Go程序需要获取有关Kubernetes资源（例如服务、副本集、Pod等）的信息，您可以使用官方的Kubernetes Go client实例与Kubernetes APIServer进行交互：
 // gets the information of a given pod in the default namespace pod, err := client.CoreV1().Pods(&#34;default&#34;). Get(context.Background(), &#34;pod-name&#34;, v1.GetOptions{}) // gets the information of all the currently existing pods in all the // namespaces pods, err := client.CoreV1().Pods(corev1.NamespaceAll). List(context.Background(), v1.ListOptions{}) 然而，您可能希望最小化连接数来拉取数据。并减少获取资源的延迟，因此您可以使用Watch接口来监听Kubernetes资源的更改事件，依次保证内存是最新的资源：
 // ignoring returned error on purpose watcher, _ := client." />
-  <meta name="author" content="Tim Wang的技术博客" />
+  <meta name="author" content="Tim Wang" />
   
 
   
@@ -81,9 +91,17 @@ import ( metav1 &#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34; appsv1 &#34;k8s.i
   
   
   
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
   
 
   
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
   
   
 
@@ -150,7 +168,7 @@ import ( metav1 &#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34; appsv1 &#34;k8s.i
 
     
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
     const setDark = (isDark) => {
       metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
       htmlClass[isDark ? 'add' : 'remove']('dark');
@@ -206,6 +224,42 @@ import ( metav1 &#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34; appsv1 &#34;k8s.i
     </nav>
     
 
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
     
   </div>
 </header>

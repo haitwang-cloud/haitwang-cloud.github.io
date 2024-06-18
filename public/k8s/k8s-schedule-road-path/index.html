@@ -30,9 +30,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <html
   class="not-ready lg:text-base"
-  style="--bg: #faf8f1"
+  style="--bg: #f8f5d7"
   lang="zh-CN"
 >
   <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
@@ -56,7 +66,7 @@
   <meta name="description" content="参考文章: https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/kube-scheduler/
 默认调度器 Kubernetes 调度队列 activeQueue 在 activeQ 里的 Pod,都是下一个调度周期需要调度的对象 当你在 Kubernetes 集群里新创建一个 Pod 的时候,调度器会将这个 Pod 入队到 activeQ 里面 unschedulableQueue 它存储那些由于某种原因而无法被调度的 Pod 当一个 unschedulableQ 里的 Pod 被更新之后,调度器会自动把这个 Pod 移动到 activeQ 里,从而给这些调度失败的 Pod “重新做人”的机会 k8s-scheduler control path Informer Path 启动一系列 Informer,用来监听(Watch)Etcd 中 Pod、Node、Service 等与调度相关的 API 对象的变化。比如,当一个待调度 Pod(即:它的 nodeName 字段是空的)被创建出来之后,调度器就会通过 Pod Informer 的 Handler,将这个待调度 Pod 添加进调度队列 Kubernetes 的调度队列是一个 PriorityQueue(优先级队列) Scheduling Path Scheduling Path 的主要逻辑,就是不断地从调度队列里出队一个 Pod。然后,调用 Predicates 算法进行“过滤”。这一步“过滤”得到的一组 Node,就是所有可以运行这个 Pod 的宿主机列表。
 k8s-scheduler 调度过程 Predicate 从集群所有的节点中,根据调度算法挑选出所有可以运行该 Pod 的节点;" />
-  <meta name="author" content="Tim Wang的技术博客" />
+  <meta name="author" content="Tim Wang" />
   
 
   
@@ -78,9 +88,17 @@ k8s-scheduler 调度过程 Predicate 从集群所有的节点中,根据调度算
   
   
   
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
   
 
   
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
   
   
 
@@ -147,7 +165,7 @@ k8s-scheduler 调度过程 Predicate 从集群所有的节点中,根据调度算
 
     
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
     const setDark = (isDark) => {
       metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
       htmlClass[isDark ? 'add' : 'remove']('dark');
@@ -203,6 +221,42 @@ k8s-scheduler 调度过程 Predicate 从集群所有的节点中,根据调度算
     </nav>
     
 
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
     
   </div>
 </header>

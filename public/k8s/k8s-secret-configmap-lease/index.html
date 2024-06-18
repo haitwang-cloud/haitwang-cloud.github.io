@@ -30,9 +30,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <html
   class="not-ready lg:text-base"
-  style="--bg: #faf8f1"
+  style="--bg: #f8f5d7"
   lang="zh-CN"
 >
   <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
@@ -57,7 +67,7 @@
 Secret 推荐使用场景 存储和管理敏感信息，例如密码、OAuth 令牌、SSH 密钥等。 注入到容器中的环境变量或挂载到文件系统，以便应用程序安全地访问敏感数据。 优势 安全性：避免在配置文件中以明文形式存储敏感信息。 灵活性：支持将 Secret 以多种方式提供给 Pod，例如环境变量或卷。 加密存储：Kubernetes 支持配置加密存储 Secret 对象。 劣势 配置复杂性：需要适当配置 RBAC 以确保 Secret 的安全访问。 管理难度：在大规模集群中管理大量 Secret 可能较为复杂。 示例 创建一个 Secret 对象：
 apiVersion: v1 kind: Secret metadata: name: mysecret type: Opaque data: # Base64 编码的 &#39;admin&#39; username: YWRtaW4= # Base64 编码的 &#39;1f2d1e2e67df&#39; password: MWYyZDFlMmU2N2Rm 在 Pod 中使用 Secret：
 apiVersion: v1 kind: Pod metadata: name: mypod spec: containers: - name: mycontainer image: myimage env: - name: USERNAME valueFrom: secretKeyRef: name: mysecret key: username - name: PASSWORD valueFrom: secretKeyRef: name: mysecret key: password 使用 Golang 访问 Secret：" />
-  <meta name="author" content="Tim Wang的技术博客" />
+  <meta name="author" content="Tim Wang" />
   
 
   
@@ -79,9 +89,17 @@ apiVersion: v1 kind: Pod metadata: name: mypod spec: containers: - name: myconta
   
   
   
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
   
 
   
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
   
   
 
@@ -148,7 +166,7 @@ apiVersion: v1 kind: Pod metadata: name: mypod spec: containers: - name: myconta
 
     
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
     const setDark = (isDark) => {
       metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
       htmlClass[isDark ? 'add' : 'remove']('dark');
@@ -204,6 +222,42 @@ apiVersion: v1 kind: Pod metadata: name: mypod spec: containers: - name: myconta
     </nav>
     
 
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
     
   </div>
 </header>

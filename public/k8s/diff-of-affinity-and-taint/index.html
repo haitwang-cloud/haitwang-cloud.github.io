@@ -30,9 +30,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <html
   class="not-ready lg:text-base"
-  style="--bg: #faf8f1"
+  style="--bg: #f8f5d7"
   lang="zh-CN"
 >
   <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
@@ -60,7 +70,7 @@ Taint 效果取决于其效果:
 NoSchedule:表示不能将 Pod 调度到该 Node。 PreferNoSchedule:表示尽量避免将 Pod 调度到该 Node。 NoExecute:表示不能将 Pod 调度到该 Node,如果已在 Node 上运行也会驱逐。 Toleration 的作用: Toleration 设置在 Pod 上,用于容忍(Tolerate)某些 Taint。如果 Pod 可以容忍 Node 的 Taint,则可以调度到该 Node。
 Toleration 指定三个参数:
 key:Taint 的 key operator:TolerationOperator 操作符,如 &ldquo;Equal&rdquo;、&ldquo;Exists&rdquo; effect:Taint 效果,可选 NoSchedule、PreferNoSchedule 或 NoExecute Taint 和 Toleration 的使用:" />
-  <meta name="author" content="Tim Wang的技术博客" />
+  <meta name="author" content="Tim Wang" />
   
 
   
@@ -82,9 +92,17 @@ key:Taint 的 key operator:TolerationOperator 操作符,如 &ldquo;Equal&rdquo;�
   
   
   
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
   
 
   
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
   
   
 
@@ -151,7 +169,7 @@ key:Taint 的 key operator:TolerationOperator 操作符,如 &ldquo;Equal&rdquo;�
 
     
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
     const setDark = (isDark) => {
       metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
       htmlClass[isDark ? 'add' : 'remove']('dark');
@@ -207,6 +225,42 @@ key:Taint 的 key operator:TolerationOperator 操作符,如 &ldquo;Equal&rdquo;�
     </nav>
     
 
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
     
   </div>
 </header>

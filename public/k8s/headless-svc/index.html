@@ -30,9 +30,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <html
   class="not-ready lg:text-base"
-  style="--bg: #faf8f1"
+  style="--bg: #f8f5d7"
   lang="zh-CN"
 >
   <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
@@ -57,7 +67,7 @@
 Kubernetes headless Service是一个没有专用负载均衡器的service。这种类型的Service 通常用于有状态的应用程序。例如数据库，这些应用要求必须为每个实例维护一致的网络标识。如果客户端需要连接所有 Pod，则无法使用常规 Kubernetes的 ClusterIP Service来完成此操作。Service将无法将每个连接转发到随机选择的容器。
 常规的Service是如何工作的？（How does Regular Service Object Works?） 接下来我们通过下面的yaml配置文件来创建一个常规的Kubernetes ClusterIP Service。
 cat &lt;&lt;EOF | kubectl apply -f - --- apiVersion: apps/v1 kind: Deployment metadata: name: normal-nginx labels: app: normal-nginx # Deployment labels to match with replicaset labels and pods labels spec: replicas: 3 selector: matchLabels: app: normal-nginx # Replicaset to manage pods with labels template: metadata: labels: app: normal-nginx # Pods labels spec: containers: - name: nginx image: nginx --- apiVersion: v1 # v1 is the default API version." />
-  <meta name="author" content="Tim Wang的技术博客" />
+  <meta name="author" content="Tim Wang" />
   
 
   
@@ -79,9 +89,17 @@ cat &lt;&lt;EOF | kubectl apply -f - --- apiVersion: apps/v1 kind: Deployment me
   
   
   
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
   
 
   
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
   
   
 
@@ -148,7 +166,7 @@ cat &lt;&lt;EOF | kubectl apply -f - --- apiVersion: apps/v1 kind: Deployment me
 
     
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
     const setDark = (isDark) => {
       metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
       htmlClass[isDark ? 'add' : 'remove']('dark');
@@ -204,6 +222,42 @@ cat &lt;&lt;EOF | kubectl apply -f - --- apiVersion: apps/v1 kind: Deployment me
     </nav>
     
 
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
     
   </div>
 </header>

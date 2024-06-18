@@ -30,9 +30,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <html
   class="not-ready lg:text-base"
-  style="--bg: #faf8f1"
+  style="--bg: #f8f5d7"
   lang="zh-CN"
 >
   <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
@@ -61,7 +71,7 @@ Watches and resource versions 在我们讨论 Informers 和 Indexers 之前，�
 $ kubectl proxy 此时你应该看到一个消息，表示该代理正在本地主机的某个端口上监听（通常是8001）。发送到该端口的任何请求将被转发到 Kubernetes API 服务器。为了访问我们的集群，让我们首先启动一个单独的 HTTPD。
 $ kubectl run alpine --image=httpd:alpine 然后我们使用CURL来获取默认命名空间中正在运行的 pod 列表。
 $ curl localhost:8001/api/v1/namespaces/default/pods { &#34;kind&#34;: &#34;PodList&#34;, &#34;apiVersion&#34;: &#34;v1&#34;, &#34;metadata&#34;: { &#34;selfLink&#34;: &#34;/api/v1/namespaces/default/pods&#34;, &#34;resourceVersion&#34;: &#34;6834&#34; }, &#34;items&#34;: [ { &#34;metadata&#34;: { &#34;name&#34;: &#34;alpine-56cf65bbfc-tzqqx&#34;, &#34;generateName&#34;: &#34;alpine-56cf65bbfc-&#34;, &#34;namespace&#34;: &#34;default&#34;, &#34;selfLink&#34;: &#34;/api/v1/namespaces/default/pods/alpine-56cf65bbfc-tzqqx&#34;, &#34;uid&#34;: &#34;584ddf85-5f8d-11e9-80c0-080027696a3f&#34;, &#34;resourceVersion&#34;: &#34;6671&#34;, --- REDACTED --- 正如预期的那样，你将获得一个 JSON 编码的对象类型 PodList。有趣的部分是元数据中的数据。你会看到有一个字段 resourceVersion。本质上，资源版本是一个随时间增加的数字，它唯一地标识集群的某个状态。" />
-  <meta name="author" content="Tim Wang的技术博客" />
+  <meta name="author" content="Tim Wang" />
   
 
   
@@ -83,9 +93,17 @@ $ curl localhost:8001/api/v1/namespaces/default/pods { &#34;kind&#34;: &#34;PodL
   
   
   
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
   
 
   
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
   
   
 
@@ -152,7 +170,7 @@ $ curl localhost:8001/api/v1/namespaces/default/pods { &#34;kind&#34;: &#34;PodL
 
     
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
     const setDark = (isDark) => {
       metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
       htmlClass[isDark ? 'add' : 'remove']('dark');
@@ -208,6 +226,42 @@ $ curl localhost:8001/api/v1/namespaces/default/pods { &#34;kind&#34;: &#34;PodL
     </nav>
     
 
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
     
   </div>
 </header>

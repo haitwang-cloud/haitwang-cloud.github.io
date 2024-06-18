@@ -30,9 +30,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <html
   class="not-ready lg:text-base"
-  style="--bg: #faf8f1"
+  style="--bg: #f8f5d7"
   lang="zh-CN"
 >
   <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
@@ -64,7 +74,7 @@ K8s 只是 Kubernetes 的缩写（“K”后跟 8 个字母“ubernete”，后�
 k3s和k8s的区别（ What is k3s and how is it different from k8s?） K3s 被设计成了一个小于 40MB 的单个二进制文件，它完全复用了了 Kubernetes API。为了实现这一目标，K3s设计者删除了许多不需要成为核心并容易被附加组件替换的驱动程序。
 K3s 是 CNCF（云原生计算基金会）认证的 Kubernetes 产品。这意味着你的 YAML即可以在常规的Kubernetes上运行，同时也可以 k3s 集群上运行。
 由于K3s对资源要求低，甚至可以在 512MB 以上的 RAM 计算机上运行集群。这意味着我们可以允许 Pod 在主节点和其他节点上运行。" />
-  <meta name="author" content="Tim Wang的技术博客" />
+  <meta name="author" content="Tim Wang" />
   
 
   
@@ -86,9 +96,17 @@ K3s 是 CNCF（云原生计算基金会）认证的 Kubernetes 产品。这意�
   
   
   
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
   
 
   
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
   
   
 
@@ -155,7 +173,7 @@ K3s 是 CNCF（云原生计算基金会）认证的 Kubernetes 产品。这意�
 
     
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
     const setDark = (isDark) => {
       metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
       htmlClass[isDark ? 'add' : 'remove']('dark');
@@ -211,6 +229,42 @@ K3s 是 CNCF（云原生计算基金会）认证的 Kubernetes 产品。这意�
     </nav>
     
 
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
     
   </div>
 </header>

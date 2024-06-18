@@ -30,9 +30,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <html
   class="not-ready lg:text-base"
-  style="--bg: #faf8f1"
+  style="--bg: #f8f5d7"
   lang="zh-CN"
 >
   <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
@@ -60,7 +70,7 @@ Tpl函数的工作原理 Tpl函数允许您在模板中使用字符串作为模�
 spec: containers: - name: main image: {{ tpl .Values.image . }} env: {{- tpl (toYaml .Values.env) . | nindent 12 }} 当您运行helm install时，Helm模板引擎将使用values文件中的设置替换相应的值。
 注意事项 在使用tpl函数时，请注意安全性。例如，如果用户提供了以下values文件：
 environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env: - name: PODS value: &#39;{{ lookup &#34;v1&#34; &#34;Pod&#34; &#34;&#34; &#34;&#34; }}&#39; 这可能会暴露集群中的敏感信息。因此，请确保在集群中使用适当的RBAC策略来限制用户的操作。" />
-  <meta name="author" content="Tim Wang的技术博客" />
+  <meta name="author" content="Tim Wang" />
   
 
   
@@ -82,9 +92,17 @@ environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env:
   
   
   
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
   
 
   
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
   
   
 
@@ -151,7 +169,7 @@ environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env:
 
     
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
     const setDark = (isDark) => {
       metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
       htmlClass[isDark ? 'add' : 'remove']('dark');
@@ -207,6 +225,42 @@ environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env:
     </nav>
     
 
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
     
   </div>
 </header>

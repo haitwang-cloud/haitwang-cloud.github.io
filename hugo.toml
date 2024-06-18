@@ -3,6 +3,19 @@ languageCode = 'zh-CN'
 title = 'Tim Wang的技术博客'
 theme = "paper"
 
+[params]
+  # color style
+  color = 'wheat'                           # linen, wheat, gray, light
+
+  # header social icons
+  github = 'haitwang-cloud'                 # github.com/YOUR_GITHUB_ID
+  linkedin = 'tim-wang-505213166'             # linkedin.com/in/YOUR_LINKEDIN_ID
+  rss = true                                # show rss icon
+
+  # home page profile
+  avatar = 'https://gravatar.com/haitaoking1993'                 # gravatar email or image url
+  name = 'Tim Wang'
+
 [[menu.main]]
 name = "Istio"
 url = "/istio/"

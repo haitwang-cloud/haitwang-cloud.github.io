@@ -30,9 +30,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <html
   class="not-ready lg:text-base"
-  style="--bg: #faf8f1"
+  style="--bg: #f8f5d7"
   lang="zh-CN"
 >
   <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
@@ -58,7 +68,7 @@
 OCI runtime create failed: runc create failed: expected cgroupsPath to be of format &#34;slice:prefix:name&#34; for systemd cgroups k8s集群信息 k8s版本: v1.26.13 containerd版本: 1.6.24 Linnux kernel版本: 6.6.20-amd64 Linux发行版: Garden Linux 1443.0 kubeProxyVersion: v1.26.13 kubeletVersion: v1.26.13 问题分析 此问题是因为kubelet配置为使用cgroupfs cgroup驱动程序，而containerd配置为使用sytemd cgroup驱动程序。
 解决方法 为了解决上面的问题，可以从以下两种方式中选择一种：
 让containerd使用cgroupfs驱动程序，需要从/etc/containerd/config.toml中删除SystemdCgroup = true行。 让kubelet使用systemd驱动程序，需要将KubeletConfiguration中的cgroupDriver设置为&quot;systemd&quot;。 扩展阅读 查看Kubelet配置 Kubelet的配置文件通常位于/var/lib/kubelet/位置，可以通过查看该文件来确认Kubelet的cgroup驱动程序配置。关于其他CRIs的配置文件位置可以参考Container Runtimes。" />
-  <meta name="author" content="Tim Wang的技术博客" />
+  <meta name="author" content="Tim Wang" />
   
 
   
@@ -80,9 +90,17 @@ OCI runtime create failed: runc create failed: expected cgroupsPath to be of for
   
   
   
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
   
 
   
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
   
   
 
@@ -149,7 +167,7 @@ OCI runtime create failed: runc create failed: expected cgroupsPath to be of for
 
     
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
     const setDark = (isDark) => {
       metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
       htmlClass[isDark ? 'add' : 'remove']('dark');
@@ -205,6 +223,42 @@ OCI runtime create failed: runc create failed: expected cgroupsPath to be of for
     </nav>
     
 
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
     
   </div>
 </header>

@@ -30,9 +30,19 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 <html
   class="not-ready lg:text-base"
-  style="--bg: #faf8f1"
+  style="--bg: #f8f5d7"
   lang="zh-CN"
 >
   <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
@@ -64,7 +74,7 @@ Scaling with clusters and worker nodes Kubernetes 的作用就在于此。它通
 Kubernetes 非常强大，这要归功于其可扩展的架构。为了实现高可用性和负载平衡，Kubernetes 会根据需要启动和关闭尽可能多的worker nodes。它会根据策略和用户需求将应用程序分布在它们之上。
 例如，如果节点出现故障或遇到其他问题，Kubernetes 可以workload移植到其他node，从而防止停机。
 Bare metalKubernetes 的不同之处在于? Kubernetes 和容器是在虚拟机成为部署应用程序的事实环境中出现的。自然而然，大多数企业一直在 VM 上部署容器和 Kubernetes，而 VM 又位于硬件上的管理程序层和主机操作系统之上（让我们不要深入探讨bare-metal管理程序的概念……）。" />
-  <meta name="author" content="Tim Wang的技术博客" />
+  <meta name="author" content="Tim Wang" />
   
 
   
@@ -86,9 +96,17 @@ Bare metalKubernetes 的不同之处在于? Kubernetes 和容器是在虚拟机�
   
   
   
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
   
 
   
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
   
   
 
@@ -155,7 +173,7 @@ Bare metalKubernetes 的不同之处在于? Kubernetes 和容器是在虚拟机�
 
     
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    const lightBg = '#faf8f1'.replace(/"/g, '');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
     const setDark = (isDark) => {
       metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
       htmlClass[isDark ? 'add' : 'remove']('dark');
@@ -211,6 +229,42 @@ Bare metalKubernetes 的不同之处在于? Kubernetes 和容器是在虚拟机�
     </nav>
     
 
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
     
   </div>
 </header>

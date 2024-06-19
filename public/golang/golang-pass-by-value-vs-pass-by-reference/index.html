@@ -1,0 +1,555 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>理解 Golang 中的值传递与引用传递 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本文是Golang Pass by value vs Pass by reference的中文翻译版本，内容有删减
+值传递和引用传递是使用指针类型时需要尤其注意的点（特别是在Java, C#, C/C&#43;&#43;和Go等语言中）
+当使创建方法/函数包含参数时，该参数可以选择使用普通数据类型或指针来进行传递。这将使传递给方法的参数有所不同：
+按值传递 会将变量的值传递到方法中，或者可以说是将原始变量将值“复制”到另一个内存位置并将新创建的值传递到方法中。因此，在方法中变量发生的任何改变都不会影响原始变量值。 按引用传递 将传递变量的内存位置而不是值。换句话说，它将变量的“容器”传递给方法，因此，方法中变量的任何改变都会影响原始变量。 简而言之,按值传递将复制值，按引用传递将传递内存位置。
+下图是清晰得解释了按值传递和按引用传递的区别
+![][img-1]source: www.penjee.com
+在Go语言中，我们可以处理指针，因此我们必须了解按值传递和按引用传递在 Go 中的工作原理，本文将它分为 3 个部分：“基本”、“引用”、“函数”。
+源代码地址: https://github.com/david-yappeter/go-passbyvalue-passbyreference
+基本数据类型(Basic Data Type） basicAndArray
+package main import &#34;fmt&#34; func main() { a, b := 0, 0 // Initialize Value fmt.Printf(&#34;## INIT\n&#34;) fmt.Printf(&#34;Memory Location a: %p, b: %p\n&#34;, &amp;a, &amp;b) fmt.Printf(&#34;Value a: %d, b: %d\n&#34;, a, b) // 0 0 // Passing By Value a(int) Add(a) // Golang will copy value of &#39;a&#39; and insert it into argument // Passing By Reference b(int), &amp;b(*int) =&gt; with &#39;&amp;&#39; we can get the memory location of &#39;b&#39; AddPtr(&amp;b) // Pass Memory Location of &#39;b&#39; into argument fmt." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">理解 Golang 中的值传递与引用传递</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 19, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文是<a href="https://david-yappeter.medium.com/golang-pass-by-value-vs-pass-by-reference-e48aac8b2716">Golang Pass by value vs Pass by reference</a>的中文翻译版本，内容有删减</p>
+</blockquote>
+<p><img src="/pics/golang-pass-by.gif" alt=""></p>
+<p><strong>值传递</strong>和<strong>引用传递</strong>是使用指针类型时需要尤其注意的点（特别是在Java, C#, C/C++和Go等语言中）</p>
+<p>当使创建方法/函数包含参数时，该参数可以选择使用普通数据类型或指针来进行传递。这将使传递给方法的参数有所不同：</p>
+<ul>
+<li><strong>按值传递</strong> 会将变量的值传递到方法中，或者可以说是将原始变量将值“复制”到另一个内存位置并将新创建的值传递到方法中。因此，在方法中变量发生的任何改变都不会影响原始变量值。</li>
+<li><strong>按引用传递</strong> 将传递变量的内存位置而不是值。换句话说，它将变量的“容器”传递给方法，因此，方法中变量的任何改变都会影响原始变量。</li>
+</ul>
+<blockquote>
+<p>简而言之,按值传递将复制值，按引用传递将传递内存位置。</p>
+</blockquote>
+<p>下图是清晰得解释了<strong>按值传递</strong>和<strong>按引用传递</strong>的区别</p>
+<p>![][img-1]source: <a href="http://www.penjee.com/">www.penjee.com</a></p>
+<p>在Go语言中，我们可以处理指针，因此我们必须了解按值传递和按引用传递在 Go 中的工作原理，本文将它分为 3 个部分：“基本”、“引用”、“函数”。</p>
+<p>源代码地址: <a href="https://github.com/david-yappeter/go-passbyvalue-passbyreference">https://github.com/david-yappeter/go-passbyvalue-passbyreference</a></p>
+<h3 id="基本数据类型basic-data-type">基本数据类型(Basic Data Type）</h3>
+<hr>
+<p><a href="https://github.com/david-yappeter/go-passbyvalue-passbyreference/blob/master/01.basicAndArray/main.go">basicAndArray</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Initialize Value
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;## INIT\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Memory Location a: %p, b: %p\n&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">a</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">b</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value a: %d, b: %d\n&#34;</span>, <span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span>) <span style="color:#75715e">// 0 0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Passing By Value a(int)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">a</span>) <span style="color:#75715e">// Golang will copy value of &#39;a&#39; and insert it into argument
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Passing By Reference b(int), &amp;b(*int) =&gt; with &#39;&amp;&#39; we can get the memory location of &#39;b&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">AddPtr</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">b</span>) <span style="color:#75715e">// Pass Memory Location of &#39;b&#39; into argument
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;\n## FINAL\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Memory Location a: %p, b: %p\n&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">a</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">b</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value a: %d, b: %d\n&#34;</span>, <span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span>) <span style="color:#75715e">// 0 1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Pass By Value
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">x</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;\n## &#39;Add&#39; Function\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Before Add, Memory Location: %p, Value: %d\n&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">x</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">x</span><span style="color:#f92672">++</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;After Add, Memory Location: %p, Value: %d\n&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">x</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Pass By Reference
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">AddPtr</span>(<span style="color:#a6e22e">x</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;\n## &#39;AddPtr&#39; Function\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Before AddPtr, Memory Location: %p, Value: %d\n&#34;</span>, <span style="color:#a6e22e">x</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">x</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">*</span><span style="color:#a6e22e">x</span><span style="color:#f92672">++</span> <span style="color:#75715e">// We add * in front of the variable because it is a pointer, * will call value of a pointer
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;After AddPtr, Memory Location: %p, Value: %d\n&#34;</span>, <span style="color:#a6e22e">x</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">x</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">##</span> <span style="color:#a6e22e">INIT</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Memory</span> <span style="color:#a6e22e">Location</span> <span style="color:#a6e22e">a</span>: <span style="color:#ae81ff">0xc0000120a8</span>, <span style="color:#a6e22e">b</span>: <span style="color:#ae81ff">0xc0000120c0</span>      
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Value</span> <span style="color:#a6e22e">a</span>: <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">b</span>: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">##</span> <span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#a6e22e">Add</span><span style="color:#960050;background-color:#1e0010">&#39;</span> <span style="color:#a6e22e">Function</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Before</span> <span style="color:#a6e22e">Add</span>, <span style="color:#a6e22e">Memory</span> <span style="color:#a6e22e">Location</span>: <span style="color:#ae81ff">0xc0000120f0</span>, <span style="color:#a6e22e">Value</span>: <span style="color:#ae81ff">0</span>   
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">After</span> <span style="color:#a6e22e">Add</span>, <span style="color:#a6e22e">Memory</span> <span style="color:#a6e22e">Location</span>: <span style="color:#ae81ff">0xc0000120f0</span>, <span style="color:#a6e22e">Value</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">##</span> <span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#a6e22e">AddPtr</span><span style="color:#960050;background-color:#1e0010">&#39;</span> <span style="color:#a6e22e">Function</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Before</span> <span style="color:#a6e22e">AddPtr</span>, <span style="color:#a6e22e">Memory</span> <span style="color:#a6e22e">Location</span>: <span style="color:#ae81ff">0xc0000120c0</span>, <span style="color:#a6e22e">Value</span>: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">After</span> <span style="color:#a6e22e">AddPtr</span>, <span style="color:#a6e22e">Memory</span> <span style="color:#a6e22e">Location</span>: <span style="color:#ae81ff">0xc0000120c0</span>, <span style="color:#a6e22e">Value</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">##</span> <span style="color:#a6e22e">FINAL</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Memory</span> <span style="color:#a6e22e">Location</span> <span style="color:#a6e22e">a</span>: <span style="color:#ae81ff">0xc0000120a8</span>, <span style="color:#a6e22e">b</span>: <span style="color:#ae81ff">0xc0000120c0</span>      
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Value</span> <span style="color:#a6e22e">a</span>: <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">b</span>: <span style="color:#ae81ff">1</span>
+</span></span></code></pre></div><p>在第一个例子中,我们将研究基本数据类型。以下有 2 个函数：</p>
+<ul>
+<li><code>Add(x int)</code> 的输入是一个integer</li>
+<li><code>AddPtr(x *int)</code>的输入是一个integer指针</li>
+</ul>
+<p><code>a</code>和<code>b</code>这两个变量在内存中的位置无法预测，但我们可以通过打印它们的内存位置来追踪它们。</p>
+<p>在<code>Add</code>函数中，<code>a</code>在<code>main()</code>函数中的位置与在<code>Add</code>不通，是因为 Go 复制 <code>a</code>的值并在内存的其他位置重新初始化一个地址，所以如果我们通过<code>x++</code>是不能更改<code>main()</code>函数中的<code>a</code>的值。最终因为是<strong>按值传递</strong><code>a</code>的值还是0</p>
+<p>在<code>AddPtr</code>函数中，<code>b</code>在<code>main()</code>函数中的内存位置与在<code>AddPtr</code>是一致的，我们在<code>AddPtr</code>函数对<code>x</code> 的操作最终会影响 <code>b</code> 的值。因此当我们尝试通过<code>*x++</code>来更改<code>x</code>值的时候，最终因为当前是<strong>按引用传递</strong><code>b</code>的值会变成1。</p>
+<p>其他的基本数据类型比如<code>int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, float32, float64, string, bool, byte, rune, Array, Structs</code>都符合上述规律</p>
+<h3 id="引用数据类型referenced-data-type">引用数据类型(Referenced Data Type）</h3>
+<hr>
+<p><a href="https://github.com/david-yappeter/go-passbyvalue-passbyreference/blob/master/02.referenced/main.go">referenced</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Slices
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;======================&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;SLICES&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;======================&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">arrInt</span> []<span style="color:#66d9ef">int</span> = []<span style="color:#66d9ef">int</span>{<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sliceInt</span> = <span style="color:#a6e22e">arrInt</span>[<span style="color:#ae81ff">3</span>:]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Init\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;ArrInt: %+v, SliceInt: %+v\n\n&#34;</span>, <span style="color:#a6e22e">arrInt</span>, <span style="color:#a6e22e">sliceInt</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">sliceInt</span>[<span style="color:#ae81ff">0</span>] = <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;After\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;ArrInt: %+v, SliceInt: %+v\n&#34;</span>, <span style="color:#a6e22e">arrInt</span>, <span style="color:#a6e22e">sliceInt</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// MAP
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;======================&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;MAP&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;======================&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">emptyMap</span> = make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{})
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Init&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;emptyMap : %+v\n&#34;</span>, <span style="color:#a6e22e">emptyMap</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">MapFunc</span>(<span style="color:#a6e22e">emptyMap</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;After&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;emptyMap : %+v\n&#34;</span>, <span style="color:#a6e22e">emptyMap</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">MapFunc</span>(<span style="color:#a6e22e">val</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{}) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">val</span>[<span style="color:#e6db74">&#34;this is a new value&#34;</span>] = <span style="color:#ae81ff">100</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#f92672">======================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">SLICES</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">======================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Init</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ArrInt</span>: [<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">3</span> <span style="color:#ae81ff">4</span> <span style="color:#ae81ff">5</span>], <span style="color:#a6e22e">SliceInt</span>: [<span style="color:#ae81ff">4</span> <span style="color:#ae81ff">5</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">After</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ArrInt</span>: [<span style="color:#ae81ff">1</span> <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">3</span> <span style="color:#ae81ff">10</span> <span style="color:#ae81ff">5</span>], <span style="color:#a6e22e">SliceInt</span>: [<span style="color:#ae81ff">10</span> <span style="color:#ae81ff">5</span>] 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">======================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MAP</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">======================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Init</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">emptyMap</span> : <span style="color:#66d9ef">map</span>[]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">After</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">emptyMap</span> : <span style="color:#66d9ef">map</span>[<span style="color:#a6e22e">this</span> <span style="color:#a6e22e">is</span> <span style="color:#a6e22e">a</span> <span style="color:#a6e22e">new</span> <span style="color:#a6e22e">value</span>:<span style="color:#ae81ff">100</span>]
+</span></span></code></pre></div><p>在第二个例子中，数组中的<code>Slices</code>因为和数组共享内存位置，因此如果我们更改<code>Slices</code>的值，它将影响数组值，并且<code>map</code>数据类型默认为按引用传递，因此函数内部的任何更改都将更改原始值。如果我们想为<code>map</code>做一个传递值，我们可以使用<a href="https://gosamples.dev/copy-map/"><code>copy</code></a>，它将创建<code>map</code>的新变量，这样函数中值的改变不会影响原始值。<a href="https://go.dev/tour/concurrency/2"><code>chan</code></a>或通道也是引用的数据类型。</p>
+<h3 id="函数function">函数(Function）</h3>
+<hr>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">StructVal</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">IntVal</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">s</span> <span style="color:#a6e22e">StructVal</span>) <span style="color:#a6e22e">Add</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;====================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Func Add\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;====================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Memory Location %p\n&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value Before: %+v\n&#34;</span>, <span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">IntVal</span><span style="color:#f92672">++</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value After: %+v\n\n&#34;</span>, <span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">s</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">StructVal</span>) <span style="color:#a6e22e">AddPtr</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;====================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Func AddPtr\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;====================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Memory Location %p\n&#34;</span>, <span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value Before: %+v\n&#34;</span>, <span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">IntVal</span><span style="color:#f92672">++</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value After: %+v\n\n&#34;</span>, <span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">init</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">StructVal</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">IntVal</span>: <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;MAIN\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Memory Location: %p\n&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">init</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value: %+v\n\n&#34;</span>, <span style="color:#a6e22e">init</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">init</span>.<span style="color:#a6e22e">Add</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;AFTER Func Add()\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value: %+v\n\n&#34;</span>, <span style="color:#a6e22e">init</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">init</span>.<span style="color:#a6e22e">AddPtr</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;AFTER Func AddPtr()\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value: %+v\n\n&#34;</span>, <span style="color:#a6e22e">init</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;FINAL\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;================\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value: %+v\n&#34;</span>, <span style="color:#a6e22e">init</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#f92672">================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MAIN</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Memory</span> <span style="color:#a6e22e">Location</span>: <span style="color:#ae81ff">0xc00001c030</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Value</span>: {<span style="color:#a6e22e">IntVal</span>:<span style="color:#ae81ff">0</span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">====================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Func</span> <span style="color:#a6e22e">Add</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">====================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Memory</span> <span style="color:#a6e22e">Location</span> <span style="color:#ae81ff">0xc00001c040</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Value</span> <span style="color:#a6e22e">Before</span>: {<span style="color:#a6e22e">IntVal</span>:<span style="color:#ae81ff">0</span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Value</span> <span style="color:#a6e22e">After</span>: {<span style="color:#a6e22e">IntVal</span>:<span style="color:#ae81ff">1</span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AFTER</span> <span style="color:#a6e22e">Func</span> <span style="color:#a6e22e">Add</span>()
+</span></span><span style="display:flex;"><span><span style="color:#f92672">================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Value</span>: {<span style="color:#a6e22e">IntVal</span>:<span style="color:#ae81ff">0</span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">====================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Func</span> <span style="color:#a6e22e">AddPtr</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">====================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Memory</span> <span style="color:#a6e22e">Location</span> <span style="color:#ae81ff">0xc00001c030</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Value</span> <span style="color:#a6e22e">Before</span>: <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">IntVal</span>:<span style="color:#ae81ff">0</span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Value</span> <span style="color:#a6e22e">After</span>: <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">IntVal</span>:<span style="color:#ae81ff">1</span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AFTER</span> <span style="color:#a6e22e">Func</span> <span style="color:#a6e22e">AddPtr</span>()
+</span></span><span style="display:flex;"><span><span style="color:#f92672">================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Value</span>: {<span style="color:#a6e22e">IntVal</span>:<span style="color:#ae81ff">1</span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">FINAL</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">================</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Value</span>: {<span style="color:#a6e22e">IntVal</span>:<span style="color:#ae81ff">1</span>}
+</span></span></code></pre></div><p>在最后一个例子中，我们将处理 <code>Struct Function</code>。不同之处在于<code>Struct</code>本身，而不是<code>Struct</code>内部的变量。当我们创建一个<code>Struct</code>函数时，我们将<code>Struct</code>声明为函数的前缀，例如<code>func (s struct) FuncName()</code>或<code>func (s *struct) FuncName()</code>。不同之处在于，如果我们使用指针类型的函数<code>func (s *struct) FuncName()</code>，它的输入是原始的<code>Struct</code>，因此<code>Struct</code>值发生的任何变化都会对原始<code>Struct</code>产生影响，而没有指针的函数<code>func (s struct) FuncName()</code> ，则将复制<code>Struct</code>并将其传递给函数。  因此，如果<code>Struct</code>的值在函数中发生任何变化，它不会影响原始结构。</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

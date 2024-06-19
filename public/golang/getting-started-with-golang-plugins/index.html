@@ -1,0 +1,469 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>开始使用 Golang 插件 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本文是 Getting started with Go plugin package的中文翻译版本，内容有删减
+介绍 在这篇文章中，我们将介绍如何在Golang中使用plugin。我们将编写一个名为driver的程序，它会加载两个插件并执行它们中共有的某个函数。这个driver程序会向第一个插件传递一个整数，第一个插件会对它进行处理。第一个插件的结果会传递给第二个插件，最后driver程序将打印出结果。
+配置 首先我们创建一个名为golang-plugin-demo的目录，然后进入该目录，然后创建名为types的文件夹 📁：
+$ mkdir golang-plugin-demo $ cd $_ 编写一个共享的包 $ mkdir types $ cd types/ 接下来创建type.go文件，内容如下：
+package types type InData struct { V int } type OutData struct { V int } 编写插件： 返回上一级目录，并创建一个名为plugin1的目录：
+$ mkdir plugin1 $ cd plugin1 然后创建一个名为plugin.go的文件，内容如下：
+package main import &#34;../types&#34; var Input types.InData var Output types.OutData var Name string func init() { Name = &#34;plugin1&#34; } func process() types." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">开始使用 Golang 插件</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 19, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文是 <a href="https://echorand.me/posts/getting-started-with-golang-plugins/">Getting started with Go plugin package</a>的中文翻译版本，内容有删减</p>
+</blockquote>
+<h2 id="介绍">介绍</h2>
+<p>在这篇文章中，我们将介绍如何在Golang中使用<a href="https://golang.org/pkg/plugin/">plugin</a>。我们将编写一个名为<code>driver</code>的程序，它会加载两个插件并执行它们中共有的某个函数。这个<code>driver</code>程序会向第一个插件传递一个整数，第一个插件会对它进行处理。第一个插件的结果会传递给第二个插件，最后<code>driver</code>程序将打印出结果。</p>
+<h2 id="配置">配置</h2>
+<p>首先我们创建一个名为<code>golang-plugin-demo</code>的目录，然后进入该目录，然后创建名为types的文件夹 📁：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ mkdir golang-plugin-demo
+</span></span><span style="display:flex;"><span>$ cd $_
+</span></span></code></pre></div><h2 id="编写一个共享的包">编写一个共享的包</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ mkdir types
+</span></span><span style="display:flex;"><span>$ cd types/
+</span></span></code></pre></div><p>接下来创建<code>type.go</code>文件，内容如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">types</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">InData</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">V</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">OutData</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">V</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="编写插件">编写插件：</h2>
+<p>返回上一级目录，并创建一个名为<code>plugin1</code>的目录：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ mkdir plugin1
+</span></span><span style="display:flex;"><span>$ cd plugin1
+</span></span></code></pre></div><p>然后创建一个名为<code>plugin.go</code>的文件，内容如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;../types&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">Input</span> <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">InData</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">Output</span> <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">Name</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">init</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Name</span> = <span style="color:#e6db74">&#34;plugin1&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">process</span>() <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">o</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span>{<span style="color:#a6e22e">V</span>: <span style="color:#a6e22e">Input</span>.<span style="color:#a6e22e">V</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>}
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">o</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">F</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Output</span> = <span style="color:#a6e22e">process</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>使用以下命令构建插件：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ go build -buildmode<span style="color:#f92672">=</span>plugin
+</span></span></code></pre></div><p>返回上一级目录，并创建一个名为<code>plugin2</code>的目录：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ mkdir plugin2
+</span></span><span style="display:flex;"><span>$ cd plugin2
+</span></span></code></pre></div><p>创建一个名为<code>plugin.go</code>的文件，内容如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;../types&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">Input</span> <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">InData</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">Output</span> <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">Name</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">init</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Name</span> = <span style="color:#e6db74">&#34;plugin2&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">process</span>() <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">o</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span>{<span style="color:#a6e22e">V</span>: <span style="color:#a6e22e">Input</span>.<span style="color:#a6e22e">V</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">20</span>}
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">o</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">F</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Output</span> = <span style="color:#a6e22e">process</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>使用以下命令构建第二个插件：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ go build -buildmode<span style="color:#f92672">=</span>plugin
+</span></span></code></pre></div><h2 id="编写-driver-程序">编写 driver 程序</h2>
+<p>接下来，我们在上一级目录创建一个名为<code>main.go</code>的文件，内容如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;log&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;plugin&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;./types&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">LoadPlugins</span>(<span style="color:#a6e22e">plugins</span> []<span style="color:#66d9ef">string</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">d</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">InData</span>{<span style="color:#a6e22e">V</span>: <span style="color:#ae81ff">1</span>}
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Invoking pipeline with data: %#v\n&#34;</span>, <span style="color:#a6e22e">d</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">o</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span>{}
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">plugins</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">p</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#a6e22e">p</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>                        <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">pName</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Lookup</span>(<span style="color:#e6db74">&#34;Name&#34;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>                        panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Invoking plugin: %s\n&#34;</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">pName</span>.(<span style="color:#f92672">*</span><span style="color:#66d9ef">string</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Lookup</span>(<span style="color:#e6db74">&#34;Input&#34;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>                        panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">f</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Lookup</span>(<span style="color:#e6db74">&#34;F&#34;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>                        panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">*</span><span style="color:#a6e22e">input</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">InData</span>) = <span style="color:#a6e22e">d</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">f</span>.(<span style="color:#66d9ef">func</span>())()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">output</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Lookup</span>(<span style="color:#e6db74">&#34;Output&#34;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>                        panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// Feed the output to the next plugin&#39;s input
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#a6e22e">d</span> = <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">InData</span>{<span style="color:#a6e22e">V</span>: <span style="color:#a6e22e">output</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span>).<span style="color:#a6e22e">V</span>}
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">*</span><span style="color:#a6e22e">input</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">InData</span>) = <span style="color:#a6e22e">d</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">o</span> = <span style="color:#f92672">*</span><span style="color:#a6e22e">output</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Final result: %#v\n&#34;</span>, <span style="color:#a6e22e">o</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">plugins</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;plugin1/plugin1.so&#34;</span>, <span style="color:#e6db74">&#34;plugin2/plugin2.so&#34;</span>}
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">LoadPlugins</span>(<span style="color:#a6e22e">plugins</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>目前为止，我们的目录看起来像这样：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>.
+</span></span><span style="display:flex;"><span>├── main.go
+</span></span><span style="display:flex;"><span>├── plugin1
+</span></span><span style="display:flex;"><span>│   ├── plugin1.so
+</span></span><span style="display:flex;"><span>│   └── plugin.go
+</span></span><span style="display:flex;"><span>├── plugin2
+</span></span><span style="display:flex;"><span>│   ├── plugin2.so
+</span></span><span style="display:flex;"><span>│   └── plugin.go
+</span></span><span style="display:flex;"><span>└── types
+</span></span><span style="display:flex;"><span>    └── type.go
+</span></span></code></pre></div><p>现在，我们来build并运行我们的driver程序：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ go build
+</span></span><span style="display:flex;"><span>$ ./golang-plugin-demo 
+</span></span><span style="display:flex;"><span>2020/05/26 15:49:48 Invoking pipeline with data: types.InData<span style="color:#f92672">{</span>V:1<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>2020/05/26 15:49:48 Invoking plugin: plugin1
+</span></span><span style="display:flex;"><span>2020/05/26 15:49:48 Invoking plugin: plugin2
+</span></span><span style="display:flex;"><span>2020/05/26 15:49:48 Final result: types.OutData<span style="color:#f92672">{</span>V:40<span style="color:#f92672">}</span>
+</span></span></code></pre></div><h2 id="总结">总结</h2>
+<p>其实用<code>plugin</code>包在Golang中实现插件的想法似乎相当简单。编写插件，导出一定的符号（仅限函数和变量），然后在驱动程序中使用它们。插件必须位于<code>main</code>包中。你无法从插件中的驱动程序中访问任何类型信息。因此，为了进行任何类型推断（这是必要的），我们可以使用一个类型共享包（就像上面的<code>InData</code>和<code>OutData</code>一样）。似乎没有一种方法可以将数据从插件“返回”给驱动程序。因此，我们使用插件符号查找来检索插件的“输出”。</p>
+<ul>
+<li><a href="https://tyk.io/docs/plugins/golang-plugins/golang-plugins/">Tyk</a> can be configured by writing Golang plugins.</li>
+<li><a href="https://github.com/vladimirvivien/gosh">Gosh</a> is a shell written in a way where you can write your own commands by making use of Golang plugins.</li>
+<li><a href="https://www.reddit.com/r/golang/comments/b6h8qq/is_anyone_actually_using_go_plugins/">Discussion on Reddit</a> about what folks are using plugins for</li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

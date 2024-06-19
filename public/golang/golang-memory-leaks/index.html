@@ -1,0 +1,475 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>Golang 内存泄漏问题详解 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本文是 Golang-Memory-Leaks 的中文翻译版本，内容仅供学习参考，如有侵权请联系删除。
+其他优秀的 ppof 性能分析文章👍👍👍，请参考 golang pprof 实战 和 你不知道的 Go 之 pprof：
+最近,我在生产环境中遇到了内存泄漏。我发现某个服务在负载内存在稳步上升，直到进程触发内存溢出异常。经过深入调查，我找到了内存泄漏的源头，以及为什么会发生这种情况。为了诊断问题，我使用了Golang的分析工具pprof。在本文中，我将解释什么是pprof，并展示我如何诊断内存泄漏。
+背景 我们的客户端通过一个代理服务使用我们的系统,我们为其提供访问权限。内存泄漏发生在这个代理服务中。
+内存泄漏 在收到客户端关于断开连接的投诉后，我开始寻找问题的根源。 我首先做的是检查公司提供的Grafana监控系统，查看代理服务的内存和CPU使用情况。我查看并且比较了3种不同情况下的指标:
+服务在重启后处于空闲状态 服务处于负载状态 服务在负载状态下，现在处于空闲状态 所有重叠的线都表示服务处于空闲状态，只有绿色的线表示服务正在接收流量。
+从上图中可以看出几个问题
+当服务处于空闲状态且没有流量时，其内存保持在较低水平 当流量停止命中单个机器时，该机器的内存使用率下降，但仍高于其他实例。 在开始性能分析之前，我列出了一些我想排除的事情:
+我正在使用Golang版本1.12.5，所以我想确保潜在的泄漏不是来自运行时(即使运行时也有问题)。可以在github页面上的open issues on the github page得到很好的回答。 尝试使用激进的垃圾回收debug.SetGCPercent(10) 手动尝试debug.FreeOSMemory()，运行时主要关注性能，在内存进行垃圾回收之后，为了性能考虑，并不会立即将其释放回操作系统 尝试在staging环境中使用小负载测试重现泄漏，以确认我的怀疑。 在完成上面的检查事项并且发现泄漏仍然存在且可以重现之后，我开始使用pprof对服务进行性能分析。
+Golang 性能工具 - pprof 性能分析类型 你可以收集以下几种性能指标
+goroutine - 当前所有goroutine的堆栈跟踪 heap - 所有堆分配的采样 threadcreate - 创建新的操作系统线程的堆栈跟踪 block - 导致在同步原语上阻塞的堆栈跟踪 mutex - 互斥锁的持有者的堆栈跟踪 profile - cpu 性能分析 trace - 允许在一定时间范围内收集所有分析数据 性能分析示例 为了开始性能分析，我导入了pprof并启动了一个HTTP服务器。
+请注意，如果您已经有一个HTTP服务器在运行，那么只需要import pprof就足够了。我已经有一个TCP服务器在运行，所以我添加了另一个goroutine来监听一个单独的端口用于pprof。" />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">Golang 内存泄漏问题详解</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 19, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文是 <a href="https://yuriktech.com/2020/11/07/Golang-Memory-Leaks/">Golang-Memory-Leaks</a> 的中文翻译版本，内容仅供学习参考，如有侵权请联系删除。</p>
+</blockquote>
+<p>其他优秀的 ppof 性能分析文章👍👍👍，请参考 <a href="https://blog.wolfogre.com/posts/go-ppof-practice/">golang pprof 实战</a> 和 <a href="https://darjun.github.io/2021/06/09/youdontknowgo/pprof/">你不知道的 Go 之 pprof</a>：</p>
+<p>最近,我在生产环境中遇到了内存泄漏。我发现某个服务在负载内存在稳步上升，直到进程触发内存溢出异常。经过深入调查，我找到了内存泄漏的源头，以及为什么会发生这种情况。为了诊断问题，我使用了Golang的分析工具<code>pprof</code>。在本文中，我将解释什么是pprof，并展示我如何诊断内存泄漏。</p>
+<h3 id="背景">背景</h3>
+<p>我们的客户端通过一个代理服务使用我们的系统,我们为其提供访问权限。内存泄漏发生在这个代理服务中。</p>
+<h3 id="内存泄漏">内存泄漏</h3>
+<p>在收到客户端关于断开连接的投诉后，我开始寻找问题的根源。
+我首先做的是检查公司提供的Grafana监控系统，查看代理服务的内存和CPU使用情况。我查看并且比较了3种不同情况下的指标:</p>
+<ul>
+<li>服务在重启后处于空闲状态</li>
+<li>服务处于负载状态</li>
+<li>服务在负载状态下，现在处于空闲状态
+<img src="/pics/leak-1.png" alt=""></li>
+</ul>
+<p>所有重叠的线都表示服务处于空闲状态，只有绿色的线表示服务正在接收流量。</p>
+<p>从上图中可以看出几个问题</p>
+<ul>
+<li>当服务处于空闲状态且没有流量时，其内存保持在较低水平</li>
+<li>当流量停止命中单个机器时，该机器的内存使用率下降，但仍高于其他实例。</li>
+</ul>
+<p>在开始性能分析之前，我列出了一些我想排除的事情:</p>
+<ul>
+<li>我正在使用Golang版本1.12.5，所以我想确保潜在的泄漏不是来自运行时(即使运行时也有问题)。可以在github页面上的<a href="https://github.com/golang/go/issues">open issues on the github page</a>得到很好的回答。</li>
+<li>尝试使用激进的垃圾回收<a href="https://golang.org/pkg/runtime/debug/#SetGCPercent">debug.SetGCPercent(10)</a></li>
+<li>手动尝试<a href="https://golang.org/pkg/runtime/debug/#FreeOSMemory">debug.FreeOSMemory()</a>，运行时主要关注性能，在内存进行垃圾回收之后，为了性能考虑，并不会立即将其释放回操作系统</li>
+<li>尝试在staging环境中使用小负载测试重现泄漏，以确认我的怀疑。</li>
+</ul>
+<p>在完成上面的检查事项并且发现泄漏仍然存在且可以重现之后，我开始使用pprof对服务进行性能分析。</p>
+<h3 id="golang-性能工具---pprof">Golang 性能工具 - pprof</h3>
+<h4 id="性能分析类型">性能分析类型</h4>
+<p>你可以收集以下几种性能指标</p>
+<ul>
+<li>goroutine - 当前所有goroutine的堆栈跟踪</li>
+<li>heap - 所有堆分配的采样</li>
+<li>threadcreate - 创建新的操作系统线程的堆栈跟踪</li>
+<li>block - 导致在同步原语上阻塞的堆栈跟踪</li>
+<li>mutex - 互斥锁的持有者的堆栈跟踪</li>
+<li>profile - cpu 性能分析</li>
+<li>trace - 允许在一定时间范围内收集所有分析数据</li>
+</ul>
+<h4 id="性能分析示例">性能分析示例</h4>
+<p>为了开始性能分析，我导入了pprof并启动了一个HTTP服务器。</p>
+<p>请注意，如果您已经有一个HTTP服务器在运行，那么只需要import pprof就足够了。我已经有一个TCP服务器在运行，所以我添加了另一个goroutine来监听一个单独的端口用于pprof。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#a6e22e">_</span> <span style="color:#e6db74">&#34;net/http/pprof&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#e6db74">&#34;localhost:6060&#34;</span>, <span style="color:#66d9ef">nil</span>))
+</span></span><span style="display:flex;"><span>}()
+</span></span></code></pre></div><p>对于内存泄漏，我们首先从heap开始分析。</p>
+<p>要捕获一个性能文件，我们执行以下操作 <code>curl http://localhost:6060/debug/pprof/heap?seconds=30 &gt; heap.out</code>.</p>
+<p>然后我们用以下命令分析性能文件</p>
+<p><code>go tool pprof heap.out</code>.</p>
+<ul>
+<li>
+<p>in_use - 当前的使用情况<br>
+<img src="/pics/leak-2.png" alt=""></p>
+</li>
+<li>
+<p>alloc - 从程序开始运行以来的总分配情况，无论内存是否已被释放。
+<img src="/pics/leak-3.png" alt=""></p>
+</li>
+</ul>
+<p>输入top将显示内存消耗排名的前10个结果。我们可以在top后面写任意数字来查看前面的结果。</p>
+<p>我们有两个重要的字段需要注意：</p>
+<ul>
+<li>flat - 此函数分配了多少内存</li>
+<li>cum - 此函数或其在堆栈中调用的函数分配了多少累积内存</li>
+</ul>
+<p>pprof还提供了一个Web界面，用于可视化检查性能分析文件。</p>
+<p>要使用Web界面运行pprof，执行命令<code>go tool pprof -http=':8081' heap.out</code>，请注意http标志。</p>
+<p>性能分析文件中的最大内存消耗者将显示为红色，这些是您的参考点。</p>
+<p>在下面的图片中，我们可以看到有两条红色路径，一个是用于HTTP服务器，另一个是用于runtime.malg。
+<img src="/pics/leak-4.png" alt=""></p>
+<h3 id="分析内存泄漏">分析内存泄漏</h3>
+<p>Pprof还有另一个有用的功能，允许使用<code>-base</code>和<code>-diff_base</code>标志来比较性能文件。所以我们可以这样运行<code>go tool pprof -http=':8081' -diff_base heap-new-16:22:04:N.out heap-new-17:32:38:N.out</code></p>
+<p>在收集了服务流量之前和之后的30秒性能文件之后，我比较了这些文件。并对比了这些文件。其中，立即引起我的注意的是内存增长的<code>runtime.malg</code>。</p>
+<blockquote>
+<p><code>runtime.malg</code>是Go语言运行时系统中的一个函数，用于执行内存分配。它是分配器（allocator）的一部分，负责在程序运行时动态分配内存空间。函数的主要作用是管理和分配堆内存。当程序需要分配内存时，它会被调用来获取一块适当大小的内存块，并返回指向该内存块的指针。该函数还负责跟踪内存的使用情况，并在需要时从操作系统中请求更多的内存。
+在性能分析中，如果<code>runtime.malg</code>在多个采样中占用了大量的内存，那么它可能是内存消耗的主要原因之一。对于该函数的内存增长进行分析可以帮助开发人员确定是否存在内存泄漏或过度分配的问题，并进行相应的优化和改进。
+<img src="/pics/leak-5.png" alt=""></p>
+</blockquote>
+<p>在空闲时，runtime.malg应该大约为1MB，现在它增长到了38MB。当创建一个新的goroutine时，会调用runtime.malg函数。它为新创建的goroutine分配一个堆栈跟踪，并在goroutine执行结束之前保持对其的引用。</p>
+<p><img src="/pics/leak-6.png" alt=""></p>
+<h3 id="问题定位">问题定位</h3>
+<p>到目前为止，pprof指向了runtime.malg，它保存了所有没有被垃圾回收的goroutine描述符。</p>
+<p><strong>一个从未被垃圾回收的goroutine意味着它从未完成执行，这种情况发生在两种情况下</strong>。</p>
+<ul>
+<li><strong>一个没有停止条件的<code>for{}</code>或<code>select{}</code>循环</strong>。</li>
+<li><strong>一个等待消息但未正确关闭的<code>channel</code></strong>。</li>
+</ul>
+<p>为了确认我的怀疑，我检查了一个goroutine的profile，看起来像这样</p>
+<p><img src="/pics/leak-7.png" alt=""></p>
+<p>上述的性能分析文件显示，我有很多无用的goroutine被创建出来，因为它们正在等待一个channel。</p>
+<p>我立即查看了性能分析文件所指向的代码片段，并找到了以下内容：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">sa</span>.<span style="color:#a6e22e">reader</span>.<span style="color:#a6e22e">C</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">sa</span>.<span style="color:#a6e22e">read</span>()
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}()
+</span></span></code></pre></div><p>该goroutine具有一个<code>for</code>循环，它始终监听来自<code>time.Ticker</code>的channel。检查<code>time.Ticker</code>的停止方式如下所示：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">sa</span>.<span style="color:#a6e22e">reader</span>.<span style="color:#a6e22e">Stop</span>()
+</span></span></code></pre></div><p>Looking at the <a href="https://golang.org/pkg/time/#Ticker.Stop">documentation</a> of time.Ticker, I noticed this</p>
+<p>查看<code>time.Ticker</code>的<a href="https://golang.org/pkg/time/#Ticker.Stop">文档</a>，我注意到了以下内容：</p>
+<blockquote>
+<p><code>Stop</code>函数用于关闭一个<code>Ticker</code>。调用<code>Stop</code>后，将不再发送任何tick。<code>Stop不会关闭channel</code>，以防止并发的goroutine在从该channel读取时看到错误的“tick”。</p>
+</blockquote>
+<p>我立即意识到，该channel从未被关闭，这导致goroutine永远处于等待状态，进而导致<code>runtime.malg</code>累积了大量的goroutine描述符，从而增加了堆内存，直到出现OOM异常。</p>
+<p>我向goroutine添加了一个<code>done</code> channel，并确保在调用<code>ticker.Stop()</code>时关闭它。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Reader</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">reader</span>            <span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Ticker</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">readerDone</span>        <span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewReader</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">Reader</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Reader</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">readerDone</span>: make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">bool</span>, <span style="color:#ae81ff">1</span>),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">reader</span>: <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">NewTicker</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">5</span>)
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Reader</span>) <span style="color:#a6e22e">Read</span>(){
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">reader</span>.<span style="color:#a6e22e">C</span>: 
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">readerDone</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> 
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }()
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Reader</span>) <span style="color:#a6e22e">Stop</span>(){
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">reader</span>.<span style="color:#a6e22e">Stop</span>()
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">readerDone</span> <span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="总结">总结</h3>
+<p>上述的内存泄漏问题最终被确认为一个被遗忘的channel导致的goroutine泄漏。当goroutine永远不会完成执行时，就会发生goroutine泄漏，这导致它们的堆栈保留在堆上并且永远不会被垃圾回收，最终导致内存不足异常。</p>
+<p>几乎总是应用程序自身造成的问题导致了内存泄漏，但当我处理了几个这样的问题后，我注意到从小事情入手会更容易，例如检查运行时的GitHub页面是否有新的问题报告，或者如果泄漏发生在新版本发布后，与之前没有泄漏的旧版本进行比较。这些小事情可以节省您数十甚至数百个性能分析的时间。无论您选择从何处开始，pprof都可以帮助您。pprof是Golang的性能分析工具，可以让您获取CPU、堆、操作系统线程和goroutine的性能分析文件，并进行可视化比较。</p>
+<h3 id="参考文章">参考文章</h3>
+<ul>
+<li><a href="https://go101.org/article/memory-leaking.html">memory-leaking</a></li>
+<li><a href="https://blog.detectify.com/2019/09/05/how-we-tracked-down-a-memory-leak-in-one-of-our-go-microservices/">how-we-tracked-down-a-memory-leak-in-one-of-our-go-microservices</a></li>
+<li><a href="https://www.freecodecamp.org/news/how-i-investigated-memory-leaks-in-go-using-pprof-on-a-large-codebase-4bec4325e192/">how-i-investigated-memory-leaks-in-go-using-pprof-on-a-large-codebase</a></li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

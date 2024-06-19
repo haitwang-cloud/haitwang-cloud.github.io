@@ -1,0 +1,648 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>Golang 中的 Table Driven 单元测试 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本文是 Prefer table driven tests的中文翻译版本，内容有删减
+我是编写测试代码的狂热粉丝，特别喜欢unit testing和TDD。时下在Go项目中比较流行的是表格驱动测试，本文将会讨论如何编写针对Go的表格驱动测试
+假设我们有一个函数用于分割字符串：
+// Split slices s into all substrings separated by sep and // returns a slice of the substrings between those separators. func Split(s, sep string) []string { var result []string i := strings.Index(s, sep) for i &gt; -1 { result = append(result, s[:i]) s = s[i&#43;len(sep):] i = strings.Index(s, sep) } return append(result, s) } 单元测试 在Go中，单元测试就是普通的Go函数（有一些规则），所以我们可以在同一个目录下编写一个单元测试文件，包名为strings。
+package split import ( &#34;reflect&#34; &#34;testing&#34; ) func TestSplit(t *testing." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">Golang 中的 Table Driven 单元测试</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 19, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文是 <a href="https://dave.cheney.net/2019/05/07/prefer-table-driven-tests">Prefer table driven tests</a>的中文翻译版本，内容有删减</p>
+</blockquote>
+<p>我是编写测试代码的狂热粉丝，特别喜欢<a href="https://dave.cheney.net/2019/04/03/absolute-unit-test">unit testing</a>和<a href="https://www.youtube.com/watch?v=EZ05e7EMOLM">TDD</a>。时下在Go项目中比较流行的是表格驱动测试，本文将会讨论如何编写针对Go的表格驱动测试</p>
+<p>假设我们有一个函数用于分割字符串：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Split slices s into all substrings separated by sep and
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// returns a slice of the substrings between those separators.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">s</span>, <span style="color:#a6e22e">sep</span> <span style="color:#66d9ef">string</span>) []<span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">result</span> []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Index</span>(<span style="color:#a6e22e">s</span>, <span style="color:#a6e22e">sep</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> &gt; <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">result</span> = append(<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">s</span>[:<span style="color:#a6e22e">i</span>])
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">s</span> = <span style="color:#a6e22e">s</span>[<span style="color:#a6e22e">i</span><span style="color:#f92672">+</span>len(<span style="color:#a6e22e">sep</span>):]
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">i</span> = <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Index</span>(<span style="color:#a6e22e">s</span>, <span style="color:#a6e22e">sep</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> append(<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="单元测试">单元测试</h2>
+<p>在Go中，单元测试就是普通的Go函数（有一些规则），所以我们可以在同一个目录下编写一个单元测试文件，包名为<code>strings</code>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">split</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;reflect&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;testing&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestSplit</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#e6db74">&#34;/&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">want</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>) {
+</span></span><span style="display:flex;"><span>         <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;expected: %v, got: %v&#34;</span>, <span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>编写测试代码和编写普通的Go函数一样，只有两个规则：</p>
+<ol>
+<li>测试函数必须以<code>Test</code>开头.</li>
+<li>测试函数必须接受一个类型为<code>*testing.T</code>的参数，<code>*testing.T</code>是由测试包自动注入的类型，用于提供打印，跳过和失败测试的方法。</li>
+</ol>
+<p>在我们的测试中，我们使用一些输入调用<code>Split</code>，然后将其与我们预期的结果进行比较。</p>
+<h3 id="代码覆盖率">代码覆盖率</h3>
+<p>接下来的问题是，这个包的覆盖率是多少？幸运的是，go工具有一个内置的分支覆盖率。我们可以像这样调用它：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>% go test -coverprofile<span style="color:#f92672">=</span>c.out
+</span></span><span style="display:flex;"><span>PASS
+</span></span><span style="display:flex;"><span>coverage: 100.0% of statements
+</span></span><span style="display:flex;"><span>ok      split   0.010s
+</span></span></code></pre></div><p>它将会告诉我们，我们有100%的覆盖率，这并不奇怪，因为这段代码只有一个分支。
+如果我们想深入了解覆盖率报告，go工具有几个选项可以打印覆盖率报告。我们可以使用<code>go tool cover -func</code>来分解每个函数的覆盖率：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>% go tool cover -func<span style="color:#f92672">=</span>c.out
+</span></span><span style="display:flex;"><span>split/split.go:8:       Split          100.0%
+</span></span><span style="display:flex;"><span>total:                  <span style="color:#f92672">(</span>statements<span style="color:#f92672">)</span>   100.0%
+</span></span></code></pre></div><p>上面的结果并没有什么激动人心的，因为我们只有一个函数，但是我相信你会找到更多有趣的包来测试。</p>
+<h3 id="配置bashrc文件">配置.bashrc文件</h3>
+<p>上面的命令其实非常有用，所以我配置了一个shell alias，可以在一个命令中运行测试覆盖率和报告：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cover <span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    local t<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>mktemp -t cover<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>    go test $COVERFLAGS -coverprofile<span style="color:#f92672">=</span>$t $@ <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>        <span style="color:#f92672">&amp;&amp;</span> go tool cover -func<span style="color:#f92672">=</span>$t <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>        <span style="color:#f92672">&amp;&amp;</span> unlink $t
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h3 id="实现-100-测试覆盖率">实现 100% 测试覆盖率</h3>
+<p>所以现在我们编写了一个测试用例，覆盖率达到了100%，但是这并不是故事的结束。我们有了很好的分支覆盖率，但是我们可能需要测试一些边界条件。例如，如果我们尝试在逗号上进行分割会发生什么？</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestSplitWrongSep</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#e6db74">&#34;,&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">want</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a/b/c&#34;</span>}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;expected: %v, got: %v&#34;</span>, <span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>或者，如果源字符串中没有分隔符会发生什么？</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestSplitNoSep</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#e6db74">&#34;abc&#34;</span>, <span style="color:#e6db74">&#34;/&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">want</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;abc&#34;</span>}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;expected: %v, got: %v&#34;</span>, <span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>现在，我们开始构建一组测试用例来测试边界条件。</p>
+<h2 id="表格驱动测试">表格驱动测试</h2>
+<p>然而，我们的测试中有很多重复的内容。对于每个测试用例，只有输入，预期输出和测试用例的名称发生了变化。其他所有内容都是样板。我们想要的是设置所有的输入和预期的输出，并将它们传递给单个测试框架。这是一个很好的时机来介绍表驱动测试。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestSplit</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">test</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">input</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">sep</span>   <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">want</span>  []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">tests</span> <span style="color:#f92672">:=</span> []<span style="color:#a6e22e">test</span>{
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;,&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a/b/c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;abc&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;abc&#34;</span>}},
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">tests</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">sep</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;expected: %v, got: %v&#34;</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>我们定义了一个结构来保存我们的测试输入和预期输出。这是我们的<code>表格</code>。我们把<code>tests</code>结构定义为一个局部变量，因为我们希望在这个包中重用这个名字。</p>
+<p>实际上，我们甚至不需要给类型一个名字，我们可以使用匿名结构字面量来减少样板，就像这样：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestSplit</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">tests</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">input</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">sep</span>   <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">want</span>  []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    }{
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;,&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a/b/c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;abc&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;abc&#34;</span>}},
+</span></span><span style="display:flex;"><span>    } 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">tests</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">sep</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;expected: %v, got: %v&#34;</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>现在，添加一个新的测试只需在<code>tests</code>结构中添加另一行即可。让我们来猜一下，如果我们的输入字符串有一个尾随分隔符会发生什么？</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>{<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>{<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;,&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a/b/c&#34;</span>}},
+</span></span><span style="display:flex;"><span>{<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;abc&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;abc&#34;</span>}},
+</span></span><span style="display:flex;"><span>{<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c/&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}}, <span style="color:#75715e">// trailing sep
+</span></span></span></code></pre></div><p>当我们运行<code>go test</code>时，我们得到下面的结果</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">%</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">test</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">---</span> <span style="color:#a6e22e">FAIL</span>: <span style="color:#a6e22e">TestSplit</span> (<span style="color:#ae81ff">0.00</span><span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">split_test</span>.<span style="color:#66d9ef">go</span>:<span style="color:#ae81ff">24</span>: <span style="color:#a6e22e">expected</span>: [<span style="color:#a6e22e">a</span> <span style="color:#a6e22e">b</span> <span style="color:#a6e22e">c</span>], <span style="color:#a6e22e">got</span>: [<span style="color:#a6e22e">a</span> <span style="color:#a6e22e">b</span> <span style="color:#a6e22e">c</span> ]
+</span></span></code></pre></div><p>让我们把失败的测试用例放在一边，有几个问题需要讨论。</p>
+<p>第一个问题是，通过将每个测试从函数重写为表中的一行，我们丢失了失败测试的名称。我们在测试文件中添加了一个注释来调用这个案例，但是我们在<code>go test</code>输出中没有访问该注释。</p>
+<p>其实有几种方法可以解决这个问题。你会看到在Go代码库中使用了一些混合风格，因为表格测试习惯正在不断发展，人们继续尝试这种形式。</p>
+<h3 id="枚举测试用例">枚举测试用例</h3>
+<p>由于测试用例存储在一个切片中，我们可以在失败的消息中打印出测试用例的索引：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestSplit</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">tests</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">input</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">sep</span>   <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">want</span>  []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    }{
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;,&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a/b/c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;abc&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;abc&#34;</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c/&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">tests</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">sep</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;test %d: expected: %v, got: %v&#34;</span>, <span style="color:#a6e22e">i</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>现在运行<code>go test</code>的结果是</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>% go test
+</span></span><span style="display:flex;"><span>--- FAIL: TestSplit <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    split_test.go:24: test 4: expected: <span style="color:#f92672">[</span>a b c<span style="color:#f92672">]</span>, got: <span style="color:#f92672">[</span>a b c <span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>情况变得更好了，现在我们知道第四个测试失败了，尽管我们必须做一些小动作，因为切片索引和范围迭代是从零开始的。这需要在测试用例中保持一致；如果有时是从0开始，而其他一些情况则从1开始，那么这将是令人困惑的。而且，如果测试用例的列表很长，那么很难计算大括号，以确定哪个测试用例是第四个。</p>
+<h3 id="为测试用例命名">为测试用例命名</h3>
+<p>另一个常见的模式是在测试struct中声明一个名称字段。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestSplit</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">tests</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">name</span>  <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">input</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">sep</span>   <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">want</span>  []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    }{
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">name</span>: <span style="color:#e6db74">&#34;simple&#34;</span>, <span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">name</span>: <span style="color:#e6db74">&#34;wrong sep&#34;</span>, <span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;,&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a/b/c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">name</span>: <span style="color:#e6db74">&#34;no sep&#34;</span>, <span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;abc&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;abc&#34;</span>}},
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">name</span>: <span style="color:#e6db74">&#34;trailing sep&#34;</span>, <span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c/&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">tests</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">sep</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;%s: expected: %v, got: %v&#34;</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>现在，当测试失败时，我们有一个描述性的名称，说明测试在做什么。我们不再需要尝试从输出中弄清楚它，因为现在我们有一个可以搜索的字符串。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>% go test
+</span></span><span style="display:flex;"><span>--- FAIL: TestSplit <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    split_test.go:25: trailing sep: expected: <span style="color:#f92672">[</span>a b c<span style="color:#f92672">]</span>, got: <span style="color:#f92672">[</span>a b c <span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>我们可以使用map字面量语法来进一步简化它：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestSplit</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">tests</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">input</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">sep</span>   <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">want</span>  []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    }{ 
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;simple&#34;</span>:       {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}}, 
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;wrong sep&#34;</span>:    {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;,&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a/b/c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;no sep&#34;</span>:       {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;abc&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;abc&#34;</span>}},
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;trailing sep&#34;</span>: {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c/&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">tests</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">sep</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;%s: expected: %v, got: %v&#34;</span>, <span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>使用map字面量语法，我们将测试用例定义为struct的切片，而是将测试名称定义为测试fixture的map。使用map的一个好处是，它将潜在地提高我们测试的效率。</p>
+<p>Map的迭代顺序是无序的。这意味着每次运行<code>go test</code>时，我们的测试都有可能以不同的顺序运行。</p>
+<p>这个其实很有用，可以用来发现测试在语句顺序运行时通过，但在其他情况下不通过的情况。如果发现这种情况，那么你可能有一些全局状态，这些状态被一个测试修改，后续的测试依赖于这个修改。</p>
+<h2 id="介绍子测试">介绍子测试</h2>
+<p>在我们修复失败的测试之前，我们的表驱动测试框架还有一些其他问题需要解决。</p>
+<p>第一个问题是当一个测试用例失败时，我们调用<code>t.Fatalf</code>。这意味着在第一个失败的测试用例之后，我们停止测试其他用例。因为测试用例是按照无序的顺序运行的，所以如果有一个测试失败，那么如果我们可以知道它是唯一的失败还是第一个失败就很好了。</p>
+<p>Golang的测试包会为我们做这件事，如果我们花费精力将每个测试用例写成自己的函数，但这是相当冗长的。好消息是，自从Go 1.7以来，一个新的特性被添加了进来，让我们可以很容易地为表驱动测试做到这一点。它们被称为<a href="https://blog.golang.org/subtests">子测试</a>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestSplit</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">tests</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">input</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">sep</span>   <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">want</span>  []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    }{
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;simple&#34;</span>:       {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;wrong sep&#34;</span>:    {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;,&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a/b/c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;no sep&#34;</span>:       {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;abc&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;abc&#34;</span>}},
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;trailing sep&#34;</span>: {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c/&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">tests</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#a6e22e">name</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) { <span style="color:#75715e">//子集测试匿名函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">sep</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>) {
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;expected: %v, got: %v&#34;</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>现在每一个子测试都有一个名字，我们可以在任何测试运行中自动打印出这个名字。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>% go test
+</span></span><span style="display:flex;"><span>--- FAIL: TestSplit <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    --- FAIL: TestSplit/trailing_sep <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        split_test.go:25: expected: <span style="color:#f92672">[</span>a b c<span style="color:#f92672">]</span>, got: <span style="color:#f92672">[</span>a b c <span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>每一个子测试都是它自己的匿名函数，因此我们可以使用<code>t.Fatalf</code>，<code>t.Skipf</code>和所有其他的<code>testing.T</code>helpers，同时保持表驱动测试的紧凑性。</p>
+<h3 id="每一个子测试都可以独立执行">每一个子测试都可以独立执行</h3>
+<p>因为子测试有一个名字，所以你可以使用<code>go test -run</code>标志来运行一个子测试的选择。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>% go test -run<span style="color:#f92672">=</span>.*/trailing -v
+</span></span><span style="display:flex;"><span><span style="color:#f92672">===</span> RUN   TestSplit
+</span></span><span style="display:flex;"><span><span style="color:#f92672">===</span> RUN   TestSplit/trailing_sep
+</span></span><span style="display:flex;"><span>--- FAIL: TestSplit <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    --- FAIL: TestSplit/trailing_sep <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        split_test.go:25: expected: <span style="color:#f92672">[</span>a b c<span style="color:#f92672">]</span>, got: <span style="color:#f92672">[</span>a b c <span style="color:#f92672">]</span>
+</span></span></code></pre></div><h3 id="比较测试的预期值want和实际值got">比较测试的预期值(want)和实际值(got)</h3>
+<p>现在我们准备好修复测试用例了。让我们来看看错误。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>--- FAIL: TestSplit <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    --- FAIL: TestSplit/trailing_sep <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        split_test.go:25: expected: <span style="color:#f92672">[</span>a b c<span style="color:#f92672">]</span>, got: <span style="color:#f92672">[</span>a b c <span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>你可以看到问题吗？显然，这两个切片是不同的，这就是<code>reflect.DeepEqual</code>失败的原因。但是发现实际的差异并不容易，你必须注意到<code>c</code>后面的额外空格。这在这个简单的例子中看起来很简单，但是当你比较两个复杂的嵌套gRPC结构时，这是任何事情。</p>
+<p>我们可以通过切换到<code>%#v</code>语法来改进输出，以将值视为Go(ish)声明：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">sep</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;expected: %#v, got: %#v&#34;</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>现在当我们运行我们的测试时，我们可以轻易发现问题是切片中有一个额外的空元素 <code>&quot;&quot;</code>。</p>
+<pre tabindex="0"><code>% go test
+--- FAIL: TestSplit (0.00s)
+    --- FAIL: TestSplit/trailing_sep (0.00s)
+        split_test.go:25: expected: []string{&#34;a&#34;, &#34;b&#34;, &#34;c&#34;}, got: []string{&#34;a&#34;, &#34;b&#34;, &#34;c&#34;, &#34;&#34;}
+</code></pre><p>但是在我们去修复我们的测试失败之前，我想再谈谈选择正确的方式来呈现测试失败。我们的<code>Split</code>函数很简单，它接受一个原始字符串并返回一个字符串切片，但是如果它使用结构体，或者更糟糕的是，指向结构体的指针呢？</p>
+<p>这是个例子，<code>%#v</code> 当前并不适用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">T</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">I</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">x</span> <span style="color:#f92672">:=</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">T</span>{{<span style="color:#ae81ff">1</span>}, {<span style="color:#ae81ff">2</span>}, {<span style="color:#ae81ff">3</span>}}
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">y</span> <span style="color:#f92672">:=</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">T</span>{{<span style="color:#ae81ff">1</span>}, {<span style="color:#ae81ff">2</span>}, {<span style="color:#ae81ff">4</span>}}
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v %v\n&#34;</span>, <span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%#v %#v\n&#34;</span>, <span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>第一个<code>fmt.Printf</code>打印出了不太有用，但是预期的地址切片；<code>[0xc000096000 0xc000096008 0xc000096010] [0xc000096018 0xc000096020 0xc000096028]</code>。然而我们的<code>%#v</code>版本并没有更好，打印出了一个地址切片，转换为<code>*main.T</code>；<code>[]*main.T{(*main.T)(0xc000096000), (*main.T)(0xc000096008), (*main.T)(0xc000096010)} []*main.T{(*main.T)(0xc000096018), (*main.T)(0xc000096020), (*main.T)(0xc000096028)}</code></p>
+<p>现在因为使用<code>fmt.Printf</code>的限制，我想介绍一下来自Google的<a href="https://github.com/google/go-cmp">go-cmp</a></p>
+<p>这个cmp库的目标是专门用来比较两个值。这类似于<code>reflect.DeepEqual</code>，但是它有更多的功能。使用cmp包，你当然可以写：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">T</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">I</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">x</span> <span style="color:#f92672">:=</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">T</span>{{<span style="color:#ae81ff">1</span>}, {<span style="color:#ae81ff">2</span>}, {<span style="color:#ae81ff">3</span>}}
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">y</span> <span style="color:#f92672">:=</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">T</span>{{<span style="color:#ae81ff">1</span>}, {<span style="color:#ae81ff">2</span>}, {<span style="color:#ae81ff">4</span>}}
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">cmp</span>.<span style="color:#a6e22e">Equal</span>(<span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>)) <span style="color:#75715e">// false
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>但是对于我们的测试函数来说，更有用的是<code>cmp.Diff</code>函数，它将递归地产生两个值之间的差异的文本描述。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">T</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">I</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">x</span> <span style="color:#f92672">:=</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">T</span>{{<span style="color:#ae81ff">1</span>}, {<span style="color:#ae81ff">2</span>}, {<span style="color:#ae81ff">3</span>}}
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">y</span> <span style="color:#f92672">:=</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">T</span>{{<span style="color:#ae81ff">1</span>}, {<span style="color:#ae81ff">2</span>}, {<span style="color:#ae81ff">4</span>}}
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">diff</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cmp</span>.<span style="color:#a6e22e">Diff</span>(<span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#a6e22e">diff</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>上面的输出是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>% go run
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{[]</span>*main.T<span style="color:#f92672">}[</span>2<span style="color:#f92672">]</span>.I:
+</span></span><span style="display:flex;"><span>         -: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>         +: <span style="color:#ae81ff">4</span>
+</span></span></code></pre></div><p>它告诉我们，在<code>T</code>的切片的第2个元素中，<code>I</code>字段预期为3，但实际为4。</p>
+<p>现在让我们把这些放在一起，使用go-cmp编写测试表格驱动测试</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestSplit</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">tests</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">input</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">sep</span>   <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">want</span>  []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    }{
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;simple&#34;</span>:       {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;wrong sep&#34;</span>:    {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;,&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a/b/c&#34;</span>}},
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;no sep&#34;</span>:       {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;abc&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;abc&#34;</span>}},
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;trailing sep&#34;</span>: {<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c/&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">tests</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#a6e22e">name</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">sep</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">diff</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cmp</span>.<span style="color:#a6e22e">Diff</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">diff</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#a6e22e">diff</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>上面测试的输出是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>% go test
+</span></span><span style="display:flex;"><span>--- FAIL: TestSplit <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    --- FAIL: TestSplit/trailing_sep <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        split_test.go:27: <span style="color:#f92672">{[]</span>string<span style="color:#f92672">}[</span>?-&gt;3<span style="color:#f92672">]</span>:
+</span></span><span style="display:flex;"><span>                -: &lt;non-existent&gt;
+</span></span><span style="display:flex;"><span>                +: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>FAIL
+</span></span><span style="display:flex;"><span>exit status <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>FAIL    split   0.006s
+</span></span></code></pre></div><p>我们可以看到，使用<code>cmp.Diff</code>不仅仅告诉我们得到的和我们想要的是不同的。同事还能看到字符串的长度不同，第三个索引在fixture中不应该存在，但是实际输出我们得到了一个空字符串，&quot;&quot;。从这里修复测试失败是直截了当的。</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

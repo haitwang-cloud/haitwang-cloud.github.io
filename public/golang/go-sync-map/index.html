@@ -1,0 +1,684 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>掌握 Golang 的 sync.Map 并发安全容器 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="The new kid in town — Go’s sync.Map 的中文翻译版本，内容有删减。
+本文是一个使用在 sync.Map 包中内置 map 的例子，
+下面代码中的 RegularIntMap 采用了由 RWMutex构成的内置map
+package RegularIntMap type RegularIntMap struct { sync.RWMutex internal map[int]int } func NewRegularIntMap() *RegularIntMap { return &amp;RegularIntMap{ internal: make(map[int]int), } } func (rm *RegularIntMap) Load(key int) (value int, ok bool) { rm.RLock() result, ok := rm.internal[key] rm.RUnlock() return result, ok } func (rm *RegularIntMap) Delete(key int) { rm.Lock() delete(rm.internal, key) rm.Unlock() } func (rm *RegularIntMap) Store(key, value int) { rm." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">掌握 Golang 的 sync.Map 并发安全容器</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 19, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p><a href="https://medium.com/@deckarep/the-new-kid-in-town-gos-sync-map-de24a6bf7c2c">The new kid in town — Go’s sync.Map</a> 的中文翻译版本，内容有删减。</p>
+</blockquote>
+<p>本文是一个使用在 <code>sync.Map</code> 包中内置 <code>map</code> 的例子，</p>
+<p>下面代码中的 RegularIntMap 采用了由 RWMutex构成的内置map</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Go" data-lang="Go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">RegularIntMap</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">RegularIntMap</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">RWMutex</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">internal</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewRegularIntMap</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">RegularIntMap</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">RegularIntMap</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">internal</span>: make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#66d9ef">int</span>),
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">rm</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RegularIntMap</span>) <span style="color:#a6e22e">Load</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">int</span>) (<span style="color:#a6e22e">value</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">ok</span> <span style="color:#66d9ef">bool</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">RLock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">internal</span>[<span style="color:#a6e22e">key</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">RUnlock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">ok</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">rm</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RegularIntMap</span>) <span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>	delete(<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">internal</span>, <span style="color:#a6e22e">key</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Unlock</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">rm</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RegularIntMap</span>) <span style="color:#a6e22e">Store</span>(<span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">value</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">internal</span>[<span style="color:#a6e22e">key</span>] = <span style="color:#a6e22e">value</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Unlock</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>在上面的代码中，<code>Load</code>  是唯一不会改变内部映射状态的接收器方法。 这很重要，因为 <code>Load</code>  可以自由地获取读锁，为正在执行此方法的那些 goroutines 提供并发进度。</p>
+<p>直到对标准库进行额外的审查和性能分析后，Go 团队的各个成员才发现，当在多核系统中使用<code>sync.RWMutex</code>时，性能并不理想。这里指的并不是 8 核或 16 核设置，而是那些远远超出此范围的服务器设置。此时内核数量真正开始以高度争议的代码形式显示的地方，在此时使用<code>sync.RWMutex</code>。</p>
+<p>现在我们已经了解了为什么要创建 <code>sync.Map</code>。 Go 团队发现了标准库中性能不佳的情况。在某些情况下，项目是从<code>sync.RWMutex</code>中的数据结构中获取的，在高读取场景下，如果项目此时恰巧部署在多核服务器上，性能会受到很大影响。</p>
+<p>事实上，在 <strong>2017 GopherCon</strong> 上，有一个关于它的精彩故事：<a href="https://www.youtube.com/watch?v=C1EtfDnsdDs">An overview of sync.Map</a>。 如果您正在考虑使用该实现，请观看此演讲，因为它可能存在一些性能陷阱。 此外，这次简短的演讲肯定会更深入地说明为什么要创建它以及它的设计目的。</p>
+<p>让我们来看看下面的代码中查看<code>sync.Map</code>的用法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Go" data-lang="Go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">syncMapUsage</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;sync.Map test (Go 1.9+ only)&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;----------------------------&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Create the threadsafe map.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sm</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Map</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Fetch an item that doesn&#39;t exist yet.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Load</span>(<span style="color:#e6db74">&#34;hello&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">result</span>.(<span style="color:#66d9ef">string</span>))
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;value not found for key: `hello`&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Store an item in the map.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#e6db74">&#34;hello&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;added value: `world` for key: `hello`&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Fetch the item we just stored.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">ok</span> = <span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Load</span>(<span style="color:#e6db74">&#34;hello&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;result: `%s` found for key: `hello`\n&#34;</span>, <span style="color:#a6e22e">result</span>.(<span style="color:#66d9ef">string</span>))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;---------------------------&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>请注意，该 API 明显不同于常规的内置 <code>map</code> 用法。 此外，因为sync.Map的这种实现不是类型安全的, 当我们从sync.Map中获取（<code>Load</code>）项目时，所以我们必须进行类型转换，请注意此时可能会失败。</p>
+<p>除了<code>Load</code>和<code>Store</code>，还有前面提到的<a href="https://pkg.go.dev/sync#Map.Delete">Delete</a>、<a href="https://pkg.go.dev/sync#Map.LoadOrStore">LoadOrStore</a>和最后<a href="https://pkg.go.dev/sync#Map.Range">Range</a>的方法。可以参考golang的文档<a href="https://pkg.go.dev/sync#Map">https://pkg.go.dev/sync#Map</a>。</p>
+<blockquote>
+<p>所以 <code>sync.Map</code> 性能如何呢？</p>
+</blockquote>
+<p>关于性能特征的文档如下所述：</p>
+<blockquote>
+<p>它针对在<strong>并发循环</strong>进行了优化，键<strong>随时间稳定</strong>，以及少数<strong>稳态存储</strong>，或存储<strong>本地化到每个键在一个goroutine</strong>。</p>
+</blockquote>
+<blockquote>
+<p>对于不共享这些属性的用例，与读写互斥锁配对的普通映射相比，它可能具有更差的性能和类型安全性。</p>
+</blockquote>
+<p><img src="https://miro.medium.com/max/850/1*g0W-pAa00oXaRqo8tAlPDg.png" alt=""></p>
+<p>第一个基准测试显示了使用 RWMutex 包装的常规内置 <code>map</code> 与  <code>sync.Map</code> 针对 <code>Store</code> 操作对比如何。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Go" data-lang="Go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">nrand</span>(<span style="color:#a6e22e">n</span> <span style="color:#66d9ef">int</span>) []<span style="color:#66d9ef">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">n</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">ind</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">i</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">i</span>[<span style="color:#a6e22e">ind</span>] = <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Int</span>()
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">i</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">BenchmarkStoreRegular</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">nums</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">nrand</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewRegularIntMap</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">nums</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">BenchmarkStoreSync</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">nums</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">nrand</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sm</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Map</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">nums</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkStoreRegular-32                	 5000000	       319 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkStoreSync-32                   	 1000000	      1146 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">*/</span>
+</span></span></code></pre></div><p>接下来是关于 <code>Delete</code> 操作的基准测试。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Go" data-lang="Go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">BenchmarkDeleteRegular</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">nums</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">nrand</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewRegularIntMap</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">nums</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">nums</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">BenchmarkDeleteSync</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">nums</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">nrand</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sm</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Map</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">nums</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">nums</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkDeleteRegular-32               	10000000	       238 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkDeleteSync-32                  	 5000000	       393 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">*/</span>
+</span></span></code></pre></div><p>接下来是关于 <code>Load</code> 操作的基准测试，其中 <code>Found</code> 的情况应该总是在映射中找到结果，而 <code>NotFound</code> 的情况将会几乎不会在map中找到结果。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Go" data-lang="Go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">BenchmarkLoadRegularFound</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">nums</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">nrand</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewRegularIntMap</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">nums</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">currentResult</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">currentResult</span>, <span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Load</span>(<span style="color:#a6e22e">nums</span>[<span style="color:#a6e22e">i</span>])
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">globalResult</span> = <span style="color:#a6e22e">currentResult</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">BenchmarkLoadRegularNotFound</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">nums</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">nrand</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewRegularIntMap</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">nums</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">currentResult</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">currentResult</span>, <span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Load</span>(<span style="color:#a6e22e">i</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">globalResult</span> = <span style="color:#a6e22e">currentResult</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">BenchmarkLoadSyncFound</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">nums</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">nrand</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sm</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Map</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">nums</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">currentResult</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">r</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Load</span>(<span style="color:#a6e22e">nums</span>[<span style="color:#a6e22e">i</span>])
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">currentResult</span> = <span style="color:#a6e22e">r</span>.(<span style="color:#66d9ef">int</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">globalResult</span> = <span style="color:#a6e22e">currentResult</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">BenchmarkLoadSyncNotFound</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">nums</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">nrand</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sm</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Map</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">nums</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">currentResult</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">r</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Load</span>(<span style="color:#a6e22e">i</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">currentResult</span> = <span style="color:#a6e22e">r</span>.(<span style="color:#66d9ef">int</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">globalResult</span> = <span style="color:#a6e22e">currentResult</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkLoadRegularFound-32            	10000000	       180 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkLoadRegularNotFound-32         	20000000	       107 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkLoadSyncFound-32               	10000000	       200 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkLoadSyncNotFound-32            	20000000	       291 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">*/</span>
+</span></span></code></pre></div><p>接下来是在多核中的基准测试，代码的主要部分将启动一个作为工作程序的 goroutine，它将通过使用 <code>b.N</code> 值进行尽可能多的迭代以满足 Go 的基准测试工具。对于每个运行中的 goroutine，我们将执行<code>Load</code>操作，并最终使用<code>sync.WaitGroup</code>发出信号，表明结束。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Go" data-lang="Go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">benchmarkRegularStableKeys</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>, <span style="color:#a6e22e">workerCount</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">GOMAXPROCS</span>(<span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewRegularIntMap</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">populateMap</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>, <span style="color:#a6e22e">rm</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Holds our final results, to prevent compiler optimizations.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">globalResultChan</span> = make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">wc</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">wc</span> &lt; <span style="color:#a6e22e">workerCount</span>; <span style="color:#a6e22e">wc</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">n</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">currentResult</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">n</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">currentResult</span>, <span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Load</span>(<span style="color:#ae81ff">5</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">globalResultChan</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">currentResult</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
+</span></span><span style="display:flex;"><span>		}(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">benchmarkSyncStableKeys</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>, <span style="color:#a6e22e">workerCount</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">GOMAXPROCS</span>(<span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sm</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Map</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">populateSyncMap</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">sm</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Holds our final results, to prevent compiler optimizations.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">globalResultChan</span> = make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">wc</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">wc</span> &lt; <span style="color:#a6e22e">workerCount</span>; <span style="color:#a6e22e">wc</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">n</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">currentResult</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">n</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">r</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Load</span>(<span style="color:#ae81ff">5</span>)
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">currentResult</span> = <span style="color:#a6e22e">r</span>.(<span style="color:#66d9ef">int</span>)
+</span></span><span style="display:flex;"><span>				}
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">globalResultChan</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">currentResult</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
+</span></span><span style="display:flex;"><span>		}(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">benchmarkRegularStableKeysFound</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>, <span style="color:#a6e22e">workerCount</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">GOMAXPROCS</span>(<span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rm</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewRegularIntMap</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">values</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">populateMap</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>, <span style="color:#a6e22e">rm</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Holds our final results, to prevent compiler optimizations.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">globalResultChan</span> = make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">wc</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">wc</span> &lt; <span style="color:#a6e22e">workerCount</span>; <span style="color:#a6e22e">wc</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">n</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">currentResult</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">n</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">currentResult</span>, <span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">rm</span>.<span style="color:#a6e22e">Load</span>(<span style="color:#a6e22e">values</span>[<span style="color:#a6e22e">i</span>])
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">globalResultChan</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">currentResult</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
+</span></span><span style="display:flex;"><span>		}(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">benchmarkSyncStableKeysFound</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>, <span style="color:#a6e22e">workerCount</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">GOMAXPROCS</span>(<span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sm</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Map</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">values</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">populateSyncMap</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">sm</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Holds our final results, to prevent compiler optimizations.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">globalResultChan</span> = make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">workerCount</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">ResetTimer</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">wc</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">wc</span> &lt; <span style="color:#a6e22e">workerCount</span>; <span style="color:#a6e22e">wc</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">n</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">currentResult</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">n</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">r</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sm</span>.<span style="color:#a6e22e">Load</span>(<span style="color:#a6e22e">values</span>[<span style="color:#a6e22e">i</span>])
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">currentResult</span> = <span style="color:#a6e22e">r</span>.(<span style="color:#66d9ef">int</span>)
+</span></span><span style="display:flex;"><span>				}
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">globalResultChan</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">currentResult</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
+</span></span><span style="display:flex;"><span>		}(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// These tests do a lookup using a literal value.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// Regular Map backed by RWMutex
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeys1-32          	50000000	        30.5 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeys2-32          	10000000	       157 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeys4-32          	 5000000	       377 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeys8-32          	 2000000	       701 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeys16-32         	 1000000	      1446 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeys32-32         	  500000	      2825 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeys64-32         	  200000	      5699 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// Sync Map
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeys1-32             	20000000	        89.3 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeys2-32             	20000000	       101 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeys4-32             	 5000000	       247 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeys8-32             	 5000000	       330 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeys16-32            	 5000000	       295 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeys32-32            	 5000000	       269 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeys64-32            	 5000000	       249 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// These tests do a lookup of keys already defined in the map per iteration.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// Regular Map backed by RWMutex
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeysFound1-32     	20000000	       114 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeysFound2-32     	10000000	       203 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeysFound4-32     	 3000000	       460 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeysFound8-32     	 2000000	       976 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeysFound16-32    	 1000000	      1895 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeysFound32-32    	  300000	      3620 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkRegularStableKeysFound64-32    	  200000	      6762 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// Sync Map
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeysFound1-32        	 5000000	       357 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeysFound2-32        	 3000000	       446 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeysFound4-32        	 3000000	       501 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeysFound8-32        	 3000000	       576 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeysFound16-32       	 2000000	       566 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeysFound32-32       	 3000000	       527 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">BenchmarkSyncStableKeysFound64-32       	 2000000	       873 ns/op
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">*/</span>
+</span></span></code></pre></div><p><img src="https://miro.medium.com/max/1084/1*8sCf9LsFhVcZLMw45kn0nQ.png" alt=""></p>
+<p>正如您立即看到的那样，我们的 <strong>regular map</strong> 具有出色的性能，它受 <code>RWMutex</code> 保护。事情进展顺利直到我们开始达到 4 个核心。此时不仅争用成为问题，而且跨核心的缩放因子也成为问题。<code>RWMutex</code>有太多的读取冲突，以至于当达到 32 个核心标记时，性能会受到很大影响。源代码地址 <a href="https://github.com/deckarep/sync-map-analysis">https://github.com/deckarep/sync-map-analysis</a>.</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

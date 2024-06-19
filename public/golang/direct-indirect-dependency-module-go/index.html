@@ -1,0 +1,425 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>go.mod 文件解析：直接与间接依赖 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="Direct vs Indirect Dependencies in go.mod file in Go 的中文翻译版本。
+Module 是 Go的依赖工具。根据定义，Module是一组以 go.mod 为根目录的相关包的集合。 go.mod 文件定义了
+Module 导入路径。 用于成功构建项目的依赖项要求。它不仅定义了模块的依赖，同时也确定了依赖的版本。 Module中的依赖可以是两种类型：
+Direct 在项目文件中被直接引用的直接依赖。 Indirect 是module的直接依赖的二次依赖。 在go.mod文件中被声明，但是没有被文件直接引用的依赖也被视为indirect依赖。 go.mod 文件理论上只记录了direct dependency。然而在下面的情况，它也会记录indirect dependency
+不在go.mod文件中出现的direct dependency，或者direct dependency项目中不包含go.mod文件。那么这个依赖将被添加到go.mod文件中，并且使用//indirect作为后缀 没有被任何文件引用的依赖。 go.sum 将记录同时direct和indirect dependencies的校验和
+接下来，我们来看一个direct dependency的例子。
+git mod init learn 创建一个文件 learn.go
+package main import ( &#34;github.com/pborman/uuid&#34; ) func main() { _ = uuid.NewRandom() } 请注意，我们在learn.go中用以下方式指定了依赖
+&#34;github.com/pborman/uuid&#34; 所以 github.com/pborman/uuid 是一个我们的learn 项目的direct dependency，因为它是直接引用到learn.go中的。 现在让我们运行以下命令
+go mod tidy 此命令将下载源文件中所需的所有依赖项。 运行此命令后，让我们再次检查 go." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">go.mod 文件解析：直接与间接依赖</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 19, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p><a href="https://golangbyexample.com/direct-indirect-dependency-module-go/">Direct vs Indirect Dependencies in go.mod file in Go</a> 的中文翻译版本。</p>
+</blockquote>
+<p>Module 是 Go的依赖工具。根据定义，Module是一组以 <strong>go.mod</strong> 为根目录的相关包的集合。 <strong>go.mod</strong> 文件定义了</p>
+<ul>
+<li>Module 导入路径。</li>
+<li>用于成功构建项目的依赖项要求。它不仅定义了模块的依赖，同时也确定了依赖的版本。</li>
+</ul>
+<p>Module中的依赖可以是两种类型：</p>
+<ul>
+<li><strong>Direct</strong>  在项目文件中被直接引用的直接依赖。</li>
+<li><strong>Indirect</strong>
+<ul>
+<li>是module的直接依赖的二次依赖。</li>
+<li>在go.mod文件中被声明，但是没有被文件直接引用的依赖也被视为indirect依赖。</li>
+</ul>
+</li>
+</ul>
+<p><strong>go.mod</strong> 文件理论上只记录了direct dependency。然而在下面的情况，它也会记录indirect dependency</p>
+<ul>
+<li>不在go.mod文件中出现的direct dependency，或者direct dependency项目中不包含go.mod文件。那么这个依赖将被添加到go.mod文件中，并且使用//indirect作为后缀</li>
+<li>没有被任何文件引用的依赖。</li>
+</ul>
+<p><strong>go.sum</strong> 将记录同时direct和indirect dependencies的校验和</p>
+<p>接下来，我们来看一个direct dependency的例子。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>git mod init learn
+</span></span></code></pre></div><p>创建一个文件 <strong>learn.go</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/pborman/uuid&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">uuid</span>.<span style="color:#a6e22e">NewRandom</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>请注意，我们在<strong>learn.go</strong>中用以下方式指定了依赖</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#e6db74">&#34;github.com/pborman/uuid&#34;</span>
+</span></span></code></pre></div><p>所以 <strong><a href="http://github.com/pborman/uuid">github.com/pborman/uuid</a></strong> 是一个我们的learn 项目的direct dependency，因为它是直接引用到<strong>learn.go</strong>中的。 现在让我们运行以下命令</p>
+<pre tabindex="0"><code>go mod tidy
+</code></pre><p>此命令将下载源文件中所需的所有依赖项。 运行此命令后，让我们再次检查 <strong>go.mod</strong> 文件的内容</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span><span style="color:#75715e"># go.mod</span>
+</span></span><span style="display:flex;"><span>module learn
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>go 1.14
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>require github.com/pborman/uuid v1.2.1
+</span></span></code></pre></div><p>它列出了在 <strong>learn.go</strong> 文件中指定的direct dependency以及dependency的确切版本。 现在让我们检查一下 go.sum 文件.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span><span style="color:#75715e"># go.sum</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>github.com/google/uuid v1.0.0 h1:b4Gk+7WdP/d3HZH8EJsZpvV7EtDOgaZLtnaNGIu1adA<span style="color:#f92672">=</span>
+</span></span><span style="display:flex;"><span>github.com/google/uuid v1.0.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo<span style="color:#f92672">=</span>
+</span></span><span style="display:flex;"><span>github.com/pborman/uuid v1.2.1 h1:+ZZIw58t/ozdjRaXh/3awHfmWRbzYxJoAdNJxe/3pvw<span style="color:#f92672">=</span>
+</span></span><span style="display:flex;"><span>github.com/pborman/uuid v1.2.1/go.mod h1:X/NO0urCmaxf9VXbdlT7C2Yzkj2IKimNn4k+gtPdI/k<span style="color:#f92672">=</span>
+</span></span></code></pre></div><p><strong>go.sum</strong> 文件列出了模块所需的direct and indirect dependency的校验和。 <a href="http://github.com/google/uuid">github.com/google/uuid</a> 被 <a href="http://github.com/pborman/uuid">github.com/pborman/uuid</a> 内部使用，因此它作为indirect dependency被记录在 <strong>go.sum</strong> 文件中。</p>
+<p>以上我们通过在源文件中添加了一个依赖项，并使用 <strong>go mod tidy</strong> 命令下载该依赖项并将其添加到 <strong>go.mod</strong> 文件中。</p>
+<p>让我们通过一个例子来理解它。 为此，让我们首先创建一个模块</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>git mod init learn
+</span></span></code></pre></div><p>现在创建一个文件 <strong>learn.go</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gocolly/colly&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">colly</span>.<span style="color:#a6e22e">NewCollector</span>()
+</span></span></code></pre></div><p>请注意，我们已将 <strong>learn.go</strong> 中的依赖项指定为</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gocolly</span><span style="color:#f92672">/</span><span style="color:#a6e22e">colly</span>
+</span></span></code></pre></div><p>所以 github.com/gocolly/colly 是 learn 项目的direct dependency，因为它是直接导入到模块中的。让我们在 go.mod 文件中添加 colly v1.2.0 版本作为依赖</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>module learn
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>go 1.14
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>require	github.com/gocolly/colly v1.2.0
+</span></span></code></pre></div><p>Now let’s run the below command</p>
+<p>然后运行以下命令</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>go mod tidy
+</span></span></code></pre></div><p>运行此命令后，让我们再次检查 <strong>go.mod</strong> 文件的内容。 由于 colly v1.2.0 版本没有 go.mod 文件，所以 colly 需要的所有依赖都将添加到 <strong>go.mod</strong> 文件中，并以 <strong>//indirect</strong> 作为后缀</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#66d9ef">go</span>.<span style="color:#a6e22e">mod</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module</span> <span style="color:#a6e22e">learn</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#ae81ff">1.14</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">require</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">PuerkitoBio</span><span style="color:#f92672">/</span><span style="color:#a6e22e">goquery</span> <span style="color:#a6e22e">v1</span><span style="color:#ae81ff">.6.0</span> <span style="color:#75715e">// indirect
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">antchfx</span><span style="color:#f92672">/</span><span style="color:#a6e22e">htmlquery</span> <span style="color:#a6e22e">v1</span><span style="color:#ae81ff">.2.3</span> <span style="color:#75715e">// indirect
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">antchfx</span><span style="color:#f92672">/</span><span style="color:#a6e22e">xmlquery</span> <span style="color:#a6e22e">v1</span><span style="color:#ae81ff">.3.3</span> <span style="color:#75715e">// indirect
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gobwas</span><span style="color:#f92672">/</span><span style="color:#a6e22e">glob</span> <span style="color:#a6e22e">v0</span><span style="color:#ae81ff">.2.3</span> <span style="color:#75715e">// indirect
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gocolly</span><span style="color:#f92672">/</span><span style="color:#a6e22e">colly</span> <span style="color:#a6e22e">v1</span><span style="color:#ae81ff">.2.0</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">kennygrant</span><span style="color:#f92672">/</span><span style="color:#a6e22e">sanitize</span> <span style="color:#a6e22e">v1</span><span style="color:#ae81ff">.2.4</span> <span style="color:#75715e">// indirect
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">saintfish</span><span style="color:#f92672">/</span><span style="color:#a6e22e">chardet</span> <span style="color:#a6e22e">v0</span><span style="color:#ae81ff">.0.0</span><span style="color:#f92672">-</span><span style="color:#ae81ff">20120816061221</span><span style="color:#f92672">-</span><span style="color:#ae81ff">3</span><span style="color:#a6e22e">af4cd4741ca</span> <span style="color:#75715e">// indirect
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">temoto</span><span style="color:#f92672">/</span><span style="color:#a6e22e">robotstxt</span> <span style="color:#a6e22e">v1</span><span style="color:#ae81ff">.1.1</span> <span style="color:#75715e">// indirect
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">golang</span>.<span style="color:#a6e22e">org</span><span style="color:#f92672">/</span><span style="color:#a6e22e">x</span><span style="color:#f92672">/</span><span style="color:#a6e22e">net</span> <span style="color:#a6e22e">v0</span><span style="color:#ae81ff">.0.0</span><span style="color:#f92672">-</span><span style="color:#ae81ff">20201027133719</span><span style="color:#f92672">-</span><span style="color:#ae81ff">8</span><span style="color:#a6e22e">eef5233e2a1</span> <span style="color:#75715e">// indirect
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">google</span>.<span style="color:#a6e22e">golang</span>.<span style="color:#a6e22e">org</span><span style="color:#f92672">/</span><span style="color:#a6e22e">appengine</span> <span style="color:#a6e22e">v1</span><span style="color:#ae81ff">.6.7</span> <span style="color:#75715e">// indirect
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>)
+</span></span></code></pre></div><p>所有colly的其他依赖项都以 <strong>//indirect</strong> 为后缀。 所有direct 和 indirect dependencies的校验和也将记录在 go.sum 文件中。</p>
+<p>我们还提到，<strong>任何未在任何源文件中导入的依赖项都将被标记为 //indirect</strong>。 为了验证这个说法，让我们删除上面创建的<strong>learn.go</strong>文件，同时清理 <strong>go.mod</strong> 文件以中相关行。 最后运行以下命令</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Go" data-lang="Go"><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#a6e22e">get</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">pborman</span><span style="color:#f92672">/</span><span style="color:#a6e22e">uuid</span>
+</span></span></code></pre></div><p>现在检查 <strong>go.mod</strong> 文件的内容</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Go" data-lang="Go"><span style="display:flex;"><span><span style="color:#a6e22e">module</span> <span style="color:#a6e22e">learn</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#ae81ff">1.14</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">require</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">pborman</span><span style="color:#f92672">/</span><span style="color:#a6e22e">uuid</span> <span style="color:#a6e22e">v1</span><span style="color:#ae81ff">.2.1</span> <span style="color:#75715e">// indirect
+</span></span></span></code></pre></div><p>请注意，<a href="github.com/pborman/uuid">github.com/pborman/uuid</a>被记录为 //indirect，因为没有任何文件中直接引用它。</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

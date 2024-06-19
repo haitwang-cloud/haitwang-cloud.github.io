@@ -1,0 +1,851 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>在 Golang 中进行 Fuzz 测试 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本文是 Tutorial: Getting started with fuzzing的中文翻译版本，内容有删减
+本教程介绍了在Go中进行模糊测试的基础知识。使用模糊测试，会使用随机数据来运行测试，以查找漏洞或导致崩溃的输入。通过模糊测试可以发现的一些漏洞示例包括SQL注入、缓冲区溢出、拒绝服务和跨站点脚本攻击。
+在本教程中，您将为一个简单函数编写一个模糊测试，运行go命令，并调试和修复代码中的问题。
+在本教程中涉及到的术语可以参考Go Fuzzing术语表
+准备工作（Prerequisites） 您必须安装了Go 1.18及以上版本. 请参考 Installing Go来学习如何安装. 代码编辑器. 任何你有的文本编辑器都可以. 命令行. Go在Linux和Mac上使用任何终端都可以，也可以在Windows的PowerShell或cmd上使用. 支持模糊测试的环境. Go模糊测试仅在AMD64和ARM64架构上支持覆盖率插装. 创建文件夹 创建一个文件夹来存放你的代码
+打开命令行并切换到你的主目录
+Linux 或者 Mac上:
+$ cd Windows 上:
+C:\&gt; cd %HOMEPATH% 本文的剩余部分将显示$作为提示符。您使用的命令也可以在Windows上使用。
+在命令提示符下，创建一个名为fuzz的代码目录。
+$ mkdir fuzz $ cd fuzz 创建一个模块来保存你的代码
+运行go mod init命令，给它你的新代码的模块路径。
+$ go mod init example/fuzz go: creating new go.mod: module example/fuzz Note: 对于生产代码，您将指定一个更符合自己需求的模块路径。更多信息，请参见Managing dependencies.
+接下来，您将添加一些简单的代码来反转一个字符串，我们将在后面进行模糊测试。
+添加测试代码 在这一步中，您将添加一个函数来反转一个字符串。
+编写代码 用你的文本编辑器，在fuzz目录下创建一个名为main.go的文件。
+在main.go的顶部，粘贴以下包声明。
+package main 一个独立的程序（而不是一个库）总是在包main中。" />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">在 Golang 中进行 Fuzz 测试</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 19, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文是 <a href="https://go.dev/doc/tutorial/fuzz">Tutorial: Getting started with fuzzing</a>的中文翻译版本，内容有删减</p>
+</blockquote>
+<p>本教程介绍了在Go中进行模糊测试的基础知识。使用模糊测试，会使用随机数据来运行测试，以查找漏洞或导致崩溃的输入。通过模糊测试可以发现的一些漏洞示例包括SQL注入、缓冲区溢出、拒绝服务和跨站点脚本攻击。</p>
+<p>在本教程中，您将为一个简单函数编写一个模糊测试，运行go命令，并调试和修复代码中的问题。</p>
+<p>在本教程中涉及到的术语可以参考<a href="https://go.dev/security/fuzz/#glossary">Go Fuzzing术语表</a></p>
+<h1 id="准备工作prerequisites">准备工作（Prerequisites）</h1>
+<ul>
+<li><strong>您必须安装了Go 1.18及以上版本.</strong> 请参考 <a href="https://go.dev/doc/install">Installing Go</a>来学习如何安装.</li>
+<li><strong>代码编辑器.</strong> 任何你有的文本编辑器都可以.</li>
+<li><strong>命令行.</strong> Go在Linux和Mac上使用任何终端都可以，也可以在Windows的PowerShell或cmd上使用.</li>
+<li><strong>支持模糊测试的环境.</strong> Go模糊测试仅在AMD64和ARM64架构上支持覆盖率插装.</li>
+</ul>
+<h1 id="创建文件夹">创建文件夹</h1>
+<p>创建一个文件夹来存放你的代码</p>
+<ol>
+<li>
+<p>打开命令行并切换到你的主目录</p>
+<p>Linux 或者 Mac上:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ cd
+</span></span></code></pre></div><p>Windows 上:</p>
+<pre tabindex="0"><code>C:\&gt; cd %HOMEPATH%
+</code></pre><p>本文的剩余部分将显示$作为提示符。您使用的命令也可以在Windows上使用。</p>
+</li>
+<li>
+<p>在命令提示符下，创建一个名为fuzz的代码目录。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ mkdir fuzz
+</span></span><span style="display:flex;"><span>$ cd fuzz
+</span></span></code></pre></div></li>
+<li>
+<p>创建一个模块来保存你的代码</p>
+<p>运行<code>go mod init</code>命令，给它你的新代码的模块路径。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ go mod init example/fuzz
+</span></span><span style="display:flex;"><span>go: creating new go.mod: module example/fuzz
+</span></span></code></pre></div><p><strong>Note:</strong> 对于生产代码，您将指定一个更符合自己需求的模块路径。更多信息，请参见<a href="https://go.dev/doc/modules/managing-dependencies">Managing dependencies</a>.</p>
+</li>
+</ol>
+<p>接下来，您将添加一些简单的代码来反转一个字符串，我们将在后面进行模糊测试。</p>
+<h1 id="添加测试代码">添加测试代码</h1>
+<p>在这一步中，您将添加一个函数来反转一个字符串。</p>
+<h2 id="编写代码">编写代码</h2>
+<ol>
+<li>
+<p>用你的文本编辑器，在fuzz目录下创建一个名为main.go的文件。</p>
+</li>
+<li>
+<p>在main.go的顶部，粘贴以下包声明。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span></code></pre></div></li>
+</ol>
+<p>一个独立的程序（而不是一个库）总是在包<code>main</code>中。</p>
+<ol start="3">
+<li>
+<p>在包声明下面，粘贴以下函数声明。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">b</span> <span style="color:#f92672">:=</span> []byte(<span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">j</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>, len(<span style="color:#a6e22e">b</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">b</span>)<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>; <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">j</span> = <span style="color:#a6e22e">i</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">j</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">b</span>[<span style="color:#a6e22e">i</span>], <span style="color:#a6e22e">b</span>[<span style="color:#a6e22e">j</span>] = <span style="color:#a6e22e">b</span>[<span style="color:#a6e22e">j</span>], <span style="color:#a6e22e">b</span>[<span style="color:#a6e22e">i</span>]
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> string(<span style="color:#a6e22e">b</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这个函数的输入是一个<code>string</code>，然后将其转换为一个<code>byte</code>数组它，会逐个<code>byte</code>地遍历数组，最后返回一个反转的字符串。</p>
+<p><em>Note:</em> 这个代码是基于golang.org/x/example中的<code>stringutil.Reverse</code>函数。其他关于字符串拼接的介绍请参考<a href="https://geektutu.com/post/hpg-string-concat.html">字符串拼接性能及原理</a></p>
+</li>
+<li>
+<p>在main.go的顶部，在包声明下面，粘贴以下<code>main</code>函数来初始化一个字符串，反转它，打印输出，然后重复。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">input</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;The quick brown fox jumped over the lazy dog&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rev</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">input</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">doubleRev</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">rev</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;original: %q\n&#34;</span>, <span style="color:#a6e22e">input</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;reversed: %q\n&#34;</span>, <span style="color:#a6e22e">rev</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;reversed again: %q\n&#34;</span>, <span style="color:#a6e22e">doubleRev</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这个函数将将运行<code>Reverse</code>，然后把输出打印到命令行。这对于查看代码的运行情况和调试可能有帮助。</p>
+</li>
+<li>
+<p><code>main</code>函数也使用了fmt包，所以你需要导入它。</p>
+</li>
+</ol>
+<pre><code>程序的前几行代码应该是这样的:
+
+```go
+package main
+
+import &quot;fmt&quot;
+
+```
+</code></pre>
+<h2 id="运行代码">运行代码</h2>
+<p>在命令行中，进入包含main.go的目录，运行代码。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ go run .
+</span></span><span style="display:flex;"><span>original: <span style="color:#e6db74">&#34;The quick brown fox jumped over the lazy dog&#34;</span>
+</span></span><span style="display:flex;"><span>reversed: <span style="color:#e6db74">&#34;god yzal eht revo depmuj xof nworb kciuq ehT&#34;</span>
+</span></span><span style="display:flex;"><span>reversed again: <span style="color:#e6db74">&#34;The quick brown fox jumped over the lazy dog&#34;</span>
+</span></span></code></pre></div><p>你可以看到原始字符串，反转后的结果，然后是再次反转后的结果，这与原始字符串相同。</p>
+<p>现在代码已经运行了，是时候测试它了。</p>
+<h1 id="添加单元测试">添加单元测试</h1>
+<p>在这一步中，您将为<code>Reverse</code>函数编写一个基本的单元测试。</p>
+<h2 id="编写代码-1">编写代码</h2>
+<ol>
+<li>
+<p>使用你的文本编辑器，在fuzz目录下创建一个名为reverse_test.go的文件。</p>
+</li>
+<li>
+<p>粘贴以下代码到reverse_test.go中。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;testing&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestReverse</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">testcases</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">in</span>, <span style="color:#a6e22e">want</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    }{
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;Hello, world&#34;</span>, <span style="color:#e6db74">&#34;dlrow ,olleH&#34;</span>},
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34; &#34;</span>, <span style="color:#e6db74">&#34; &#34;</span>},
+</span></span><span style="display:flex;"><span>        {<span style="color:#e6db74">&#34;!12345&#34;</span>, <span style="color:#e6db74">&#34;54321!&#34;</span>},
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">testcases</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">rev</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">in</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">rev</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Reverse: %q, want %q&#34;</span>, <span style="color:#a6e22e">rev</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这个简单的测试将断言列出的输入字符串将被正确地反转。</p>
+</li>
+</ol>
+<h2 id="运行代码-1">运行代码</h2>
+<p>使用<code>go test</code>运行单元测试。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">test</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">PASS</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ok</span>      <span style="color:#a6e22e">example</span><span style="color:#f92672">/</span><span style="color:#a6e22e">fuzz</span>  <span style="color:#ae81ff">0.013</span><span style="color:#a6e22e">s</span>
+</span></span></code></pre></div><p>接下来，您将把单元测试变成一个模糊测试。</p>
+<h1 id="添加一个模糊测试">添加一个模糊测试</h1>
+<p>单元测试有局限性，即每个输入都必须由开发人员添加到测试中。模糊测试的一个好处是，它会为您的代码提供输入，并可能识别出您提出的测试用例没有达到的边缘情况。</p>
+<p>在本节中，您将把单元测试转换成模糊测试，这样您就可以用更少的工作量生成更多的输入了！</p>
+<p>请注意，您可以将单元测试、基准测试和模糊测试保存在同一个*_test.go文件中，但是为了本例，您将把单元测试转换为模糊测试。</p>
+<h2 id="编写代码-2">编写代码</h2>
+<p>在您的文本编辑器中，用以下模糊测试替换reverse_test.go中的单元测试。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">FuzzReverse</span>(<span style="color:#a6e22e">f</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">F</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">testcases</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;Hello, world&#34;</span>, <span style="color:#e6db74">&#34; &#34;</span>, <span style="color:#e6db74">&#34;!12345&#34;</span>}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">testcases</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">tc</span>)  <span style="color:#75715e">// Use f.Add to provide a seed corpus
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Fuzz</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>, <span style="color:#a6e22e">orig</span> <span style="color:#66d9ef">string</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">rev</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">orig</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">doubleRev</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">rev</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">orig</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">doubleRev</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Before: %q, after: %q&#34;</span>, <span style="color:#a6e22e">orig</span>, <span style="color:#a6e22e">doubleRev</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">utf8</span>.<span style="color:#a6e22e">ValidString</span>(<span style="color:#a6e22e">orig</span>) <span style="color:#f92672">&amp;&amp;</span> !<span style="color:#a6e22e">utf8</span>.<span style="color:#a6e22e">ValidString</span>(<span style="color:#a6e22e">rev</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Reverse produced invalid UTF-8 string %q&#34;</span>, <span style="color:#a6e22e">rev</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>模糊测试也有一些局限性。在单元测试中，您可以预测<code>Reverse</code>函数的预期输出，并验证实际输出是否符合预期。</p>
+<p>For example, in the test case <code>Reverse(&quot;Hello, world&quot;)</code> the unit test specifies the return as <code>&quot;dlrow ,olleH&quot;</code>.</p>
+<p>当使用模糊测试时，您无法预测预期的输出，因为您无法控制输入。</p>
+<p>然而，有一些<code>Reverse</code>函数的属性是您可以在模糊测试中验证的。在这个模糊测试中要检查的两个属性是:</p>
+<ol>
+<li>
+<p>反转两次后，字符串的值保持不变</p>
+</li>
+<li>
+<p>反转的字符串保持其状态为有效的UTF-8。</p>
+</li>
+</ol>
+<p>请注意单元测试和模糊测试之间的语法差异:</p>
+<ul>
+<li>模糊测试以FuzzXxx开头，而不是TestXxx，并且以<code>*testing.F</code>作为输入，而不是<code>*testing.T</code>。</li>
+<li>在你期望看到一个<code>t.Run</code>执行的地方，你会看到<code>f.Fuzz</code>，它接受一个模糊目标函数，它的参数是<code>*testing.T</code>和要模糊的类型。使用<code>f.Add</code>提供单元测试中的输入作为种子语料库输入。
+确保已经导入了新的包<code>unicode/utf8</code>。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;testing&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;unicode/utf8&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><p>将单元测试转换为模糊测试后，现在是再次运行测试的时候了。</p>
+<h2 id="运行代码-2">运行代码</h2>
+<ol>
+<li>
+<p>首先以不模糊的方式运行测试，以确保种子输入通过。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ go test
+</span></span><span style="display:flex;"><span>PASS
+</span></span><span style="display:flex;"><span>ok      example/fuzz  0.013s
+</span></span></code></pre></div><p>你也可以运行命令<code>go test -run=FuzzReverse</code>，如果你在那个文件中有其他的测试，并且你只想运行模糊测试。</p>
+</li>
+<li>
+<p>运行<code>FuzzReverse</code>进行模糊测试，看看是否有任何随机生成的字符串输入会导致失败。这是使用<code>go test</code>执行的，其中一个新的标志<code>-fuzz</code>设置为参数<code>Fuzz</code>。请运行下面的命令。</p>
+<pre tabindex="0"><code>$ go test -fuzz=Fuzz
+</code></pre><p>另一个有用的标志是<code>-fuzztime</code>，它限制了模糊测试所花费的时间。例如，在下面的测试中指定<code>-fuzztime 10s</code>意味着，只要之前没有发生故障，测试就会在默认情况下在10秒内退出。请参阅cmd/go文档的<a href="https://pkg.go.dev/cmd/go#hdr-Testing_flags">本节</a>以查看其他测试标志。</p>
+<p>现在，运行你刚刚复制的命令。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ go test -fuzz<span style="color:#f92672">=</span>Fuzz
+</span></span><span style="display:flex;"><span>fuzz: elapsed: 0s, gathering baseline coverage: 0/3 completed
+</span></span><span style="display:flex;"><span>fuzz: elapsed: 0s, gathering baseline coverage: 3/3 completed, now fuzzing with <span style="color:#ae81ff">8</span> workers
+</span></span><span style="display:flex;"><span>fuzz: minimizing 38-byte failing input file...
+</span></span><span style="display:flex;"><span>--- FAIL: FuzzReverse <span style="color:#f92672">(</span>0.01s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    --- FAIL: FuzzReverse <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        reverse_test.go:20: Reverse produced invalid UTF-8 string <span style="color:#e6db74">&#34;\x9c\xdd&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Failing input written to testdata/fuzz/FuzzReverse/af69258a12129d6cbba438df5d5f25ba0ec050461c116f777e77ea7c9a0d217a
+</span></span><span style="display:flex;"><span>    To re-run:
+</span></span><span style="display:flex;"><span>    go test -run<span style="color:#f92672">=</span>FuzzReverse/af69258a12129d6cbba438df5d5f25ba0ec050461c116f777e77ea7c9a0d217a
+</span></span><span style="display:flex;"><span>FAIL
+</span></span><span style="display:flex;"><span>exit status <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>FAIL    example/fuzz  0.030s
+</span></span></code></pre></div><p>一个失败发生在模糊测试中，导致问题的输入被写入一个种子语料库文件，下次调用<code>go test</code>时，即使没有<code>-fuzz</code>标志，也会运行该文件。要查看导致失败的输入，请在文本编辑器中打开testdata/fuzz/FuzzReverse目录中的语料库文件。您的种子语料库文件可能包含一个不同的字符串，但格式是相同的。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go test fuzz v1
+</span></span><span style="display:flex;"><span>string<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;泃&#34;</span><span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>语料库文件的第一行表示编码版本。每个后续行表示构成语料库条目的每个类型的值。由于模糊目标只需要1个输入，因此在版本之后只有1个值。</p>
+</li>
+<li>
+<p>运行<code>go test</code>，不带<code>-fuzz</code>标志;将使用新的失败种子语料库条目:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ go test
+</span></span><span style="display:flex;"><span>--- FAIL: FuzzReverse <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    --- FAIL: FuzzReverse/af69258a12129d6cbba438df5d5f25ba0ec050461c116f777e77ea7c9a0d217a <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        reverse_test.go:20: Reverse produced invalid string
+</span></span><span style="display:flex;"><span>FAIL
+</span></span><span style="display:flex;"><span>exit status <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>FAIL    example/fuzz  0.016s
+</span></span></code></pre></div><p>由于我们的测试失败了，现在是解决问题的时候了。</p>
+</li>
+</ol>
+<h1 id="修复无效字符串错误">修复无效字符串错误</h1>
+<p>在本节中，您将调试失败，并修复错误。</p>
+<p>请随意花一些时间思考这个问题，并在继续之前尝试修复这个问题。</p>
+<h2 id="定位错误">定位错误</h2>
+<p>有几种不同的方法可以调试这个错误。如果您使用VS Code作为文本编辑器，您可以参考<a href="https://github.com/golang/vscode-go/blob/master/docs/debugging.md">set up your debugger</a></p>
+<p>在这个教程中，我们将把有用的调试信息记录到你的终端。这些信息将帮助您定位错误。</p>
+<p>首先，考虑<a href="https://pkg.go.dev/unicode/utf8"><code>utf8.ValidString</code></a>的文档。</p>
+<pre tabindex="0"><code>ValidString reports whether s consists entirely of valid UTF-8-encoded runes.
+</code></pre><p>当前的<code>Reverse</code>函数逐字节地反转字符串，其中就有我们的问题所在。为了保留原始字符串的UTF-8编码的符文，我们必须逐符文地反转字符串。</p>
+<p>为了检查为什么输入(在这种情况下，中文字符<code>泃</code>)导致<code>Reverse</code>在反转时产生一个无效的字符串，您可以检查反转字符串中的符文数。</p>
+<h3 id="编写代码-3">编写代码</h3>
+<p>在文本编辑器中，用以下内容替换<code>FuzzReverse</code>中的模糊目标。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Fuzz</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>, <span style="color:#a6e22e">orig</span> <span style="color:#66d9ef">string</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rev</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">orig</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">doubleRev</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">rev</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Logf</span>(<span style="color:#e6db74">&#34;Number of runes: orig=%d, rev=%d, doubleRev=%d&#34;</span>, <span style="color:#a6e22e">utf8</span>.<span style="color:#a6e22e">RuneCountInString</span>(<span style="color:#a6e22e">orig</span>), <span style="color:#a6e22e">utf8</span>.<span style="color:#a6e22e">RuneCountInString</span>(<span style="color:#a6e22e">rev</span>), <span style="color:#a6e22e">utf8</span>.<span style="color:#a6e22e">RuneCountInString</span>(<span style="color:#a6e22e">doubleRev</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">orig</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">doubleRev</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Before: %q, after: %q&#34;</span>, <span style="color:#a6e22e">orig</span>, <span style="color:#a6e22e">doubleRev</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">utf8</span>.<span style="color:#a6e22e">ValidString</span>(<span style="color:#a6e22e">orig</span>) <span style="color:#f92672">&amp;&amp;</span> !<span style="color:#a6e22e">utf8</span>.<span style="color:#a6e22e">ValidString</span>(<span style="color:#a6e22e">rev</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Reverse produced invalid UTF-8 string %q&#34;</span>, <span style="color:#a6e22e">rev</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><p>这个<code>t.Logf</code>行将在发生错误时打印到命令行，或者在使用<code>-v</code>执行测试时，这可以帮助您调试这个特定的问题。</p>
+<h3 id="运行代码-3">运行代码</h3>
+<p>运行 <code>go test</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ go test
+</span></span><span style="display:flex;"><span>--- FAIL: FuzzReverse <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    --- FAIL: FuzzReverse/28f36ef487f23e6c7a81ebdaa9feffe2f2b02b4cddaa6252e87f69863046a5e0 <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        reverse_test.go:16: Number of runes: orig<span style="color:#f92672">=</span>1, rev<span style="color:#f92672">=</span>3, doubleRev<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        reverse_test.go:21: Reverse produced invalid UTF-8 string <span style="color:#e6db74">&#34;\x83\xb3\xe6&#34;</span>
+</span></span><span style="display:flex;"><span>FAIL
+</span></span><span style="display:flex;"><span>exit status <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>FAIL    example/fuzz    0.598s
+</span></span></code></pre></div><p>整个种子语料库使用的字符串中，每个字符都是一个单字节。但是，像<code>泃</code>这样的字符可能需要多个字节。因此，逐字节颠倒字符串将使多字节字符无效。</p>
+<p><strong>Note:</strong> 如果你对 Go 如何处理字符串，请参考<a href="https://go.dev/blog/strings">Strings, bytes, runes and characters in Go</a> 来深入理解</p>
+<p>在更好地理解错误之后，我们纠正<code>Reverse</code>函数中的错误。</p>
+<h2 id="修复错误">修复错误</h2>
+<p>为了纠正<code>Reverse</code>函数，让我们通过符文遍历字符串，而不是通过字节。</p>
+<h3 id="编写代码-4">编写代码</h3>
+<p>在你的文本编辑器中，用以下内容替换现有的<code>Reverse()</code>函数。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> []rune(<span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">j</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>, len(<span style="color:#a6e22e">r</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">r</span>)<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>; <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">j</span> = <span style="color:#a6e22e">i</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">j</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">i</span>], <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">j</span>] = <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">j</span>], <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">i</span>]
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> string(<span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这里的关键区别是<code>Reverse</code>现在是在字符串中迭代每个<code>rune</code>，而不是每个<code>byte</code>。</p>
+<h3 id="运行代码-4">运行代码</h3>
+<ol>
+<li>
+<p>运行 <code>go test</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ go test
+</span></span><span style="display:flex;"><span>PASS
+</span></span><span style="display:flex;"><span>ok      example/fuzz  0.016s
+</span></span></code></pre></div><p>新的测试通过了！</p>
+</li>
+<li>
+<p>使用<code>go test -fuzz</code>再次运行模糊测试，看看是否有新的错误。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ go test -fuzz<span style="color:#f92672">=</span>Fuzz
+</span></span><span style="display:flex;"><span>fuzz: elapsed: 0s, gathering baseline coverage: 0/37 completed
+</span></span><span style="display:flex;"><span>fuzz: minimizing 506-byte failing input file...
+</span></span><span style="display:flex;"><span>fuzz: elapsed: 0s, gathering baseline coverage: 5/37 completed
+</span></span><span style="display:flex;"><span>--- FAIL: FuzzReverse <span style="color:#f92672">(</span>0.02s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    --- FAIL: FuzzReverse <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        reverse_test.go:33: Before: <span style="color:#e6db74">&#34;\x91&#34;</span>, after: <span style="color:#e6db74">&#34;�&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Failing input written to testdata/fuzz/FuzzReverse/1ffc28f7538e29d79fce69fef20ce5ea72648529a9ca10bea392bcff28cd015c
+</span></span><span style="display:flex;"><span>    To re-run:
+</span></span><span style="display:flex;"><span>    go test -run<span style="color:#f92672">=</span>FuzzReverse/1ffc28f7538e29d79fce69fef20ce5ea72648529a9ca10bea392bcff28cd015c
+</span></span><span style="display:flex;"><span>FAIL
+</span></span><span style="display:flex;"><span>exit status <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>FAIL    example/fuzz  0.032s
+</span></span></code></pre></div><p>我们可以看到，在颠倒两次后，该字符串与原始字符串不同。这次输入本身就是无效的Unicode。如果我们使用字符串进行模糊测试，这是怎么可能的？</p>
+</li>
+</ol>
+<h1 id="修复双重反转错误">修复双重反转错误</h1>
+<p>在这一节中，您将调试双重反转失败并修复错误。</p>
+<h2 id="定位错误-1">定位错误</h2>
+<p>像之前一样，您可以使用多种方法调试此失败。在这种情况下，使用<a href="https://github.com/golang/vscode-go/blob/master/docs/debugging.md">debugger</a>将会是一个很好的方法。</p>
+<p>在这个教程中，我们将在<code>Reverse</code>函数中记录有用的调试信息。</p>
+<p>仔细查看反转的字符串以发现错误。在 Go 中，<a href="https://go.dev/blog/strings">字符串是只读的字节切片</a>，可以包含不是有效 UTF-8 的字节。原始字符串是一个具有一个字节的字节切片，为<code>'\x91'</code>。当输入字符串设置为<code>[]rune</code>时，Go 将字节切片编码为 UTF-8，并用 UTF-8 字符�替换字节。当我们将替换的 UTF-8 字符与输入字节切片进行比较时，它们显然不相等。</p>
+<h3 id="编写代码-5">编写代码</h3>
+<ol>
+<li>
+<p>在你的文本编辑器中，用以下内容替换现有的<code>Reverse()</code>函数。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;input: %q\n&#34;</span>, <span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> []rune(<span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;runes: %q\n&#34;</span>, <span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">j</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>, len(<span style="color:#a6e22e">r</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">r</span>)<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>; <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">j</span> = <span style="color:#a6e22e">i</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">j</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">i</span>], <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">j</span>] = <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">j</span>], <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">i</span>]
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> string(<span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这将帮助我们理解将字符串转换为符文切片时出了什么问题。</p>
+</li>
+</ol>
+<h3 id="运行代码-5">运行代码</h3>
+<p>这次，我们只想运行失败的测试，以便检查日志。为此，我们将使用<code>go test -run</code>。</p>
+<p>为了运行 FuzzXxx/testdata 中的特定语料库条目，您可以在<code>-run</code>中提供<code>{FuzzTestName}/{filename}</code>。这在调试时可能很有用。在这种情况下，将<code>-run</code>标志设置为失败测试的确切哈希值。从终端复制并粘贴唯一的哈希值；它将与下面的哈希值不同。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ go test -run<span style="color:#f92672">=</span>FuzzReverse/28f36ef487f23e6c7a81ebdaa9feffe2f2b02b4cddaa6252e87f69863046a5e0
+</span></span><span style="display:flex;"><span>input: <span style="color:#e6db74">&#34;\x91&#34;</span>
+</span></span><span style="display:flex;"><span>runes: <span style="color:#f92672">[</span><span style="color:#e6db74">&#39;�&#39;</span><span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>input: <span style="color:#e6db74">&#34;�&#34;</span>
+</span></span><span style="display:flex;"><span>runes: <span style="color:#f92672">[</span><span style="color:#e6db74">&#39;�&#39;</span><span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>--- FAIL: FuzzReverse <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    --- FAIL: FuzzReverse/28f36ef487f23e6c7a81ebdaa9feffe2f2b02b4cddaa6252e87f69863046a5e0 <span style="color:#f92672">(</span>0.00s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>        reverse_test.go:16: Number of runes: orig<span style="color:#f92672">=</span>1, rev<span style="color:#f92672">=</span>1, doubleRev<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        reverse_test.go:18: Before: <span style="color:#e6db74">&#34;\x91&#34;</span>, after: <span style="color:#e6db74">&#34;�&#34;</span>
+</span></span><span style="display:flex;"><span>FAIL
+</span></span><span style="display:flex;"><span>exit status <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>FAIL    example/fuzz    0.145s
+</span></span></code></pre></div><p>我们知道输入是无效的Unicode，让我们在<code>Reverse</code>函数中修复错误。</p>
+<h2 id="修复错误-1">修复错误</h2>
+<p>为了修复这个问题，让我们在<code>Reverse</code>的输入不是有效的UTF-8时返回一个错误。</p>
+<h3 id="编写代码-6">编写代码</h3>
+<ol>
+<li>
+<p>在你的文本编辑器中，用以下内容替换现有的<code>Reverse()</code>函数。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">utf8</span>.<span style="color:#a6e22e">ValidString</span>(<span style="color:#a6e22e">s</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">s</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;input is not valid UTF-8&#34;</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> []rune(<span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">j</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>, len(<span style="color:#a6e22e">r</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">r</span>)<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>; <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">j</span> = <span style="color:#a6e22e">i</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">j</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">i</span>], <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">j</span>] = <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">j</span>], <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">i</span>]
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> string(<span style="color:#a6e22e">r</span>), <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>本次更改将在输入字符串包含无效的UTF-8字符时返回错误。</p>
+</li>
+<li>
+<p>由于<code>Reverse</code>函数现在返回一个错误，所以修改<code>main</code>函数以丢弃额外的错误值。用以下内容替换现有的<code>main</code>函数。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">input</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;The quick brown fox jumped over the lazy dog&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rev</span>, <span style="color:#a6e22e">revErr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">input</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">doubleRev</span>, <span style="color:#a6e22e">doubleRevErr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">rev</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;original: %q\n&#34;</span>, <span style="color:#a6e22e">input</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;reversed: %q, err: %v\n&#34;</span>, <span style="color:#a6e22e">rev</span>, <span style="color:#a6e22e">revErr</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;reversed again: %q, err: %v\n&#34;</span>, <span style="color:#a6e22e">doubleRev</span>, <span style="color:#a6e22e">doubleRevErr</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这些对<code>Reverse</code>的调用应该返回一个 nil，因为输入字符串是有效的UTF-8。</p>
+</li>
+<li>
+<p>你需要导入errors和unicode/utf8包。main.go中的导入语句应该如下所</p>
+</li>
+</ol>
+<pre><code>```
+import (
+    &quot;errors&quot;
+    &quot;fmt&quot;
+    &quot;unicode/utf8&quot;
+)
+```
+</code></pre>
+<ol start="4">
+<li>修改reverse_test.go文件以检查错误并跳过测试，如果错误由返回生成。
+```
+func FuzzReverse(f *testing.F) {
+testcases := []string {&ldquo;Hello, world&rdquo;, &quot; &ldquo;, &ldquo;!12345&rdquo;}
+for _, tc := range testcases {
+f.Add(tc)  // Use f.Add to provide a seed corpus
+}
+f.Fuzz(func(t *testing.T, orig string) {
+rev, err1 := Reverse(orig)
+if err1 != nil {
+return
+}
+doubleRev, err2 := Reverse(rev)
+if err2 != nil {
+return
+}
+if orig != doubleRev {
+t.Errorf(&ldquo;Before: %q, after: %q&rdquo;, orig, doubleRev)
+}
+if utf8.ValidString(orig) &amp;&amp; !utf8.ValidString(rev) {
+t.Errorf(&ldquo;Reverse produced invalid UTF-8 string %q&rdquo;, rev)
+}
+})
+}</li>
+</ol>
+<pre><code>```
+
+Rather than returning, you can also call `t.Skip()` to stop the execution of that fuzz input.
+</code></pre>
+<h3 id="运行代码-6">运行代码</h3>
+<p>运行 <code>go test</code></p>
+<pre><code>```
+$ go test
+PASS
+ok      example/fuzz  0.019s
+```
+</code></pre>
+<p>使用<code>go test -fuzz=Fuzz</code>运行模糊测试，然后在几秒钟后停止模糊测试<code>ctrl-C</code>。如果没有发生故障，默认情况下，模糊测试将一直运行，进程可以使用<code>ctrl-C</code>中断。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ go test -fuzz<span style="color:#f92672">=</span>Fuzz
+</span></span><span style="display:flex;"><span>fuzz: elapsed: 0s, gathering baseline coverage: 0/38 completed
+</span></span><span style="display:flex;"><span>fuzz: elapsed: 0s, gathering baseline coverage: 38/38 completed, now fuzzing with <span style="color:#ae81ff">4</span> workers
+</span></span><span style="display:flex;"><span>fuzz: elapsed: 3s, execs: <span style="color:#ae81ff">86342</span> <span style="color:#f92672">(</span>28778/sec<span style="color:#f92672">)</span>, new interesting: <span style="color:#ae81ff">2</span> <span style="color:#f92672">(</span>total: 35<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>fuzz: elapsed: 6s, execs: <span style="color:#ae81ff">193490</span> <span style="color:#f92672">(</span>35714/sec<span style="color:#f92672">)</span>, new interesting: <span style="color:#ae81ff">4</span> <span style="color:#f92672">(</span>total: 37<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>fuzz: elapsed: 9s, execs: <span style="color:#ae81ff">304390</span> <span style="color:#f92672">(</span>36961/sec<span style="color:#f92672">)</span>, new interesting: <span style="color:#ae81ff">4</span> <span style="color:#f92672">(</span>total: 37<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>fuzz: elapsed: 3m45s, execs: <span style="color:#ae81ff">7246222</span> <span style="color:#f92672">(</span>32357/sec<span style="color:#f92672">)</span>, new interesting: <span style="color:#ae81ff">8</span> <span style="color:#f92672">(</span>total: 41<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>^Cfuzz: elapsed: 3m48s, execs: <span style="color:#ae81ff">7335316</span> <span style="color:#f92672">(</span>31648/sec<span style="color:#f92672">)</span>, new interesting: <span style="color:#ae81ff">8</span> <span style="color:#f92672">(</span>total: 41<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>PASS
+</span></span><span style="display:flex;"><span>ok      example/fuzz  228.000s
+</span></span></code></pre></div><p>运行<code>go test -fuzz=Fuzz -fuzztime 30s</code>，如果没有发现故障，将在30秒内模糊测试后退出。</p>
+<pre><code>```bash
+$ go test -fuzz=Fuzz -fuzztime 30s
+fuzz: elapsed: 0s, gathering baseline coverage: 0/5 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 5/5 completed, now fuzzing with 4 workers
+fuzz: elapsed: 3s, execs: 80290 (26763/sec), new interesting: 12 (total: 12)
+fuzz: elapsed: 6s, execs: 210803 (43501/sec), new interesting: 14 (total: 14)
+fuzz: elapsed: 9s, execs: 292882 (27360/sec), new interesting: 14 (total: 14)
+fuzz: elapsed: 12s, execs: 371872 (26329/sec), new interesting: 14 (total: 14)
+fuzz: elapsed: 15s, execs: 517169 (48433/sec), new interesting: 15 (total: 15)
+fuzz: elapsed: 18s, execs: 663276 (48699/sec), new interesting: 15 (total: 15)
+fuzz: elapsed: 21s, execs: 771698 (36143/sec), new interesting: 15 (total: 15)
+fuzz: elapsed: 24s, execs: 924768 (50990/sec), new interesting: 16 (total: 16)
+fuzz: elapsed: 27s, execs: 1082025 (52427/sec), new interesting: 17 (total: 17)
+fuzz: elapsed: 30s, execs: 1172817 (30281/sec), new interesting: 17 (total: 17)
+fuzz: elapsed: 31s, execs: 1172817 (0/sec), new interesting: 17 (total: 17)
+PASS
+ok      example/fuzz  31.025s
+
+
+```
+</code></pre>
+<p>现在模糊测试通过！</p>
+<p>除了 <code>-fuzz</code>标志外，还向<code>go test</code>添加了几个新标志，可以在文档中查看<a href="https://go.dev/security/fuzz/#custom-settings">documentation</a></p>
+<p>有关模糊测试输出中使用的术语，请参考<a href="https://go.dev/security/fuzz/#command-line-output">Go Fuzzing</a></p>
+<h1 id="总结">总结</h1>
+<p>接下来的步骤是选择要模糊的代码中的一个函数，然后尝试一下！如果模糊测试发现了代码中的错误，请考虑将其添加到<a href="https://github.com/golang/go/wiki/Fuzzing-trophy-case">trophy case</a>
+如果您遇到任何问题或有功能想法，请<a href="https://github.com/golang/go/issues/new/?&amp;labels=fuzz">提交问题</a></p>
+<p>参考<a href="https://go.dev/security/fuzz/#requirements">go.dev/security/fuzz</a>的文档进行进一步阅读。</p>
+<h1 id="完整代码">完整代码</h1>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// — main.go —
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;errors&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;unicode/utf8&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">input</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;The quick brown fox jumped over the lazy dog&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rev</span>, <span style="color:#a6e22e">revErr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">input</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">doubleRev</span>, <span style="color:#a6e22e">doubleRevErr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">rev</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;original: %q\n&#34;</span>, <span style="color:#a6e22e">input</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;reversed: %q, err: %v\n&#34;</span>, <span style="color:#a6e22e">rev</span>, <span style="color:#a6e22e">revErr</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;reversed again: %q, err: %v\n&#34;</span>, <span style="color:#a6e22e">doubleRev</span>, <span style="color:#a6e22e">doubleRevErr</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">utf8</span>.<span style="color:#a6e22e">ValidString</span>(<span style="color:#a6e22e">s</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">s</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;input is not valid UTF-8&#34;</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> []rune(<span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">j</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>, len(<span style="color:#a6e22e">r</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">r</span>)<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>; <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">j</span> = <span style="color:#a6e22e">i</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">j</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">i</span>], <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">j</span>] = <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">j</span>], <span style="color:#a6e22e">r</span>[<span style="color:#a6e22e">i</span>]
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> string(<span style="color:#a6e22e">r</span>), <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// — reverse_test.go —
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;testing&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;unicode/utf8&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">FuzzReverse</span>(<span style="color:#a6e22e">f</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">F</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">testcases</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;Hello, world&#34;</span>, <span style="color:#e6db74">&#34; &#34;</span>, <span style="color:#e6db74">&#34;!12345&#34;</span>}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">testcases</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">tc</span>) <span style="color:#75715e">// Use f.Add to provide a seed corpus
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Fuzz</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>, <span style="color:#a6e22e">orig</span> <span style="color:#66d9ef">string</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">rev</span>, <span style="color:#a6e22e">err1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">orig</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err1</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">doubleRev</span>, <span style="color:#a6e22e">err2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Reverse</span>(<span style="color:#a6e22e">rev</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err2</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">orig</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">doubleRev</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Before: %q, after: %q&#34;</span>, <span style="color:#a6e22e">orig</span>, <span style="color:#a6e22e">doubleRev</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">utf8</span>.<span style="color:#a6e22e">ValidString</span>(<span style="color:#a6e22e">orig</span>) <span style="color:#f92672">&amp;&amp;</span> !<span style="color:#a6e22e">utf8</span>.<span style="color:#a6e22e">ValidString</span>(<span style="color:#a6e22e">rev</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Reverse produced invalid UTF-8 string %q&#34;</span>, <span style="color:#a6e22e">rev</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

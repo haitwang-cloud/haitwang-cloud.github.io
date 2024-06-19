@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Golangs on Tim Wang的技术博客</title>
+    <link>http://localhost:1313/golang/</link>
+    <description>Recent content in Golangs on Tim Wang的技术博客</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Wed, 19 Jun 2024 16:36:24 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/golang/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Cobra使用指南</title>
+      <link>http://localhost:1313/golang/cobra-user-guide/</link>
+      <pubDate>Wed, 19 Jun 2024 16:36:24 +0800</pubDate>
+      <guid>http://localhost:1313/golang/cobra-user-guide/</guid>
+      <description>本文是cobra的官方readme的中文翻译版本&#xA;用户指南 当你想要用cobra来构建自己的应用时，你可以按照下面的结构来组织你的cobra应用：&#xA;▾ appName/ ▾ cmd/ add.go your.go commands.go here.go main.go 在一个cobra应用中，通常main.go文件非常简单，它只有一个目的：初始化cobra。&#xA;package main import ( &amp;#34;{pathToYourApp}/cmd&amp;#34; ) func main() { cmd.Execute() } 使用Cobra Generator Cobra-CLI 是一个独立的程序，它将创建您的应用程序并添加您想要的任何命令。 这是将 Cobra 集成到您的应用程序的最简单方法。&#xA;关于使用Cobra generator的细节，可以参考The Cobra-CLI Generator README&#xA;使用Cobra库 要实现 Cobra，您需要创建一个空的 main.go 文件和一个 rootCmd 文件。 您可以根据需要选择性地提供其他命令。&#xA;创建rootCmd Cobra 不需要任何特殊的构造函数。只需创建命令即可。&#xA;您可以把下面的内容放在 app/cmd/root.go 中。&#xA;var rootCmd = &amp;amp;cobra.Command{ Use: &amp;#34;hugo&amp;#34;, Short: &amp;#34;Hugo is a very fast static site generator&amp;#34;, Long: `A Fast and Flexible Static Site Generator built with love by spf13 and friends in Go.</description>
+    </item>
+  </channel>
+</rss>

@@ -16,17 +16,3 @@ theme = "paper"
   avatar = 'https://gravatar.com/haitaoking1993'                 # gravatar email or image url
   name = 'Tim Wang'
 
-[[menu.main]]
-name = "Istio"
-url = "/istio/"
-weight = 1
-
-[[menu.main]]
-name = "K8s"
-url = "/k8s/"
-weight = 2
-
-[[menu.main]]
-name = "GPU"
-url = "/gpu/"
-weight = 3

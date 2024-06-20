@@ -1,0 +1,538 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>Kubernetes GPU管理探秘第一篇：Kubernetes Device Plugin介绍和源码分析 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="k8s GPU device plugin介绍和源码分析 前言 在 Kubernetes 集群中,有些工作负载需要访问节点上的硬件资源,比如 GPU、FPGA、InfiniBand 等。为了让 Kubernetes 能够感知和调度这些硬件资源,Kubernetes 引入了 Device Plugin 的概念。本文将详细介绍 Device Plugin 的工作原理。
+Device Plugin 简介 Device Plugin 是 Kubernetes 中一种特殊的插件,负责管理节点上的硬件设备,并将设备信息呈现给 Kubernetes。每种类型的硬件设备,都需要有它对应的 Device Plugin 进程在运行。通常,这些 Device Plugin 进程是由硬件供应商提供的。
+Device Plugin 通过 gRPC 服务与 kubelet 进行通信,履行了以下两个主要职责:
+发现节点上的硬件设备 准备并安装需要使用设备的容器运行时环境 Device Plugin 工作流程 下面让我们通过一个具体的例子,来了解 Device Plugin 的工作流程。假设有一个节点上安装了 3 块 NVIDIA GPU 设备,现在要让一个 Pod 使用其中一块 GPU 设备。
+设备发现 在节点启动时,kubelet 首先启动该节点上的所有 Device Plugin。以 NVIDIA GPU 设备为例,kubelet 会启动 nvidia-device-plugin 进程。" />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">Kubernetes GPU管理探秘第一篇：Kubernetes Device Plugin介绍和源码分析</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 20, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><h1 id="k8s-gpu-device-plugin介绍和源码分析">k8s GPU device plugin介绍和源码分析</h1>
+<p><img src="/pics/plugin01.png" alt="plugin01"></p>
+<h2 id="前言">前言</h2>
+<p>在 Kubernetes 集群中,有些工作负载需要访问节点上的硬件资源,比如 GPU、FPGA、InfiniBand 等。为了让 Kubernetes 能够感知和调度这些硬件资源,Kubernetes 引入了 Device Plugin 的概念。本文将详细介绍 Device Plugin 的工作原理。</p>
+<h2 id="device-plugin-简介">Device Plugin 简介</h2>
+<p>Device Plugin 是 Kubernetes 中一种特殊的插件,负责管理节点上的硬件设备,并将设备信息呈现给 Kubernetes。每种类型的硬件设备,都需要有它对应的 Device Plugin 进程在运行。通常,这些 Device Plugin 进程是由硬件供应商提供的。</p>
+<p>Device Plugin 通过 gRPC 服务与 kubelet 进行通信,履行了以下两个主要职责:</p>
+<ol>
+<li>发现节点上的硬件设备</li>
+<li>准备并安装需要使用设备的容器运行时环境</li>
+</ol>
+<h2 id="device-plugin-工作流程">Device Plugin 工作流程</h2>
+<p>下面让我们通过一个具体的例子,来了解 Device Plugin 的工作流程。假设有一个节点上安装了 3 块 NVIDIA GPU 设备,现在要让一个 Pod 使用其中一块 GPU 设备。</p>
+<p><img src="/pics/plugin02.png" alt="plugin02"></p>
+<h3 id="设备发现">设备发现</h3>
+<p>在节点启动时,kubelet 首先启动该节点上的所有 Device Plugin。以 NVIDIA GPU 设备为例,kubelet 会启动 nvidia-device-plugin 进程。</p>
+<p>该 Device Plugin 通过 gRPC 的 ListAndWatch 远程过程调用,定期向 kubelet 汇报该节点上可用的 GPU 设备列表。在我们的例子中,就是 [GPU0, GPU1, GPU2] 这个 ID 列表。注意,这个列表<strong>只包含 GPU 设备的 ID,不包括任何关于设备本身的详细信息</strong>。kubelet 将这些设备 ID 保存在内存中,并通过 API Server 将 GPU 的数量以 Extended Resource 的形式暴露出去。</p>
+<h3 id="调度决策">调度决策</h3>
+<p>当用户想要创建一个使用 GPU 的 Pod 时,只需在 Pod 声明中添加 <code>limits</code> 小节,指定所需的 GPU 数量即可,就像下面这样:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">cuda-vector-add</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">restartPolicy</span>: <span style="color:#ae81ff">OnFailure</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">containers</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">cuda-vector-add</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">image</span>: <span style="color:#e6db74">&#34;k8s.gcr.io/cuda-vector-add:v0.1&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">resources</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">limits</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">nvidia.com/gpu</span>: <span style="color:#ae81ff">1</span> <span style="color:#75715e"># 请求1个GPU</span>
+</span></span></code></pre></div><p>此时,Kubernetes 调度器会查找有足够 GPU 资源的节点来运行该 Pod。调度器从 API Server 获取节点的 GPU 资源数量,找到符合条件的节点后,将该节点的 GPU 资源数量减1,完成 Pod 到节点的绑定。</p>
+<h3 id="设备分配">设备分配</h3>
+<p><img src="/pics/plugin03.png" alt="plugin03"></p>
+<p>一旦某个节点被选中运行 GPU Pod,该节点上的 kubelet 就会为 Pod 中的容器分配实际的 GPU 设备。kubelet 会向本节点上的 nvidia-device-plugin 发送 gRPC Allocate 请求,指定需要分配的 GPU 设备 ID 列表。</p>
+<p>nvidia-device-plugin 根据接收到的 GPU ID 列表,查找对应设备的更多信息,比如设备文件路径、驱动文件目录等。这些信息会随 gRPC 响应一并返回给 kubelet。</p>
+<p>在 kubelet 中，处理 GPU 请求和分配会涉及以下的代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">Containers</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Resources</span>.<span style="color:#a6e22e">Limits</span>[<span style="color:#e6db74">&#34;nvidia.com/gpu&#34;</span>] <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 搜索可用设备
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">deviceIDs</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">findAvailableGPUs</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">nil</span> {
+</span></span><span style="display:flex;"><span>       <span style="color:#75715e">// 处理错误
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 向设备插件发送 Allocate 请求
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">devicePluginClient</span>.<span style="color:#a6e22e">Allocate</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">TODO</span>(), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pluginapi</span>.<span style="color:#a6e22e">AllocateRequest</span>{<span style="color:#a6e22e">ContainerRequests</span><span style="color:#f92672">:</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">pluginapi</span>.<span style="color:#a6e22e">ContainerAllocateRequest</span>{{<span style="color:#a6e22e">DevicesIDs</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">deviceIDs</span>}}})
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">nil</span> {
+</span></span><span style="display:flex;"><span>       <span style="color:#75715e">// 处理错误
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="容器启动">容器启动</h3>
+<p>kubelet 收到 nvidia-device-plugin 返回的 GPU 设备信息后,就可以为 Pod 中的容器创建正确的运行环境了。它将设备文件路径作为容器的 <code>Devices</code> 参数,驱动文件目录作为容器的 <code>Volume Mounts</code> 参数,传递给容器运行时(如 Docker)。</p>
+<p>容器运行时根据这些参数启动容器,并完成设备资源的挂载,最终使 Pod 中的应用可以访问分配的 GPU 设备。</p>
+<h3 id="源码分析">源码分析</h3>
+<p>本文以<a href="https://github.com/kubernetes/kubernetes/blob/master/pkg/kubelet/cm/devicemanager/manager.go">https://github.com/kubernetes/kubernetes/blob/master/pkg/kubelet/cm/devicemanager/manager.go</a>此处的源代码进行分析。</p>
+<p>Kubernetes 使用设备插件来进行设备管理，包括GPU设备。设备插件允许第三方资源如 GPU 被 Kubernetes 识别和管理。 这个机制的核心部分是 <code>ManagerImpl</code>，这是由 Kubernetes 编写并运行在 Kubelet 中的。</p>
+<ul>
+<li>结构体 <code>ManagerImpl</code> 管理设备插件。它存储设备插件的各类信息，其中 <code>endpoints</code> 用于存放设备插件的 endpoint 信息，每一个 endpoint 代表了一个设备插件接口。<code>healthyDevices</code>中存储的是所有健康的设备资源名和设备 ID。<code>unhealthyDevices</code> 是一个设备名到设备ID集合的映射，存储的是所有处于非健康状态的设备。 <code>allocatedDevices</code> 是一个设备名到设备ID集合的映射，它存储的是所有已经被分配出去（正在使用）的设备。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ManagerImpl</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">checkpointdir</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">endpoints</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">endpointInfo</span> <span style="color:#75715e">// Key is ResourceName
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">mutex</span>     <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">server</span> <span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">Server</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// activePods is a method for listing active pods on the node
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// so the amount of pluginResources requested by existing pods
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// could be counted when updating allocated devices
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">activePods</span> <span style="color:#a6e22e">ActivePodsFunc</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// sourcesReady provides the readiness of kubelet configuration sources such as apiserver update readiness.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// We use it to determine when we can purge inactive pods from checkpointed state.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">sourcesReady</span> <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">SourcesReady</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// allDevices holds all the devices currently registered to the device manager
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">allDevices</span> <span style="color:#a6e22e">ResourceDeviceInstances</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// healthyDevices contains all the registered healthy resourceNames and their exported device IDs.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">healthyDevices</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">sets</span>.<span style="color:#a6e22e">Set</span>[<span style="color:#66d9ef">string</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// unhealthyDevices contains all the unhealthy devices and their exported device IDs.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">unhealthyDevices</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">sets</span>.<span style="color:#a6e22e">Set</span>[<span style="color:#66d9ef">string</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// allocatedDevices contains allocated deviceIds, keyed by resourceName.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">allocatedDevices</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">sets</span>.<span style="color:#a6e22e">Set</span>[<span style="color:#66d9ef">string</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// podDevices contains pod to allocated device mapping.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">podDevices</span>        <span style="color:#f92672">*</span><span style="color:#a6e22e">podDevices</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">checkpointManager</span> <span style="color:#a6e22e">checkpointmanager</span>.<span style="color:#a6e22e">CheckpointManager</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// List of NUMA Nodes available on the underlying machine
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">numaNodes</span> []<span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Store of Topology Affinities that the Device Manager can query.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">topologyAffinityStore</span> <span style="color:#a6e22e">topologymanager</span>.<span style="color:#a6e22e">Store</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// devicesToReuse contains devices that can be reused as they have been allocated to
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// init containers.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">devicesToReuse</span> <span style="color:#a6e22e">PodReusableDevices</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// pendingAdmissionPod contain the pod during the admission phase
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">pendingAdmissionPod</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// containerMap provides a mapping from (pod, container) -&gt; containerID
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// for all containers in a pod. Used to detect pods running across a restart
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">containerMap</span> <span style="color:#a6e22e">containermap</span>.<span style="color:#a6e22e">ContainerMap</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// containerRunningSet identifies which container among those present in `containerMap`
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// was reported running by the container runtime when `containerMap` was computed.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// Used to detect pods running across a restart
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">containerRunningSet</span> <span style="color:#a6e22e">sets</span>.<span style="color:#a6e22e">Set</span>[<span style="color:#66d9ef">string</span>]
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li>方法 <code>Allocate</code>: 当Pod请求使用某种设备插件（如GPU）的设备资源时，会调用这个方法 。方法会根据 <code>container.Resources.Limits</code> 来获取每种设备资源需要请求的数量，然后为每个设备资源类型调用 <code>devicesToAllocate</code> 方法，该方法会返回需要经过 Allocate 请求来分配的设备列表。然后对于每种设备资源，会调用 <code>allocateContainerResources</code> 方法，该方法会首先尝试从对应设备的健康设备集合中分配设备，然后更新 <code>podDevices</code> 状态并发起 Allocate 请求，失败的话则回滚。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ManagerImpl</span>) <span style="color:#a6e22e">Allocate</span>(<span style="color:#a6e22e">pod</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>, <span style="color:#a6e22e">container</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Container</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// The pod is during the admission phase. We need to save the pod to avoid it
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// being cleaned before the admission ended
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">setPodPendingAdmission</span>(<span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">devicesToReuse</span>[string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">UID</span>)]; !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">devicesToReuse</span>[string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">UID</span>)] = make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">sets</span>.<span style="color:#a6e22e">Set</span>[<span style="color:#66d9ef">string</span>])
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// If pod entries to m.devicesToReuse other than the current pod exist, delete them.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">podUID</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">devicesToReuse</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">podUID</span> <span style="color:#f92672">!=</span> string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">UID</span>) {
+</span></span><span style="display:flex;"><span>			delete(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">devicesToReuse</span>, <span style="color:#a6e22e">podUID</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Allocate resources for init containers first as we know the caller always loops
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// through init containers before looping through app containers. Should the caller
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// ever change those semantics, this logic will need to be amended.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">initContainer</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">InitContainers</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">container</span>.<span style="color:#a6e22e">Name</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">initContainer</span>.<span style="color:#a6e22e">Name</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">allocateContainerResources</span>(<span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">container</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">devicesToReuse</span>[string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">UID</span>)]); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">IsRestartableInitContainer</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">initContainer</span>) {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">podDevices</span>.<span style="color:#a6e22e">addContainerAllocatedResources</span>(string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">UID</span>), <span style="color:#a6e22e">container</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">devicesToReuse</span>[string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">UID</span>)])
+</span></span><span style="display:flex;"><span>			} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#75715e">// If the init container is restartable, we need to keep the
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>				<span style="color:#75715e">// devices allocated. In other words, we should remove them
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>				<span style="color:#75715e">// from the devicesToReuse.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>				<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">podDevices</span>.<span style="color:#a6e22e">removeContainerAllocatedResources</span>(string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">UID</span>), <span style="color:#a6e22e">container</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">devicesToReuse</span>[string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">UID</span>)])
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">allocateContainerResources</span>(<span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">container</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">devicesToReuse</span>[string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">UID</span>)]); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">podDevices</span>.<span style="color:#a6e22e">removeContainerAllocatedResources</span>(string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">UID</span>), <span style="color:#a6e22e">container</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">devicesToReuse</span>[string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">UID</span>)])
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li>方法 <code>GetCapacity</code>: 该方法被 Kubelet 调用，以获取设备的容量信息，用于在 Node 对象中报告 Node 的设备资源情况，其中包含容量（未分配设备）、可分配（未分配并且健康状态）和已经丢失（已停止或者健康状态变为非健康）的设备列表。如果设备插件处于非健康状态，则删除容量和 device plugin 的资源映射。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ManagerImpl</span>) <span style="color:#a6e22e">GetCapacity</span>() (<span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">ResourceList</span>, <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">ResourceList</span>, []<span style="color:#66d9ef">string</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">needsUpdateCheckpoint</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">capacity</span> = <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">ResourceList</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">allocatable</span> = <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">ResourceList</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">deletedResources</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sets</span>.<span style="color:#a6e22e">New</span>[<span style="color:#66d9ef">string</span>]()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">resourceName</span>, <span style="color:#a6e22e">devices</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">healthyDevices</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">eI</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">endpoints</span>[<span style="color:#a6e22e">resourceName</span>]
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">ok</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">eI</span>.<span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">stopGracePeriodExpired</span>()) <span style="color:#f92672">||</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// The resources contained in endpoints and (un)healthyDevices
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#75715e">// should always be consistent. Otherwise, we run with the risk
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#75715e">// of failing to garbage collect non-existing resources or devices.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">klog</span>.<span style="color:#a6e22e">ErrorS</span>(<span style="color:#66d9ef">nil</span>, <span style="color:#e6db74">&#34;Unexpected: healthyDevices and endpoints are out of sync&#34;</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			delete(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">endpoints</span>, <span style="color:#a6e22e">resourceName</span>)
+</span></span><span style="display:flex;"><span>			delete(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">healthyDevices</span>, <span style="color:#a6e22e">resourceName</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">deletedResources</span>.<span style="color:#a6e22e">Insert</span>(<span style="color:#a6e22e">resourceName</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">needsUpdateCheckpoint</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>		} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">capacity</span>[<span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">ResourceName</span>(<span style="color:#a6e22e">resourceName</span>)] = <span style="color:#f92672">*</span><span style="color:#a6e22e">resource</span>.<span style="color:#a6e22e">NewQuantity</span>(int64(<span style="color:#a6e22e">devices</span>.<span style="color:#a6e22e">Len</span>()), <span style="color:#a6e22e">resource</span>.<span style="color:#a6e22e">DecimalSI</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">allocatable</span>[<span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">ResourceName</span>(<span style="color:#a6e22e">resourceName</span>)] = <span style="color:#f92672">*</span><span style="color:#a6e22e">resource</span>.<span style="color:#a6e22e">NewQuantity</span>(int64(<span style="color:#a6e22e">devices</span>.<span style="color:#a6e22e">Len</span>()), <span style="color:#a6e22e">resource</span>.<span style="color:#a6e22e">DecimalSI</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">resourceName</span>, <span style="color:#a6e22e">devices</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">unhealthyDevices</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">eI</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">endpoints</span>[<span style="color:#a6e22e">resourceName</span>]
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">ok</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">eI</span>.<span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">stopGracePeriodExpired</span>()) <span style="color:#f92672">||</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">klog</span>.<span style="color:#a6e22e">ErrorS</span>(<span style="color:#66d9ef">nil</span>, <span style="color:#e6db74">&#34;Unexpected: unhealthyDevices and endpoints are out of sync&#34;</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			delete(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">endpoints</span>, <span style="color:#a6e22e">resourceName</span>)
+</span></span><span style="display:flex;"><span>			delete(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">unhealthyDevices</span>, <span style="color:#a6e22e">resourceName</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">deletedResources</span>.<span style="color:#a6e22e">Insert</span>(<span style="color:#a6e22e">resourceName</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">needsUpdateCheckpoint</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>		} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">capacityCount</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">capacity</span>[<span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">ResourceName</span>(<span style="color:#a6e22e">resourceName</span>)]
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">unhealthyCount</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">resource</span>.<span style="color:#a6e22e">NewQuantity</span>(int64(<span style="color:#a6e22e">devices</span>.<span style="color:#a6e22e">Len</span>()), <span style="color:#a6e22e">resource</span>.<span style="color:#a6e22e">DecimalSI</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">capacityCount</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">unhealthyCount</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">capacity</span>[<span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">ResourceName</span>(<span style="color:#a6e22e">resourceName</span>)] = <span style="color:#a6e22e">capacityCount</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Unlock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">needsUpdateCheckpoint</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">writeCheckpoint</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">klog</span>.<span style="color:#a6e22e">ErrorS</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;Error on writing checkpoint&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">capacity</span>, <span style="color:#a6e22e">allocatable</span>, <span style="color:#a6e22e">deletedResources</span>.<span style="color:#a6e22e">UnsortedList</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>整个 <code>ManagerImpl</code> 的设计提供了对设备插件的抽象，使得 kubernetes 可以进行设备的管理和调度，并且允许设备插件的运行和设备状态发生变化（如设备丢失或者插件进程重启）</p>
+<h2 id="小结">小结</h2>
+<p>通过上面的分析,我们了解了 Device Plugin 在 Kubernetes 中扮演了硬件设备的&quot;转换器&quot;角色:</p>
+<ol>
+<li>将节点上的硬件设备信息转换为 Extended Resource,供调度器调度使用</li>
+<li>将容器对硬件设备的请求转换为实际的设备文件和驱动目录,传递给容器运行时</li>
+</ol>
+<p>这种插件化设计,使得 Kubernetes 具备了良好的硬件资源支持能力。无论是现有的还是新出现的硬件设备,只要提供了对应的 Device Plugin,就可以被 Kubernetes 集群所感知和利用。</p>
+<p>通过本文,相信您对 Kubernetes Device Plugin 的工作原理有了更深入的理解。如果还有任何疑问,欢迎留言讨论。</p>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li><a href="https://techmythos.substack.com/p/a-beginners-guide-to-building-a-kubernetes">https://techmythos.substack.com/p/a-beginners-guide-to-building-a-kubernetes</a></li>
+<li><a href="https://kubernetes.io/blog/2022/12/19/devicemanager-ga/">https://kubernetes.io/blog/2022/12/19/devicemanager-ga/</a></li>
+<li><a href="https://www.intel.com/content/www/us/en/developer/articles/technical/device-plugins-path-faster-workloads-in-kubernetes.html">https://www.intel.com/content/www/us/en/developer/articles/technical/device-plugins-path-faster-workloads-in-kubernetes.html</a></li>
+<li><a href="https://artifacts.opnfv.org/ra2/jenkins-cntt-tox-ra2-1376/chapters/chapter03.html">https://artifacts.opnfv.org/ra2/jenkins-cntt-tox-ra2-1376/chapters/chapter03.html</a></li>
+<li><a href="https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/">https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/</a></li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

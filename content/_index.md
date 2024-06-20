@@ -6,6 +6,14 @@ Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technolog
 
 🎉 欢迎莅临我的技术探索空间! 🚀 在这里，我们深入探讨 Istio、GPU 技术、Golang、网络工程、软件开发生态以及 Kubernetes 的实践智慧。每一篇文章，无论是原创还是精心翻译，都旨在为您搭建一座桥梁，连接理论知识与实战技巧，拓宽您的技术视界。📚 结伴同行，在技术之旅上步步高升！
 
+## GPU：探索GPU的奥秘，从基础到高级应用
+
+- Kubernetes GPU 管理基础：Device Plugin 介绍与源码分析[Kubernetes GPU 管理基础](./gpu/k8s-device-plugin)
+- Kubernetes GPU 管理进阶：启用 Nvidia MPS[启用 Nvidia MPS](./gpu/k8s-device-plugin-mps)
+- 故障排查：解决 "Failed to initialize NVML: Unknown Error"[解决 Kubernetes GPU 管理错误](./gpu/nvml-error/)
+- Kubernetes GPU 优化：最大化 GPU 利用率[Kubernetes GPU 优化](./gpu/how-to-increase-gpu-utilization-in-kubernetes)
+- 特定环境 GPU 管理：在 Rocky Linux 上安装 NVIDIA GPU Operator[在 Rocky Linux 上安装 NVIDIA GPU Operator](./gpu/how-to-install-nvidia-gpu-operator-with-a100-on-kubernetes-base-rocky-linux)
+
 ## Istio：深入理解微服务之间的流量管理
 
 - [Kubernetes集群中的Istio环境管理:控制平面的多实例部署实践](./istio/how-to-install-multi-istio-control-plane)
@@ -50,13 +58,6 @@ Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technolog
 - go.mod 文件中的直接和间接依赖：掌握依赖管理，优化项目构建过程。 [深入了解](./golang/direct-indirect-dependency-module-go)
 - 使用Go管理多个Go版本：学习如何在开发环境中管理不同版本的Go [高效管理](./golang/managing-multiple-go-versions-with-go)
 
-## GPU：探索GPU的奥秘，从基础到高级应用
-
-- [nvml错误解析](./gpu/nvml-error/)
-
-## Istio：深入理解微服务之间的流量管理
-
-- [Istio上游错误处理](./istio/istio-upstream-error/)
 
 ## Kubernetes (K8s)
 

@@ -1,0 +1,577 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>Kubernetes GPU管理探秘第二篇：在Kubernetes中启用 Nvidia MPS - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="背景介绍 多进程服务（Multi-Process Service，MPS）是一个与CUDA API二进制兼容的客户端-服务器运行时实现，它由几个组件构成：
+控制守护进程：负责启动和停止服务器，并协调客户端与服务器之间的连接。 客户端运行时：集成在CUDA驱动库中的MPS客户端运行时，可被任何CUDA应用程序透明地使用。 服务器进程：作为客户端共享访问GPU的桥梁，提供客户端间的并发。 本文档将介绍Volta MPS相较于前Volta GPU上的MPS的新功能，并指出两者之间的差异。在Volta上运行MPS会自动启用新功能。 在K8s中使用NVIDIA MPS 根据来自NVIDIA GPU Device Plugin v0.15.0的说明，这个MPS功能还没有准备好用于生产环境，并包括一些已知问题，包括：
+device plugin可能在准备好分配共享GPU之前就显示为已启动，同时等待CUDA MPS控制守护进程上线。 在重启或配置更改下，CUDA MPS控制守护进程和GPU device plugin之间没有同步。这意味着，如果工作负载在失去对由CUDA MPS控制守护进程控制的共享资源的访问时可能会崩溃。 MPS仅支持完整的GPU。 不可能“组合”MPS GPU请求，以允许单个容器访问更多内存。 本文将对该功能进行验证，以便在未来的版本中使用。
+环境准备 k8s集群信息 Kernel Version: 5.15.135-amd64 containerd version 1.6.20 Kubelet Version: v1.26.11 k8s-device-plugin version: v0.15.0 nvidia-toolkit upgrade: v1.13.4 安装 Nvidia GPU Operator 首先，我们需要安装Nvidia GPU Operator，以提供GPU资源的监控指标。
+helm install --wait --generate-name -n ssdl-vgpu nvidia/gpu-operator \ --set driver.enabled=false \ --set toolkit.enabled=false \ --set devicePlugin.enabled=false 准备MPS对应的configMap # k apply -f ntr-mps-cm." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">Kubernetes GPU管理探秘第二篇：在Kubernetes中启用 Nvidia MPS</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 20, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><h2 id="背景介绍">背景介绍</h2>
+<p>多进程服务（Multi-Process Service，MPS）是一个与CUDA API二进制兼容的客户端-服务器运行时实现，它由几个组件构成：</p>
+<ul>
+<li>控制守护进程：负责启动和停止服务器，并协调客户端与服务器之间的连接。</li>
+<li>客户端运行时：集成在CUDA驱动库中的MPS客户端运行时，可被任何CUDA应用程序透明地使用。</li>
+<li>服务器进程：作为客户端共享访问GPU的桥梁，提供客户端间的并发。
+本文档将介绍Volta MPS相较于前Volta GPU上的MPS的新功能，并指出两者之间的差异。在Volta上运行MPS会自动启用新功能。</li>
+</ul>
+<p><img src="https://docs.nvidia.com/deploy/mps/topics/media/image2.png" alt="mps"></p>
+<h2 id="在k8s中使用nvidia-mps">在K8s中使用NVIDIA MPS</h2>
+<p>根据来自<a href="https://github.com/NVIDIA/k8s-device-plugin/releases/tag/v0.15.0">NVIDIA GPU Device Plugin v0.15.0</a>的说明，这个MPS功能还没有准备好用于生产环境，并包括一些已知问题，包括：</p>
+<ul>
+<li>device plugin可能在准备好分配共享GPU之前就显示为已启动，同时等待CUDA MPS控制守护进程上线。</li>
+<li>在重启或配置更改下，CUDA MPS控制守护进程和GPU device plugin之间没有同步。这意味着，如果工作负载在失去对由CUDA MPS控制守护进程控制的共享资源的访问时可能会崩溃。</li>
+<li>MPS仅支持完整的GPU。</li>
+<li>不可能“组合”MPS GPU请求，以允许单个容器访问更多内存。</li>
+</ul>
+<p>本文将对该功能进行验证，以便在未来的版本中使用。</p>
+<h3 id="环境准备">环境准备</h3>
+<h4 id="k8s集群信息">k8s集群信息</h4>
+<ul>
+<li>Kernel Version:  5.15.135-amd64</li>
+<li>containerd version 1.6.20</li>
+<li>Kubelet Version: v1.26.11</li>
+<li>k8s-device-plugin version: v0.15.0</li>
+<li><strong>nvidia-toolkit upgrade: v1.13.4</strong></li>
+</ul>
+<h4 id="安装-nvidia-gpu-operator">安装 Nvidia GPU Operator</h4>
+<p>首先，我们需要安装Nvidia GPU Operator，以提供GPU资源的监控指标。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>helm install --wait --generate-name -n ssdl-vgpu nvidia/gpu-operator <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>--set driver.enabled<span style="color:#f92672">=</span>false <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>--set toolkit.enabled<span style="color:#f92672">=</span>false <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>--set devicePlugin.enabled<span style="color:#f92672">=</span>false 
+</span></span></code></pre></div><h4 id="准备mps对应的configmap">准备MPS对应的configMap</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># k apply -f ntr-mps-cm.yaml</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">```</span>yaml
+</span></span><span style="display:flex;"><span>apiVersion: v1
+</span></span><span style="display:flex;"><span>kind: ConfigMap
+</span></span><span style="display:flex;"><span>metadata:
+</span></span><span style="display:flex;"><span>  name: ntr-mps-cm
+</span></span><span style="display:flex;"><span>  namespace: ssdl-vgpu
+</span></span><span style="display:flex;"><span>data:
+</span></span><span style="display:flex;"><span>  any: |
+</span></span><span style="display:flex;"><span>    version: v1
+</span></span><span style="display:flex;"><span>    flags:
+</span></span><span style="display:flex;"><span>      failOnInitError: true
+</span></span><span style="display:flex;"><span>      nvidiaDriverRoot: <span style="color:#e6db74">&#34;/run/nvidia/driver/&#34;</span>
+</span></span><span style="display:flex;"><span>      plugin:
+</span></span><span style="display:flex;"><span>        deviceListStrategy: envvar
+</span></span><span style="display:flex;"><span>        deviceIDStrategy: uuid
+</span></span><span style="display:flex;"><span>    sharing:
+</span></span><span style="display:flex;"><span>      mps:
+</span></span><span style="display:flex;"><span>        resources:
+</span></span><span style="display:flex;"><span>          - name: nvidia.com/gpu
+</span></span><span style="display:flex;"><span>            replicas: <span style="color:#ae81ff">4</span>
+</span></span></code></pre></div><h4 id="安装-nvidia-device-plugin">安装 nvidia-device-plugin</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>helm install --wait k8s-vgpu nvdp/nvidia-device-plugin <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  --namespace ssdl-vgpu <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  --version 0.15.0 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  --set config.name<span style="color:#f92672">=</span>ntr-time-cm <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  --set compatWithCPUManager<span style="color:#f92672">=</span>true <span style="color:#ae81ff">\
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span> helm list -n ssdl-vgpu | grep k8s-vgpu
+</span></span><span style="display:flex;"><span>k8s-vgpu               	ssdl-vgpu	<span style="color:#ae81ff">3</span>       	2024-04-23 14:04:36.885665 +0800 CST	deployed	nvidia-device-plugin-0.15.0	0.15.0
+</span></span></code></pre></div><p>在nvidia-device-plugin安装完成后，我们可以查看DaemonSet的状态。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>k get DaemonSet -n ssdl-vgpu | grep k8s-vgpu
+</span></span><span style="display:flex;"><span>k8s-vgpu-nvidia-device-plugin                           <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">1</span>            <span style="color:#ae81ff">1</span>           &lt;none&gt;                                                                      6h36m
+</span></span><span style="display:flex;"><span>k8s-vgpu-nvidia-device-plugin-mps-control-daemon        <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">1</span>            <span style="color:#ae81ff">1</span>           nvidia.com/mps.capable<span style="color:#f92672">=</span>true                                                 6h36m
+</span></span></code></pre></div><h4 id="标记目标node以启用mps">标记目标node以启用MPS</h4>
+<p>基于上面的输出，我们可以看到DaemonSet <code>k8s-vgpu-nvidia-device-plugin-mps-control-daemon</code>正在运行。我们可以标记目标node以启用MPS。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>k label no -l worker.garden.sapcloud.io/group<span style="color:#f92672">=</span>c32m384-v100g3 nvidia.com/mps.capable<span style="color:#f92672">=</span>true
+</span></span></code></pre></div><h3 id="结果验证">结果验证</h3>
+<h4 id="mps-control-daemon-and-device-plugin的日志">MPS control daemon and device-plugin的日志</h4>
+<h5 id="mps-control-daemon-logs">MPS control daemon logs</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>2024-04-23T06:04:59.093748766Z I0423 06:04:59.092447      <span style="color:#ae81ff">55</span> main.go:78<span style="color:#f92672">]</span> Starting NVIDIA MPS Control Daemon 435bfb70
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.093839331Z commit: 435bfb70a44b74daca23fe957a0f256afaa3c51e
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.093853836Z I0423 06:04:59.092736      <span style="color:#ae81ff">55</span> main.go:55<span style="color:#f92672">]</span> <span style="color:#e6db74">&#34;Starting NVIDIA MPS Control Daemon&#34;</span> version<span style="color:#f92672">=</span>&lt;
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.093867206Z 	435bfb70
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.093878874Z 	commit: 435bfb70a44b74daca23fe957a0f256afaa3c51e
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.093889630Z  &gt;
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.093900576Z I0423 06:04:59.092874      <span style="color:#ae81ff">55</span> main.go:107<span style="color:#f92672">]</span> Starting OS watcher.
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094030621Z I0423 06:04:59.093463      <span style="color:#ae81ff">55</span> main.go:121<span style="color:#f92672">]</span> Starting Daemons.
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094062157Z I0423 06:04:59.093551      <span style="color:#ae81ff">55</span> main.go:164<span style="color:#f92672">]</span> Loading configuration.
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094686515Z I0423 06:04:59.094616      <span style="color:#ae81ff">55</span> main.go:172<span style="color:#f92672">]</span> Updating config with default resource matching patterns.
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094774486Z I0423 06:04:59.094718      <span style="color:#ae81ff">55</span> main.go:183<span style="color:#f92672">]</span> 
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094792480Z Running with config:
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094796229Z <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094799702Z   <span style="color:#e6db74">&#34;version&#34;</span>: <span style="color:#e6db74">&#34;v1&#34;</span>,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094802996Z   <span style="color:#e6db74">&#34;flags&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094806479Z     <span style="color:#e6db74">&#34;migStrategy&#34;</span>: <span style="color:#e6db74">&#34;none&#34;</span>,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094809741Z     <span style="color:#e6db74">&#34;failOnInitError&#34;</span>: true,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094813226Z     <span style="color:#e6db74">&#34;nvidiaDriverRoot&#34;</span>: <span style="color:#e6db74">&#34;/run/nvidia/driver/&#34;</span>,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094816715Z     <span style="color:#e6db74">&#34;gdsEnabled&#34;</span>: null,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094820702Z     <span style="color:#e6db74">&#34;mofedEnabled&#34;</span>: null,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094823952Z     <span style="color:#e6db74">&#34;useNodeFeatureAPI&#34;</span>: null,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094827235Z     <span style="color:#e6db74">&#34;plugin&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094830383Z       <span style="color:#e6db74">&#34;passDeviceSpecs&#34;</span>: null,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094833529Z       <span style="color:#e6db74">&#34;deviceListStrategy&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094836708Z         <span style="color:#e6db74">&#34;envvar&#34;</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094840338Z       <span style="color:#f92672">]</span>,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094844148Z       <span style="color:#e6db74">&#34;deviceIDStrategy&#34;</span>: <span style="color:#e6db74">&#34;uuid&#34;</span>,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094847589Z       <span style="color:#e6db74">&#34;cdiAnnotationPrefix&#34;</span>: null,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094850905Z       <span style="color:#e6db74">&#34;nvidiaCTKPath&#34;</span>: null,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094854382Z       <span style="color:#e6db74">&#34;containerDriverRoot&#34;</span>: null
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094857781Z     <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094861393Z   <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094870585Z   <span style="color:#e6db74">&#34;resources&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094873870Z     <span style="color:#e6db74">&#34;gpus&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094877070Z       <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094882321Z         <span style="color:#e6db74">&#34;pattern&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094885531Z         <span style="color:#e6db74">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;nvidia.com/gpu&#34;</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094888738Z       <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094891938Z     <span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094895130Z   <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094898375Z   <span style="color:#e6db74">&#34;sharing&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094901556Z     <span style="color:#e6db74">&#34;timeSlicing&#34;</span>: <span style="color:#f92672">{}</span>,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094904765Z     <span style="color:#e6db74">&#34;mps&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094908027Z       <span style="color:#e6db74">&#34;failRequestsGreaterThanOne&#34;</span>: true,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094911202Z       <span style="color:#e6db74">&#34;resources&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094914378Z         <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094917668Z           <span style="color:#e6db74">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;nvidia.com/gpu&#34;</span>,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094920946Z           <span style="color:#e6db74">&#34;devices&#34;</span>: <span style="color:#e6db74">&#34;all&#34;</span>,
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094924462Z           <span style="color:#e6db74">&#34;replicas&#34;</span>: <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094927756Z         <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094931025Z       <span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094934399Z     <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094937659Z   <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094940881Z <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.094944445Z I0423 06:04:59.094737      <span style="color:#ae81ff">55</span> main.go:187<span style="color:#f92672">]</span> Retrieving MPS daemons.
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.367188348Z I0423 06:04:59.366922      <span style="color:#ae81ff">55</span> daemon.go:93<span style="color:#f92672">]</span> <span style="color:#e6db74">&#34;Staring MPS daemon&#34;</span> resource<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;nvidia.com/gpu&#34;</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.443650558Z I0423 06:04:59.443468      <span style="color:#ae81ff">55</span> daemon.go:131<span style="color:#f92672">]</span> <span style="color:#e6db74">&#34;Starting log tailer&#34;</span> resource<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;nvidia.com/gpu&#34;</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445568425Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.389 Control    72<span style="color:#f92672">]</span> Starting control daemon using socket /mps/nvidia.com/gpu/pipe/control
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445618049Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.389 Control    72<span style="color:#f92672">]</span> To connect CUDA applications to this daemon, set env CUDA_MPS_PIPE_DIRECTORY<span style="color:#f92672">=</span>/mps/nvidia.com/gpu/pipe
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445627888Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.415 Control    72<span style="color:#f92672">]</span> Accepting connection...
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445635791Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.415 Control    72<span style="color:#f92672">]</span> NEW UI
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445643954Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.415 Control    72<span style="color:#f92672">]</span> Cmd:set_default_device_pinned_mem_limit <span style="color:#ae81ff">0</span> 4096M
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445651895Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.415 Control    72<span style="color:#f92672">]</span> UI closed
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445659400Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.418 Control    72<span style="color:#f92672">]</span> Accepting connection...
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445667180Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.418 Control    72<span style="color:#f92672">]</span> NEW UI
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445674877Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.418 Control    72<span style="color:#f92672">]</span> Cmd:set_default_device_pinned_mem_limit <span style="color:#ae81ff">1</span> 4096M
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445682790Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.419 Control    72<span style="color:#f92672">]</span> UI closed
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445690190Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.439 Control    72<span style="color:#f92672">]</span> Accepting connection...
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445697598Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.439 Control    72<span style="color:#f92672">]</span> NEW UI
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445705544Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.439 Control    72<span style="color:#f92672">]</span> Cmd:set_default_device_pinned_mem_limit <span style="color:#ae81ff">2</span> 4096M
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445713416Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.439 Control    72<span style="color:#f92672">]</span> UI closed
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445720849Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.442 Control    72<span style="color:#f92672">]</span> Accepting connection...
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445728295Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.442 Control    72<span style="color:#f92672">]</span> NEW UI
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445735742Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.442 Control    72<span style="color:#f92672">]</span> Cmd:set_default_active_thread_percentage <span style="color:#ae81ff">25</span>
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445749210Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.442 Control    72<span style="color:#f92672">]</span> 25.0
+</span></span><span style="display:flex;"><span>2024-04-23T06:04:59.445757584Z <span style="color:#f92672">[</span>2024-04-23 06:04:59.442 Control    72<span style="color:#f92672">]</span> UI closed
+</span></span><span style="display:flex;"><span>2024-04-23T06:05:26.660115113Z <span style="color:#f92672">[</span>2024-04-23 06:05:26.659 Control    72<span style="color:#f92672">]</span> Accepting connection...
+</span></span><span style="display:flex;"><span>2024-04-23T06:05:26.660166122Z <span style="color:#f92672">[</span>2024-04-23 06:05:26.659 Control    72<span style="color:#f92672">]</span> NEW UI
+</span></span><span style="display:flex;"><span>2024-04-23T06:05:26.660179349Z <span style="color:#f92672">[</span>2024-04-23 06:05:26.659 Control    72<span style="color:#f92672">]</span> Cmd:get_default_active_thread_percentage
+</span></span><span style="display:flex;"><span>2024-04-23T06:05:26.660189426Z <span style="color:#f92672">[</span>2024-04-23 06:05:26.659 Control    72<span style="color:#f92672">]</span> 25.0
+</span></span></code></pre></div><h5 id="nvidia-device-plugin-logs">Nvidia-device-plugin logs</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>I0423 06:04:56.479370      <span style="color:#ae81ff">39</span> main.go:279<span style="color:#f92672">]</span> Retrieving plugins.
+</span></span><span style="display:flex;"><span>I0423 06:04:56.480927      <span style="color:#ae81ff">39</span> factory.go:104<span style="color:#f92672">]</span> Detected NVML platform: found NVML library
+</span></span><span style="display:flex;"><span>I0423 06:04:56.480999      <span style="color:#ae81ff">39</span> factory.go:104<span style="color:#f92672">]</span> Detected non-Tegra platform: /sys/devices/soc0/family file not found
+</span></span><span style="display:flex;"><span>E0423 06:04:56.558122      <span style="color:#ae81ff">39</span> main.go:301<span style="color:#f92672">]</span> Failed to start plugin: error waiting <span style="color:#66d9ef">for</span> MPS daemon: error checking MPS daemon health: failed to send command to MPS daemon: exit status <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>I0423 06:04:56.558152      <span style="color:#ae81ff">39</span> main.go:208<span style="color:#f92672">]</span> Failed to start one or more plugins. Retrying in 30s...
+</span></span><span style="display:flex;"><span>I0423 06:05:26.587365      <span style="color:#ae81ff">39</span> main.go:315<span style="color:#f92672">]</span> Stopping plugins.
+</span></span><span style="display:flex;"><span>I0423 06:05:26.587429      <span style="color:#ae81ff">39</span> server.go:185<span style="color:#f92672">]</span> Stopping to serve <span style="color:#e6db74">&#39;nvidia.com/gpu&#39;</span> on /var/lib/kubelet/device-plugins/nvidia-gpu.sock
+</span></span><span style="display:flex;"><span>I0423 06:05:26.587496      <span style="color:#ae81ff">39</span> main.go:200<span style="color:#f92672">]</span> Starting Plugins.
+</span></span><span style="display:flex;"><span>I0423 06:05:26.587508      <span style="color:#ae81ff">39</span> main.go:257<span style="color:#f92672">]</span> Loading configuration.
+</span></span><span style="display:flex;"><span>I0423 06:05:26.588327      <span style="color:#ae81ff">39</span> main.go:265<span style="color:#f92672">]</span> Updating config with default resource matching patterns.
+</span></span><span style="display:flex;"><span>I0423 06:05:26.588460      <span style="color:#ae81ff">39</span> main.go:276<span style="color:#f92672">]</span> 
+</span></span><span style="display:flex;"><span>Running with config:
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;version&#34;</span>: <span style="color:#e6db74">&#34;v1&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;flags&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;migStrategy&#34;</span>: <span style="color:#e6db74">&#34;none&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;failOnInitError&#34;</span>: true,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;mpsRoot&#34;</span>: <span style="color:#e6db74">&#34;/run/nvidia/mps&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;nvidiaDriverRoot&#34;</span>: <span style="color:#e6db74">&#34;/run/nvidia/driver/&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;gdsEnabled&#34;</span>: false,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;mofedEnabled&#34;</span>: false,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;useNodeFeatureAPI&#34;</span>: null,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;plugin&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;passDeviceSpecs&#34;</span>: false,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;deviceListStrategy&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;envvar&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">]</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;deviceIDStrategy&#34;</span>: <span style="color:#e6db74">&#34;uuid&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;cdiAnnotationPrefix&#34;</span>: <span style="color:#e6db74">&#34;cdi.k8s.io/&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;nvidiaCTKPath&#34;</span>: <span style="color:#e6db74">&#34;/usr/bin/nvidia-ctk&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;containerDriverRoot&#34;</span>: <span style="color:#e6db74">&#34;/driver-root&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;resources&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;gpus&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;pattern&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;nvidia.com/gpu&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;sharing&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;timeSlicing&#34;</span>: <span style="color:#f92672">{}</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;mps&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;failRequestsGreaterThanOne&#34;</span>: true,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;resources&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#e6db74">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;nvidia.com/gpu&#34;</span>,
+</span></span><span style="display:flex;"><span>          <span style="color:#e6db74">&#34;devices&#34;</span>: <span style="color:#e6db74">&#34;all&#34;</span>,
+</span></span><span style="display:flex;"><span>          <span style="color:#e6db74">&#34;replicas&#34;</span>: <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>I0423 06:05:26.588478      <span style="color:#ae81ff">39</span> main.go:279<span style="color:#f92672">]</span> Retrieving plugins.
+</span></span><span style="display:flex;"><span>I0423 06:05:26.588515      <span style="color:#ae81ff">39</span> factory.go:104<span style="color:#f92672">]</span> Detected NVML platform: found NVML library
+</span></span><span style="display:flex;"><span>I0423 06:05:26.588559      <span style="color:#ae81ff">39</span> factory.go:104<span style="color:#f92672">]</span> Detected non-Tegra platform: /sys/devices/soc0/family file not found
+</span></span><span style="display:flex;"><span>I0423 06:05:26.660603      <span style="color:#ae81ff">39</span> server.go:176<span style="color:#f92672">]</span> <span style="color:#e6db74">&#34;MPS daemon is healthy&#34;</span> resource<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;nvidia.com/gpu&#34;</span>
+</span></span><span style="display:flex;"><span>I0423 06:05:26.661346      <span style="color:#ae81ff">39</span> server.go:216<span style="color:#f92672">]</span> Starting GRPC server <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;nvidia.com/gpu&#39;</span>
+</span></span><span style="display:flex;"><span>I0423 06:05:26.662857      <span style="color:#ae81ff">39</span> server.go:147<span style="color:#f92672">]</span> Starting to serve <span style="color:#e6db74">&#39;nvidia.com/gpu&#39;</span> on /var/lib/kubelet/device-plugins/nvidia-gpu.sock
+</span></span><span style="display:flex;"><span>I0423 06:05:26.673960      <span style="color:#ae81ff">39</span> server.go:154<span style="color:#f92672">]</span> Registered device plugin <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;nvidia.com/gpu&#39;</span> with Kubelet
+</span></span></code></pre></div><h4 id="e2e-校验">E2E 校验</h4>
+<h4 id="成功的案例---cuda-samplesvectoradd">✅成功的案例 -&gt; cuda-samples/vectorAdd</h4>
+<p>cuda-samples 所对应的日志，从中我们可以看到 MPS已经成功地启用了。</p>
+<pre tabindex="0"><code class="language-shel" data-lang="shel">[Vector addition of 50000 elements]
+Copy input data from the host memory to the CUDA device
+CUDA kernel launch with 196 blocks of 256 threads
+Copy output data from the CUDA device to the host memory
+Test PASSED
+Done
+</code></pre><p>nvidia-smi 对应的输出</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>+---------------------------------------------------------------------------------------+
+</span></span><span style="display:flex;"><span>| Processes:                                                                            |
+</span></span><span style="display:flex;"><span>|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+</span></span><span style="display:flex;"><span>|        ID   ID                                                             Usage      |
+</span></span><span style="display:flex;"><span>|<span style="color:#f92672">=======================================================================================</span>|
+</span></span><span style="display:flex;"><span>|    <span style="color:#ae81ff">0</span>   N/A  N/A   <span style="color:#ae81ff">1127738</span>      C   nvidia-cuda-mps-server                       30MiB |
+</span></span><span style="display:flex;"><span>|    <span style="color:#ae81ff">0</span>   N/A  N/A   <span style="color:#ae81ff">1397691</span>    M+C   /cuda-samples/vectorAdd                      18MiB |
+</span></span><span style="display:flex;"><span>|    <span style="color:#ae81ff">0</span>   N/A  N/A   <span style="color:#ae81ff">1397696</span>    M+C   /cuda-samples/vectorAdd                      10MiB |
+</span></span><span style="display:flex;"><span>|    <span style="color:#ae81ff">1</span>   N/A  N/A   <span style="color:#ae81ff">1127738</span>      C   nvidia-cuda-mps-server                       30MiB |
+</span></span><span style="display:flex;"><span>|    <span style="color:#ae81ff">1</span>   N/A  N/A   <span style="color:#ae81ff">1397689</span>    M+C   /cuda-samples/vectorAdd                      94MiB |
+</span></span><span style="display:flex;"><span>|    <span style="color:#ae81ff">1</span>   N/A  N/A   <span style="color:#ae81ff">1397714</span>    M+C   /cuda-samples/vectorAdd                      10MiB |
+</span></span><span style="display:flex;"><span>|    <span style="color:#ae81ff">2</span>   N/A  N/A   <span style="color:#ae81ff">1127738</span>      C   nvidia-cuda-mps-server                       30MiB |
+</span></span><span style="display:flex;"><span>|    <span style="color:#ae81ff">2</span>   N/A  N/A   <span style="color:#ae81ff">1397712</span>    M+C   /cuda-samples/vectorAdd                      10MiB |
+</span></span><span style="display:flex;"><span>+---------------------------------------------------------------------------------------+
+</span></span></code></pre></div><h4 id="失败的案例---tf-notebook-tensorflowtensorflowlatest-gpu-jupyter">❌失败的案例 -&gt; tf-notebook tensorflow/tensorflow:latest-gpu-jupyter</h4>
+<p>我在尝试使用这个<a href="https://github.com/tensorflow/docs/blob/master/site/en/tutorials/keras/classification.ipynb">classification.ipynb</a>来进行端到端验证，然而结果是pod持续挂起60分钟没有任何响应，并且日志无法获取更多细节。</p>
+<p>classification.ipynb的日志输出</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>2024-04-25 02:10:19.499819: I tensorflow/core/platform/cpu_feature_guard.cc:210<span style="color:#f92672">]</span> This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+</span></span><span style="display:flex;"><span>To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>I 2024-04-25 02:10:20.630 ServerApp<span style="color:#f92672">]</span> Connecting to kernel 562db3f6-327c-4adc-83e9-735fb4d0042c.
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>I 2024-04-25 02:10:36.700 ServerApp<span style="color:#f92672">]</span> Connecting to kernel 562db3f6-327c-4adc-83e9-735fb4d0042c.
+</span></span></code></pre></div><p>我在此处尝试了<code>echo get_default_active_thread_percentage | nvidia-cuda-mps-control</code>（来自于https://github.com/NVIDIA/k8s-device-plugin/issues/647），一切看起来都很正常，但是挂起的问题仍然存在。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>root@gpu-pod:/# echo get_default_active_thread_percentage | nvidia-cuda-mps-control
+</span></span><span style="display:flex;"><span>25.0
+</span></span></code></pre></div><h3 id="相关的-github-issues">相关的 Github Issues</h3>
+<ul>
+<li><a href="https://github.com/NVIDIA/k8s-device-plugin/issues/679">Workloads keep in hang state except cuda-sample:vectoradd under MPS mode</a></li>
+<li><a href="https://github.com/NVIDIA/k8s-device-plugin/issues/647">MPS use error: Failed to allocate device vector A (error code all CUDA-capable devices are busy or unavailable)!</a></li>
+</ul>
+<h2 id="mps参考文档">MPS参考文档</h2>
+<ul>
+<li><a href="https://docs.nvidia.com/deploy/mps/index.html">https://docs.nvidia.com/deploy/mps/index.html</a></li>
+<li><a href="https://docs.nvidia.com/deploy/pdf/CUDA_Multi_Process_Service_Overview.pdf">https://docs.nvidia.com/deploy/pdf/CUDA_Multi_Process_Service_Overview.pdf</a></li>
+<li><a href="https://www.nvidia.cn/content/dam/en-zz/zh_cn/assets/webinars/31oct2019c/20191031_MPS_davidwu.pdf">https://www.nvidia.cn/content/dam/en-zz/zh_cn/assets/webinars/31oct2019c/20191031_MPS_davidwu.pdf</a></li>
+<li><a href="https://asphelzhn.github.io/2019/04/14/tensor_09_MPS/">https://asphelzhn.github.io/2019/04/14/tensor_09_MPS/</a></li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

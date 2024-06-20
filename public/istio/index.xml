@@ -6,10 +6,31 @@
     <description>Recent content in Istio on Tim Wang的技术博客</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Fri, 14 Jun 2024 17:47:42 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 20 Jun 2024 16:24:32 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/istio/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>【译】Istio上游连接重置502错误分析与排查指南</title>
+      <title>深入理解Istio：网络原理与Sidecar的自动注入机制</title>
+      <link>http://localhost:1313/istio/istio-sidecar-inject/</link>
+      <pubDate>Thu, 20 Jun 2024 16:24:32 +0800</pubDate>
+      <guid>http://localhost:1313/istio/istio-sidecar-inject/</guid>
+      <description>Istio 简介 Istio，作为一款服务网格领域的佼佼者，为微服务架构提供了强大而灵活的网络能力。 本文旨在深入探讨Istio的网络原理，揭示其如何在复杂的服务间通信中发挥关键作用，同时保持高可观察性和安全性。&#xA;Istio 的核心在于其服务网格模型，它围绕着Envoy sideCar构建。每个服务实例旁边都会部署一个Envoy代理，负责处理进出服务的所有网络流量。 这一设计允许Istio在透明地拦截、路由和监控所有通信的同时，不对服务代码本身做出任何修改。&#xA;Istio sidecar 注入过程 Istio sidecar 注入过程是指在 Kubernetes 集群中，将 Istio 的 Envoy 代理作为一个 sidecar 容器，注入到每个业务容器所在的 Pod 中，从而实现对业务容器的流量管理和控制。&#xA;Istio sidecar 注入过程主要有两种方式：手动注入和自动注入。&#xA;手动注入是指在创建 Pod 时，在 Pod 的 YAML 文件中，手动添加 Istio 的 Envoy 代理容器，并且配置好 Istio 和 Envoy 代理容器之间的通信方式。这种方式比较繁琐，且容易出错。&#xA;自动注入是指在创建 Pod 时，由 Istio 的 sidecar 注入器（Istio-sidecar-injector）自动将 Istio 的 Envoy 代理容器注入到 Pod 中。这种方式比较简便，且可以保证 Istio 和 Envoy 代理容器之间的通信方式是正确的。&#xA;Istio-sidecar-injector 的工作原理是基于 Kubernetes 的 Admission Controller 机制。在创建 Pod 时，Kubernetes 会将 Pod 的创建请求提交给 Admission Controller 进行校验，如果校验通过，则将 Pod 创建成功。Istio-sidecar-injector 就是一个自定义的 Admission Controller，它在接收到 Pod 的创建请求时，会将 Istio 的 Envoy 代理容器注入到 Pod 中，然后将修改后的 Pod 创建请求提交给 Kubernetes 进行创建。</description>
+    </item>
+    <item>
+      <title>如何在同一个k8s cluster中安装多个istio版本</title>
+      <link>http://localhost:1313/istio/how-to-install-multi-istio-control-plane/</link>
+      <pubDate>Thu, 20 Jun 2024 16:23:23 +0800</pubDate>
+      <guid>http://localhost:1313/istio/how-to-install-multi-istio-control-plane/</guid>
+      <description>准备工作 首先我们创建两个NameSpaceistio-canary &amp;amp; istio-prod,分别用于部署istio的canary版本和prod版本，然后我们给这两个NameSpace打上标签，用于后续的istio的版本选择。&#xA;➜ ~ k create ns istio-canary ➜ ~ k create ns istio-prod ➜ ~ k label ns istio-canary istio-tag=istio-canary ➜ ~ k label ns istio-prod istio-tag=istio-prod 接下来我们将要安装istio的版本，这里我们选择了1.19.3和1.18.5两个版本，分别用于canary和prod的版本。&#xA;➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.19.3 sh - ➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.18.5 sh - 首先给两个版本的istioctl设置alias，方便后续的操作。&#xA;➜ ~ istioctl1.9=&amp;#39;~/istio-1.19.3/bin/istioctl&amp;#39; ➜ ~ istioctl1.8=&amp;#39;~/istio-1.18.5/bin/istioctl&amp;#39; 开始安装istio 我们使用下面的命令来在istio-canary的NameSpace中安装istio 1.19.3版本&#xA;➜ ~ istioctl1.9 install -y -f - &amp;lt;&amp;lt;EOF apiVersion: install.istio.io/v1alpha1 kind: IstioOperator metadata: namespace: istio-canary name: istio-1-19-3 spec: profile: default revision: 1-19-3 tag: 1.</description>
+    </item>
+    <item>
+      <title>在多个istio版本的k8s环境中构建应用</title>
+      <link>http://localhost:1313/istio/build-app-under-multi-istio/</link>
+      <pubDate>Thu, 20 Jun 2024 16:20:52 +0800</pubDate>
+      <guid>http://localhost:1313/istio/build-app-under-multi-istio/</guid>
+      <description>本教程主要基于Istio官方文档中的 Bookinfo Application，在多个istio版本的k8s环境中构建应用。&#xA;前提条件 请先参考上一篇文章如何在同一个k8s cluster中安装多个istio版本配置好相应的istio环境， 接下来请将对应的bookinfo.yaml 文件下载到本地。&#xA;开始安装bookInfo应用 通过下面的命令来在l7-traffic-alpha namespace中安装bookInfo应用&#xA;➜ ~ k apply -f book-info.yaml -n l7-traffic-alpha # service/details created # serviceaccount/bookinfo-details created # deployment.apps/details-v1 created # service/ratings created # serviceaccount/bookinfo-ratings created # deployment.apps/ratings-v1 created # service/reviews created # serviceaccount/bookinfo-reviews created # deployment.apps/reviews-v1 created # deployment.apps/reviews-v2 created # deployment.apps/reviews-v3 created # service/productpage created # serviceaccount/bookinfo-productpage created # deployment.apps/productpage-v1 created 通过下面命令来查看对应的svc和pod是否已经创建成功,我们可以发现对应的svc已经创建成功&#xA;➜ ~ k get svc -n l7-traffic-alpha NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE details ClusterIP 100.</description>
+    </item>
+    <item>
+      <title>Istio上游连接重置502错误分析与排查指南</title>
       <link>http://localhost:1313/istio/istio-upstream-error/</link>
       <pubDate>Fri, 14 Jun 2024 17:47:42 +0800</pubDate>
       <guid>http://localhost:1313/istio/istio-upstream-error/</guid>

@@ -6,6 +6,14 @@ Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technolog
 
 🎉 欢迎莅临我的技术探索空间! 🚀 在这里，我们深入探讨 Istio、GPU 技术、Golang、网络工程、软件开发生态以及 Kubernetes 的实践智慧。每一篇文章，无论是原创还是精心翻译，都旨在为您搭建一座桥梁，连接理论知识与实战技巧，拓宽您的技术视界。📚 结伴同行，在技术之旅上步步高升！
 
+## Istio：深入理解微服务之间的流量管理
+
+- [Kubernetes集群中的Istio环境管理:控制平面的多实例部署实践](./istio/how-to-install-multi-istio-control-plane)
+- [Kubernetes集群中的Istio环境管理:多环境应用构建实践](./istio/build-app-under-multi-istio)
+- [Istio上游连接重置502错误分析与排查指南](./istio/istio-upstream-error)
+- [深入理解Istio：网络原理与Sidecar的自动注入机制](./istio/istio-sidecar-inject)
+
+
 ## Golang 资源大全：从基础到高级特性
 
 探索 Golang 的世界，这里有你需要的所有资源，从基础语法到高级特性，一网打尽！

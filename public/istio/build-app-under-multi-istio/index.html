@@ -1,0 +1,577 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>在多个istio版本的k8s环境中构建应用 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本教程主要基于Istio官方文档中的 Bookinfo Application，在多个istio版本的k8s环境中构建应用。
+前提条件 请先参考上一篇文章Kubernetes集群中的Istio环境管理:控制平面的多实例部署实践配置好相应的istio环境， 接下来请将对应的bookinfo.yaml 文件下载到本地。
+开始安装bookInfo应用 通过下面的命令来在l7-traffic-alpha namespace中安装bookInfo应用
+➜ ~ k apply -f book-info.yaml -n l7-traffic-alpha # service/details created # serviceaccount/bookinfo-details created # deployment.apps/details-v1 created # service/ratings created # serviceaccount/bookinfo-ratings created # deployment.apps/ratings-v1 created # service/reviews created # serviceaccount/bookinfo-reviews created # deployment.apps/reviews-v1 created # deployment.apps/reviews-v2 created # deployment.apps/reviews-v3 created # service/productpage created # serviceaccount/bookinfo-productpage created # deployment.apps/productpage-v1 created 通过下面命令来查看对应的svc和pod是否已经创建成功,我们可以发现对应的svc已经创建成功
+➜ ~ k get svc -n l7-traffic-alpha NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE details ClusterIP 100." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">在多个istio版本的k8s环境中构建应用</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 20, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><p>本教程主要基于Istio官方文档中的 <a href="https://istio.io/latest/docs/examples/bookinfo/">Bookinfo Application</a>，在多个istio版本的k8s环境中构建应用。</p>
+<h2 id="前提条件">前提条件</h2>
+<p>请先参考上一篇文章<a href="/istio/how-to-install-multi-istio-control-plane/">Kubernetes集群中的Istio环境管理:控制平面的多实例部署实践</a>配置好相应的istio环境，
+接下来请将对应的<a href="https://github.com/istio/istio/blob/master/samples/bookinfo/platform/kube/bookinfo.yaml">bookinfo.yaml
+</a>文件下载到本地。</p>
+<h2 id="开始安装bookinfo应用">开始安装bookInfo应用</h2>
+<p>通过下面的命令来在<code>l7-traffic-alpha</code> namespace中安装bookInfo应用</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~ k apply -f book-info.yaml -n l7-traffic-alpha
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># service/details created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># serviceaccount/bookinfo-details created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># deployment.apps/details-v1 created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># service/ratings created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># serviceaccount/bookinfo-ratings created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># deployment.apps/ratings-v1 created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># service/reviews created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># serviceaccount/bookinfo-reviews created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># deployment.apps/reviews-v1 created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># deployment.apps/reviews-v2 created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># deployment.apps/reviews-v3 created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># service/productpage created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># serviceaccount/bookinfo-productpage created</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># deployment.apps/productpage-v1 created</span>
+</span></span></code></pre></div><p>通过下面命令来查看对应的svc和pod是否已经创建成功,我们可以发现对应的svc已经创建成功</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~ k get svc -n l7-traffic-alpha
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>NAME          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT<span style="color:#f92672">(</span>S<span style="color:#f92672">)</span>    AGE
+</span></span><span style="display:flex;"><span>details       ClusterIP   100.111.56.251   &lt;none&gt;        9080/TCP   2m25s
+</span></span><span style="display:flex;"><span>productpage   ClusterIP   100.110.107.55   &lt;none&gt;        9080/TCP   2m16s
+</span></span><span style="display:flex;"><span>ratings       ClusterIP   100.109.32.83    &lt;none&gt;        9080/TCP   2m23s
+</span></span><span style="display:flex;"><span>reviews       ClusterIP   100.110.71.73    &lt;none&gt;        9080/TCP   2m21s
+</span></span></code></pre></div><p>但是我们发现对应的pod并没有创建成功，需要查看一下root cause</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~ k get deploy -n l7-traffic-alpha
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+</span></span><span style="display:flex;"><span>details-v1       0/1     <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span>           3m40s
+</span></span><span style="display:flex;"><span>productpage-v1   0/1     <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span>           3m31s
+</span></span><span style="display:flex;"><span>ratings-v1       0/1     <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span>           3m38s
+</span></span><span style="display:flex;"><span>reviews-v1       0/1     <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span>           3m35s
+</span></span><span style="display:flex;"><span>reviews-v2       0/1     <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span>           3m34s
+</span></span><span style="display:flex;"><span>reviews-v3       0/1     <span style="color:#ae81ff">0</span>            <span style="color:#ae81ff">0</span>           3m33s
+</span></span><span style="display:flex;"><span>➜ ~ k get rs -n l7-traffic-alpha
+</span></span><span style="display:flex;"><span>NAME                        DESIRED   CURRENT   READY   AGE
+</span></span><span style="display:flex;"><span>details-v1-ccbdcf56         <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">0</span>         <span style="color:#ae81ff">0</span>       4m15s
+</span></span><span style="display:flex;"><span>productpage-v1-6c4f8467b9   <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">0</span>         <span style="color:#ae81ff">0</span>       4m6s
+</span></span><span style="display:flex;"><span>ratings-v1-96d98f9f6        <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">0</span>         <span style="color:#ae81ff">0</span>       4m13s
+</span></span><span style="display:flex;"><span>reviews-v1-57c85f47fb       <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">0</span>         <span style="color:#ae81ff">0</span>       4m10s
+</span></span><span style="display:flex;"><span>reviews-v2-64776cb9bd       <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">0</span>         <span style="color:#ae81ff">0</span>       4m9s
+</span></span><span style="display:flex;"><span>reviews-v3-5c8886f9c6       <span style="color:#ae81ff">1</span>         <span style="color:#ae81ff">0</span>         <span style="color:#ae81ff">0</span>       4m8s
+</span></span></code></pre></div><p>Deploy对应的RS都已经创建成功，但是pod并没有创建成功，通过查看对应的pod的日志，我们发现是webhook的配置错误导致的，我们需要在<code>MutatingWebhookConfiguration</code>中修复它</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~ k describe rs details-v1-ccbdcf56 -n l7-traffic-alpha
+</span></span><span style="display:flex;"><span>Name:           details-v1-ccbdcf56
+</span></span><span style="display:flex;"><span>Namespace:      l7-traffic-alpha
+</span></span><span style="display:flex;"><span>Selector:       app<span style="color:#f92672">=</span>details,pod-template-hash<span style="color:#f92672">=</span>ccbdcf56,version<span style="color:#f92672">=</span>v1
+</span></span><span style="display:flex;"><span>Labels:         app<span style="color:#f92672">=</span>details
+</span></span><span style="display:flex;"><span>                pod-template-hash<span style="color:#f92672">=</span>ccbdcf56
+</span></span><span style="display:flex;"><span>                version<span style="color:#f92672">=</span>v1
+</span></span><span style="display:flex;"><span>Annotations:    deployment.kubernetes.io/desired-replicas: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                deployment.kubernetes.io/max-replicas: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>                deployment.kubernetes.io/revision: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>Controlled By:  Deployment/details-v1
+</span></span><span style="display:flex;"><span>Replicas:       <span style="color:#ae81ff">0</span> current / <span style="color:#ae81ff">1</span> desired
+</span></span><span style="display:flex;"><span>Pods Status:    <span style="color:#ae81ff">0</span> Running / <span style="color:#ae81ff">0</span> Waiting / <span style="color:#ae81ff">0</span> Succeeded / <span style="color:#ae81ff">0</span> Failed
+</span></span><span style="display:flex;"><span>Pod Template:
+</span></span><span style="display:flex;"><span>  Labels:           app<span style="color:#f92672">=</span>details
+</span></span><span style="display:flex;"><span>                    pod-template-hash<span style="color:#f92672">=</span>ccbdcf56
+</span></span><span style="display:flex;"><span>                    version<span style="color:#f92672">=</span>v1
+</span></span><span style="display:flex;"><span>  Service Account:  bookinfo-details
+</span></span><span style="display:flex;"><span>  Containers:
+</span></span><span style="display:flex;"><span>   details:
+</span></span><span style="display:flex;"><span>    Image:        docker.io/istio/examples-bookinfo-details-v1:1.18.0
+</span></span><span style="display:flex;"><span>    Port:         9080/TCP
+</span></span><span style="display:flex;"><span>    Host Port:    0/TCP
+</span></span><span style="display:flex;"><span>    Environment:  &lt;none&gt;
+</span></span><span style="display:flex;"><span>    Mounts:       &lt;none&gt;
+</span></span><span style="display:flex;"><span>  Volumes:        &lt;none&gt;
+</span></span><span style="display:flex;"><span>Conditions:
+</span></span><span style="display:flex;"><span>  Type             Status  Reason
+</span></span><span style="display:flex;"><span>  ----             ------  ------
+</span></span><span style="display:flex;"><span>  ReplicaFailure   True    FailedCreate
+</span></span><span style="display:flex;"><span>Events:
+</span></span><span style="display:flex;"><span>  Type     Reason        Age                    From                   Message
+</span></span><span style="display:flex;"><span>  ----     ------        ----                   ----                   -------
+</span></span><span style="display:flex;"><span>  Warning  FailedCreate  113s <span style="color:#f92672">(</span>x16 over 4m37s<span style="color:#f92672">)</span>  replicaset-controller  Error creating: Internal error occurred: failed calling webhook <span style="color:#e6db74">&#34;rev.namespace.sidecar-injector.istio.io&#34;</span>: failed to call webhook: Post <span style="color:#e6db74">&#34;https://istiod-1-18-5.istio-system.svc:443/inject?timeout=10s&#34;</span>: service <span style="color:#e6db74">&#34;istiod-1-18-5&#34;</span> not found
+</span></span></code></pre></div><p>我们发现是service<code>istiod-1-18-5</code>这个istio-system<code>NameSpace</code>没有找到，但是由于我们的istio是多版本的，所以我们需要在<code>istio-canary</code>这个<code>NameSpace</code>中找到对应的service</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#f92672">(</span>⎈|garden-ait--dl-devops-external:default garden-ait<span style="color:#f92672">)</span>➜  ➜ ~ k get svc -n istio-canary
+</span></span><span style="display:flex;"><span>NAME                   TYPE           CLUSTER-IP        EXTERNAL-IP      PORT<span style="color:#f92672">(</span>S<span style="color:#f92672">)</span>                                                                      AGE
+</span></span><span style="display:flex;"><span>istio-egressgateway    ClusterIP      100.109.23.65     &lt;none&gt;           80/TCP,443/TCP                                                               105m
+</span></span><span style="display:flex;"><span>istio-ingressgateway   LoadBalancer   100.110.197.23    10.237.149.244   15021:30331/TCP,80:32232/TCP,443:32582/TCP,31400:31519/TCP,15443:32673/TCP   117m
+</span></span><span style="display:flex;"><span>istiod-1-18-5          ClusterIP      100.109.220.197   &lt;none&gt;           15010/TCP,15012/TCP,443/TCP,15014/TCP                                        105m
+</span></span><span style="display:flex;"><span>istiod-revision        ClusterIP      100.111.11.61     &lt;none&gt;           15010/TCP,15012/TCP,443/TCP,15014/TCP                                        117m
+</span></span></code></pre></div><p>这个<code>MutatingWebhookConfiguration</code>用于在生产环境中部署Canary deployments。它会给部署的Pods添加一个指定Pod的revision的annotation。这个annotation是Istio用来判断Pod是否是Canary deployment的一部分。具体来说，istio-revision-tag-prod-canary会给Pods添加以下annotation:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~ k get MutatingWebhookConfiguration istio-revision-tag-prod-canary -o yaml | grep <span style="color:#e6db74">&#34;namespace: istio-system&#34;</span> -C <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>    service:
+</span></span><span style="display:flex;"><span>      name: istiod-1-18-5
+</span></span><span style="display:flex;"><span>      namespace: istio-system
+</span></span><span style="display:flex;"><span>      path: /inject
+</span></span><span style="display:flex;"><span>      port: <span style="color:#ae81ff">443</span>
+</span></span><span style="display:flex;"><span>--
+</span></span><span style="display:flex;"><span>    service:
+</span></span><span style="display:flex;"><span>      name: istiod-1-18-5
+</span></span><span style="display:flex;"><span>      namespace: istio-system
+</span></span><span style="display:flex;"><span>      path: /inject
+</span></span><span style="display:flex;"><span>      port: <span style="color:#ae81ff">443</span>
+</span></span></code></pre></div><p>接下来我们需要把这个<code>MutatingWebhookConfiguration</code> <code>istio-revision-tag-prod-canary</code>中的NameSpace改为<code>istio-canary</code></p>
+<p>我们可以通过下面的命令来修改对应的<code>MutatingWebhookConfiguration</code>,并且删除现在的replicaset</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~ k delete rs -n l7-traffic-alpha --all
+</span></span><span style="display:flex;"><span>replicaset.apps <span style="color:#e6db74">&#34;details-v1-5f4d584748&#34;</span> deleted
+</span></span><span style="display:flex;"><span>replicaset.apps <span style="color:#e6db74">&#34;productpage-v1-564d4686f&#34;</span> deleted
+</span></span><span style="display:flex;"><span>replicaset.apps <span style="color:#e6db74">&#34;ratings-v1-686ccfb5d8&#34;</span> deleted
+</span></span><span style="display:flex;"><span>replicaset.apps <span style="color:#e6db74">&#34;reviews-v1-86896b7648&#34;</span> deleted
+</span></span><span style="display:flex;"><span>replicaset.apps <span style="color:#e6db74">&#34;reviews-v2-b7dcd98fb&#34;</span> deleted
+</span></span><span style="display:flex;"><span>replicaset.apps <span style="color:#e6db74">&#34;reviews-v3-5c5cc7b6d&#34;</span> deleted
+</span></span></code></pre></div><p>接下来我们再去查看一下pod的状态，我们会发现对应的pod已经创建成功并且处于running状态</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~ k get pod -n l7-traffic-alpha
+</span></span><span style="display:flex;"><span>NAME                             READY   STATUS    RESTARTS   AGE
+</span></span><span style="display:flex;"><span>details-v1-5f4d584748-xww9x      2/2     Running   <span style="color:#ae81ff">0</span>          100s
+</span></span><span style="display:flex;"><span>productpage-v1-564d4686f-wkxlr   2/2     Running   <span style="color:#ae81ff">0</span>          100s
+</span></span><span style="display:flex;"><span>ratings-v1-686ccfb5d8-vv8z7      2/2     Running   <span style="color:#ae81ff">0</span>          100s
+</span></span><span style="display:flex;"><span>reviews-v1-86896b7648-phv27      2/2     Running   <span style="color:#ae81ff">0</span>          100s
+</span></span><span style="display:flex;"><span>reviews-v2-b7dcd98fb-fs2sc       2/2     Running   <span style="color:#ae81ff">0</span>          99s
+</span></span><span style="display:flex;"><span>reviews-v3-5c5cc7b6d-65257       2/2     Running   <span style="color:#ae81ff">0</span>          99s
+</span></span></code></pre></div><p>同上，我们也需要在 <code>istio-prod</code> namespace和<code>l7-traffic-alpha</code> namespace中安装对应的bookinfo应用</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~ k apply -f book-info.yaml -n l7-traffic-alpha
+</span></span></code></pre></div><h2 id="开始配置istio的servicemesh的crd">开始配置Istio的ServiceMesh的CRD</h2>
+<p>首先从<a href="https://github.com/istio/istio/blob/master/samples/bookinfo/gateway-api/bookinfo-gateway.yaml">bookinfo-gateway.yaml</a>下载对应的yaml文件，
+接下来进行安装</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~  k apply -f bookinfo-gateway.yml -n l7-traffic-alpha
+</span></span><span style="display:flex;"><span>gateway.networking.istio.io/bookinfo-gateway created
+</span></span><span style="display:flex;"><span>virtualservice.networking.istio.io/bookinfo created
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>⎈|garden-ait--multi-istio-01-external:default garden-ait<span style="color:#f92672">)</span>➜  k get Gateway -n l7-traffic-alpha
+</span></span><span style="display:flex;"><span>NAME               AGE
+</span></span><span style="display:flex;"><span>bookinfo-gateway   21s
+</span></span><span style="display:flex;"><span>➜ ~  k get virtualservice -n l7-traffic-alpha
+</span></span><span style="display:flex;"><span>NAME       GATEWAYS               HOSTS                       AGE
+</span></span><span style="display:flex;"><span>bookinfo   <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;bookinfo-gateway&#34;</span><span style="color:#f92672">]</span>   <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;bookinfo-gateway.test&#34;</span><span style="color:#f92672">]</span>   31s
+</span></span></code></pre></div><p>如果此时我们查看对应的<code>istiod</code>的日志，我们会发现对应的gateway/VirtualService已经被push到了<code>istiod</code>中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~ k logs istiod-1-19-3-64857b74d8-b5d5g -n istio-canary -f | grep <span style="color:#e6db74">&#34;bookinfo&#34;</span>
+</span></span><span style="display:flex;"><span>2023-10-27T06:00:55.741297Z	info	ads	Push debounce stable<span style="color:#f92672">[</span>32<span style="color:#f92672">]</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">for</span> config Gateway/l7-traffic-alpha/bookinfo-gateway: 100.213717ms since last change, 100.213544ms since last push, full<span style="color:#f92672">=</span>true
+</span></span><span style="display:flex;"><span>2023-10-27T06:00:56.524033Z	info	ads	Push debounce stable<span style="color:#f92672">[</span>33<span style="color:#f92672">]</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">for</span> config VirtualService/l7-traffic-alpha/bookinfo: 100.164161ms since last change, 100.164004ms since last push, full<span style="color:#f92672">=</span>true
+</span></span></code></pre></div><p>set the <code>INGRESS_HOST</code> /<code>INGRESS_PORT</code>/<code>GATEWAY_URL</code> variables for accessing the gateway.</p>
+<p>接下来我们配置下面三个环境变量 <code>INGRESS_HOST</code> /<code>INGRESS_PORT</code>/<code>GATEWAY_URL</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~  export INGRESS_NAME<span style="color:#f92672">=</span>istio-ingressgateway
+</span></span><span style="display:flex;"><span>➜ ~  export INGRESS_NS<span style="color:#f92672">=</span>istio-canary
+</span></span><span style="display:flex;"><span>➜ ~  export INGRESS_HOST<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>kubectl -n <span style="color:#e6db74">&#34;</span>$INGRESS_NS<span style="color:#e6db74">&#34;</span> get service <span style="color:#e6db74">&#34;</span>$INGRESS_NAME<span style="color:#e6db74">&#34;</span> -o jsonpath<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;{.status.loadBalancer.ingress[0].hostname}&#39;</span><span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>➜ ~ export INGRESS_PORT<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>kubectl -n <span style="color:#e6db74">&#34;</span>$INGRESS_NS<span style="color:#e6db74">&#34;</span> get service <span style="color:#e6db74">&#34;</span>$INGRESS_NAME<span style="color:#e6db74">&#34;</span> -o jsonpath<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;{.spec.ports[?(@.name==&#34;http2&#34;)].port}&#39;</span><span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>➜ ~  export GATEWAY_URL<span style="color:#f92672">=</span>$INGRESS_HOST:$INGRESS_PORT
+</span></span></code></pre></div><p>通过<code>CURL</code>命令来访问对应的host，我们会发现对应的resp是200</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~  curl -s -I -HHost:bookinfo-gateway.test <span style="color:#e6db74">&#34;http://</span>$INGRESS_HOST<span style="color:#e6db74">:</span>$INGRESS_PORT<span style="color:#e6db74">/productpage&#34;</span>
+</span></span><span style="display:flex;"><span>HTTP/1.1 <span style="color:#ae81ff">200</span> OK
+</span></span><span style="display:flex;"><span>server: istio-envoy
+</span></span><span style="display:flex;"><span>date: Fri, <span style="color:#ae81ff">27</span> Oct <span style="color:#ae81ff">2023</span> 06:33:28 GMT
+</span></span><span style="display:flex;"><span>content-type: text/html; charset<span style="color:#f92672">=</span>utf-8
+</span></span><span style="display:flex;"><span>content-length: <span style="color:#ae81ff">5293</span>
+</span></span><span style="display:flex;"><span>x-envoy-upstream-service-time: <span style="color:#ae81ff">1172</span>
+</span></span></code></pre></div><blockquote>
+<p>请注意，您使用-H标志将Host HTTP标头设置为“bookinfo-gateway.test”。这是必需的，因为您的入口网关配置为处理“bookinfo-gateway.test”，但在测试环境中，您没有该主机的DNS绑定，并且只是将请求发送到入口IP。
+config the gateway/VirtualService for the <code>l7-traffic-beta</code> namespace</p>
+</blockquote>
+<h2 id="补充作业">补充作业</h2>
+<p>接下来在<code>l7-traffic-beta</code> namespace中，我们使用另外一个基于nginx的sample应用来测试对应的gateway/VirtualService</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#75715e"># sample-gateway.yml</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">networking.istio.io/v1alpha3</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Gateway</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-sample-gateway</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># The selector matches the ingress gateway pod labels.</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># If you installed Istio using Helm following the standard documentation, this would be &#34;istio=ingress&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">selector</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">istio.io/rev</span>: <span style="color:#ae81ff">1-18-5</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">servers</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">port</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">number</span>: <span style="color:#ae81ff">80</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">http</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">HTTP</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">hosts</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#34;*&#34;</span>
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">networking.istio.io/v1alpha3</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">VirtualService</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-sample</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">hosts</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#34;*&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">gateways</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">nginx-sample-gateway</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">http</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">match</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">uri</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">prefix</span>: <span style="color:#ae81ff">/nginx</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">sourceLabels</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-sample-client    </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">route</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">destination</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">host</span>: <span style="color:#ae81ff">nginx-sample-v1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">number</span>: <span style="color:#ae81ff">80</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">match</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">uri</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">prefix</span>: <span style="color:#ae81ff">/echo</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">sourceLabels</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">app</span>: <span style="color:#ae81ff">echo-sample-client        </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">route</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">destination</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">host</span>: <span style="color:#ae81ff">echo-sample-v1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">number</span>: <span style="color:#ae81ff">80</span>
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">networking.istio.io/v1alpha3</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">DestinationRule</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-sample-ds</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">host</span>: <span style="color:#ae81ff">nginx-sample</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">subsets</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">labels</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-sample</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">networking.istio.io/v1alpha3</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">DestinationRule</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">echo-sample-ds</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">host</span>: <span style="color:#ae81ff">echo-sample</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">subsets</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">echo</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">labels</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">app</span>: <span style="color:#ae81ff">echo-sample</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜  ~ k apply -f sample-gateway.yml -n l7-traffic-beta
+</span></span></code></pre></div><p>此时我们可以通过下面的命令来查看对应的istiod的日志，我们会发现对应的gateway/VirtualService已经被push到了<code>istiod</code>中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~  k logs istiod-1-18-5-6f9cf7dcc4-84jvl -n istio-prod -f | grep <span style="color:#e6db74">&#34;nginx-sample&#34;</span>
+</span></span><span style="display:flex;"><span>2023-10-27T07:55:28.421941Z	info	ads	Push debounce stable<span style="color:#f92672">[</span>38<span style="color:#f92672">]</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">for</span> config Gateway/l7-traffic-beta/nginx-sample-gateway: 100.246865ms since last change, 100.246675ms since last push, full<span style="color:#f92672">=</span>true
+</span></span><span style="display:flex;"><span>2023-10-27T07:55:29.179175Z	info	ads	Push debounce stable<span style="color:#f92672">[</span>39<span style="color:#f92672">]</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">for</span> config VirtualService/l7-traffic-beta/nginx-sample: 100.238736ms since last change, 100.238506ms since last push, full<span style="color:#f92672">=</span>true
+</span></span></code></pre></div><p>if we curl the URL for the GW, the resp shoule be 200
+如果此时我们通过<code>CURL</code>命令来访问对应的host，我们会发现对应的resp是200</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜ ~  k get svc -n istio-prod istio-ingressgateway
+</span></span><span style="display:flex;"><span>NAME                   TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT<span style="color:#f92672">(</span>S<span style="color:#f92672">)</span>                                      AGE
+</span></span><span style="display:flex;"><span>istio-ingressgateway   LoadBalancer   100.104.31.241   a8790f018666a43ad92a1add681cbfd0-2083997433.eu-west-1.elb.amazonaws.com   15021:30816/TCP,80:31241/TCP,443:32336/TCP   22h
+</span></span><span style="display:flex;"><span>➜ ~  curl -s -I -HHost:nginx-sample-gateway.test <span style="color:#e6db74">&#34;http://a8790f018666a43ad92a1add681cbfd0-2083997433.eu-west-1.elb.amazonaws.com:80/&#34;</span>
+</span></span><span style="display:flex;"><span>HTTP/1.1 <span style="color:#ae81ff">200</span> OK
+</span></span><span style="display:flex;"><span>server: istio-envoy
+</span></span><span style="display:flex;"><span>date: Fri, <span style="color:#ae81ff">27</span> Oct <span style="color:#ae81ff">2023</span> 09:00:16 GMT
+</span></span><span style="display:flex;"><span>content-type: text/html
+</span></span><span style="display:flex;"><span>content-length: <span style="color:#ae81ff">615</span>
+</span></span><span style="display:flex;"><span>last-modified: Tue, <span style="color:#ae81ff">24</span> Oct <span style="color:#ae81ff">2023</span> 13:46:47 GMT
+</span></span><span style="display:flex;"><span>etag: <span style="color:#e6db74">&#34;6537cac7-267&#34;</span>
+</span></span><span style="display:flex;"><span>accept-ranges: bytes
+</span></span><span style="display:flex;"><span>x-envoy-upstream-service-time: <span style="color:#ae81ff">3</span>
+</span></span></code></pre></div><h3 id="结论">结论</h3>
+<p>本文档介绍了如何在同一个 Kubernetes 集群中部署两个版本的 Istio (1.18.5 和 1.19.3)，并分别在两个命名空间 (<code>l7-traffic-alpha</code> 和<code>l7-traffic-beta</code>) 中配置 Istio 网关和虚拟服务来控制流量。</p>
+<h2 id="参考文档">参考文档</h2>
+<ul>
+<li><a href="https://istio.io/latest/docs/examples/bookinfo/">https://istio.io/latest/docs/examples/bookinfo/</a></li>
+<li><a href="https://www.lisenet.com/2021/blue-green-deployment-with-istio-match-host-header-and-sourcelabels-for-pod-to-pod-communication/">Blue/Green Deployment with Istio: Match Host Header and sourceLabels for Pod to Pod Communication</a></li>
+<li><a href="https://istio.io/latest/docs/tasks/traffic-management/ingress/ingress-control/#determining-the-ingress-ip-and-ports">Ingress Gateways</a></li>
+<li><a href="https://istio.io/latest/docs/reference/config/annotations/">Resource Annotations</a></li>
+<li><a href="https://github.com/istio/istio/issues/16126">https://github.com/istio/istio/issues/16126</a></li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

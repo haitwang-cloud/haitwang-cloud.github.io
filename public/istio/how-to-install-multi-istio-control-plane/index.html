@@ -1,0 +1,482 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>如何在同一个k8s cluster中安装多个istio版本 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="准备工作 首先我们创建两个NameSpaceistio-canary &amp; istio-prod,分别用于部署istio的canary版本和prod版本，然后我们给这两个NameSpace打上标签，用于后续的istio的版本选择。
+➜ ~ k create ns istio-canary ➜ ~ k create ns istio-prod ➜ ~ k label ns istio-canary istio-tag=istio-canary ➜ ~ k label ns istio-prod istio-tag=istio-prod 接下来我们将要安装istio的版本，这里我们选择了1.19.3和1.18.5两个版本，分别用于canary和prod的版本。
+➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.19.3 sh - ➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.18.5 sh - 首先给两个版本的istioctl设置alias，方便后续的操作。
+➜ ~ istioctl1.9=&#39;~/istio-1.19.3/bin/istioctl&#39; ➜ ~ istioctl1.8=&#39;~/istio-1.18.5/bin/istioctl&#39; 开始安装istio 我们使用下面的命令来在istio-canary的NameSpace中安装istio 1.19.3版本
+➜ ~ istioctl1.9 install -y -f - &lt;&lt;EOF apiVersion: install.istio.io/v1alpha1 kind: IstioOperator metadata: namespace: istio-canary name: istio-1-19-3 spec: profile: default revision: 1-19-3 tag: 1." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">如何在同一个k8s cluster中安装多个istio版本</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 20, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><p><img src="/pics/single-cluster-multiple-istiods.svg" alt=""></p>
+<h3 id="准备工作">准备工作</h3>
+<p>首先我们创建两个NameSpace<code>istio-canary</code> &amp; <code>istio-prod</code>,分别用于部署istio的canary版本和prod版本，然后我们给这两个NameSpace打上标签，用于后续的istio的版本选择。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ k create ns istio-canary
+</span></span><span style="display:flex;"><span>➜ ~ k create ns istio-prod
+</span></span><span style="display:flex;"><span>➜ ~ k label ns istio-canary istio-tag<span style="color:#f92672">=</span>istio-canary
+</span></span><span style="display:flex;"><span>➜ ~ k label ns istio-prod istio-tag<span style="color:#f92672">=</span>istio-prod
+</span></span></code></pre></div><p>接下来我们将要安装istio的版本，这里我们选择了1.19.3和1.18.5两个版本，分别用于canary和prod的版本。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION<span style="color:#f92672">=</span>1.19.3 sh -
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION<span style="color:#f92672">=</span>1.18.5 sh -
+</span></span></code></pre></div><p>首先给两个版本的istioctl设置alias，方便后续的操作。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ istioctl1.9<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;~/istio-1.19.3/bin/istioctl&#39;</span>
+</span></span><span style="display:flex;"><span>➜ ~ istioctl1.8<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;~/istio-1.18.5/bin/istioctl&#39;</span>
+</span></span></code></pre></div><p><img src="/pics/istio-tags.png" alt=""></p>
+<h3 id="开始安装istio">开始安装istio</h3>
+<p>我们使用下面的命令来在istio-canary的NameSpace中安装istio 1.19.3版本</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ istioctl1.9 install -y -f - <span style="color:#e6db74">&lt;&lt;EOF
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">apiVersion: install.istio.io/v1alpha1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">kind: IstioOperator
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">metadata:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  namespace: istio-canary
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  name: istio-1-19-3
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">spec:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  profile: default
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  revision: 1-19-3
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  tag: 1.19.3
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  meshConfig:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    discoverySelectors:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      - matchLabels:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          istio-tag: istio-canary     
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  values:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    global:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      istioNamespace: istio-canary
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    pilot:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      env:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        ENABLE_ENHANCED_RESOURCE_SCOPING: true
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">EOF</span>
+</span></span><span style="display:flex;"><span>✔ Istio core installed
+</span></span><span style="display:flex;"><span>✔ Istiod installed
+</span></span><span style="display:flex;"><span>✔ Ingress gateways installed
+</span></span><span style="display:flex;"><span>✔ Installation complete
+</span></span></code></pre></div><p>我们使用下面的命令来在istio-prod的NameSpace中安装istio 1.18.5版本</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>~ istioctl1.8 install -y -f - <span style="color:#e6db74">&lt;&lt;EOF
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">apiVersion: install.istio.io/v1alpha1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">kind: IstioOperator
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">metadata:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  namespace: istio-prod
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  name: istio-1-18-5
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">spec:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  profile: default
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  revision: 1-18-5
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  tag: 1.18.5
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  meshConfig:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    discoverySelectors:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      - matchLabels:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          istio-tag: istio-prod     
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  values:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    global:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      istioNamespace: istio-prod
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    pilot:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      env:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        ENABLE_ENHANCED_RESOURCE_SCOPING: true
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">EOF</span>
+</span></span><span style="display:flex;"><span>✔ Istio core installed
+</span></span><span style="display:flex;"><span>✔ Istiod installed
+</span></span><span style="display:flex;"><span>✔ Ingress gateways installed
+</span></span><span style="display:flex;"><span>✔ Installation complete
+</span></span></code></pre></div><h3 id="查看istio的安装情况">查看istio的安装情况</h3>
+<p>首先查看istio-prod这个namespace中的pod的状态</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ k get pod -n istio-prod
+</span></span><span style="display:flex;"><span>NAME                                    READY   STATUS    RESTARTS   AGE
+</span></span><span style="display:flex;"><span>istio-ingressgateway-64b4ff6975-q4k7b   1/1     Running   <span style="color:#ae81ff">0</span>          114s
+</span></span><span style="display:flex;"><span>istiod-1-18-5-6f9cf7dcc4-84jvl          1/1     Running   <span style="color:#ae81ff">0</span>          4m4s
+</span></span></code></pre></div><p>然后查看istio-canary这个namespace中的pod的状态</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ k get pod -n istio-canary
+</span></span><span style="display:flex;"><span>NAME                                    READY   STATUS    RESTARTS   AGE
+</span></span><span style="display:flex;"><span>istio-ingressgateway-6f8bb55cf7-kqzq9   1/1     Running   <span style="color:#ae81ff">0</span>          6m31s
+</span></span><span style="display:flex;"><span>istiod-1-19-3-64857b74d8-b5d5g          1/1     Running   <span style="color:#ae81ff">0</span>          6m39s
+</span></span></code></pre></div><p>使用下面的命令查看istio-prod和istio-canary这两个namespace的label</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ k get ns istio-canary --show-labels
+</span></span><span style="display:flex;"><span>NAME           STATUS   AGE     LABELS
+</span></span><span style="display:flex;"><span>istio-canary   Active   9m53s   istio-tag<span style="color:#f92672">=</span>istio-canary,kubernetes.io/metadata.name<span style="color:#f92672">=</span>istio-canary
+</span></span><span style="display:flex;"><span>➜ ~ k get ns istio-prod --show-labels
+</span></span><span style="display:flex;"><span>NAME         STATUS   AGE     LABELS
+</span></span><span style="display:flex;"><span>istio-prod   Active   9m39s   istio-tag<span style="color:#f92672">=</span>istio-prod,kubernetes.io/metadata.name<span style="color:#f92672">=</span>istio-prod
+</span></span></code></pre></div><p>使用下面的命令查看与istio-1-19-3和istio-1-18-5相关的validatingWebhook和mutatingWebhook的配置</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ k get validatingwebhookconfiguration ｜ grep istio
+</span></span><span style="display:flex;"><span>NAME                                           WEBHOOKS   AGE
+</span></span><span style="display:flex;"><span>istio-validator-1-18-5-istio-prod              <span style="color:#ae81ff">1</span>          4m36s
+</span></span><span style="display:flex;"><span>istio-validator-1-19-3-istio-canary            <span style="color:#ae81ff">1</span>          7m5s
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>➜ ~ k get mutatingwebhookconfiguration｜ grep istio
+</span></span><span style="display:flex;"><span>NAME                                           WEBHOOKS   AGE
+</span></span><span style="display:flex;"><span>istio-revision-tag-default-istio-canary        <span style="color:#ae81ff">4</span>          7m
+</span></span><span style="display:flex;"><span>istio-sidecar-injector-1-18-5-istio-prod       <span style="color:#ae81ff">2</span>          4m56s
+</span></span><span style="display:flex;"><span>istio-sidecar-injector-1-19-3-istio-canary     <span style="color:#ae81ff">2</span>          7m25s
+</span></span></code></pre></div><h3 id="后续工作">后续工作</h3>
+<p>接下来我们给istio 1.19.3和1.18.5设置一个新的tag，分别为prod-canary和prod-stable</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ istioctl1.9 x revision tag set prod-canary --revision 1-19-3
+</span></span><span style="display:flex;"><span>creating tag would conflict, pass --skip-confirmation to proceed:
+</span></span><span style="display:flex;"><span>Error <span style="color:#f92672">[</span>IST0139<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>MutatingWebhookConfiguration istio-revision-tag-prod-canary <span style="color:#f92672">)</span> Injector refers to a control plane service that does not exist: istio-system/istiod-1-19-3.
+</span></span><span style="display:flex;"><span>Apply anyways? <span style="color:#f92672">[</span>y/N<span style="color:#f92672">]</span> y
+</span></span><span style="display:flex;"><span>Revision tag <span style="color:#e6db74">&#34;prod-canary&#34;</span> created, referencing control plane revision <span style="color:#e6db74">&#34;1-19-3&#34;</span>. To enable injection using this
+</span></span><span style="display:flex;"><span>revision tag, use <span style="color:#e6db74">&#39;kubectl label namespace &lt;NAMESPACE&gt; istio.io/rev=prod-canary&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>➜ ~ istioctl1.8 x revision tag set prod-stable --revision 1-18-5
+</span></span><span style="display:flex;"><span>creating tag would conflict, pass --skip-confirmation to proceed:
+</span></span><span style="display:flex;"><span>Error <span style="color:#f92672">[</span>IST0139<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>MutatingWebhookConfiguration istio-revision-tag-prod-stable <span style="color:#f92672">)</span> Injector refers to a control plane service that does not exist: istio-system/istiod-1-18-5.
+</span></span><span style="display:flex;"><span>Apply anyways? <span style="color:#f92672">[</span>y/N<span style="color:#f92672">]</span> y
+</span></span><span style="display:flex;"><span>Revision tag <span style="color:#e6db74">&#34;prod-stable&#34;</span> created, referencing control plane revision <span style="color:#e6db74">&#34;1-18-5&#34;</span>. To enable injection using this
+</span></span><span style="display:flex;"><span>revision tag, use <span style="color:#e6db74">&#39;kubectl label namespace &lt;NAMESPACE&gt; istio.io/rev=prod-stable&#39;</span>
+</span></span></code></pre></div><p>使用下面的命令查看现有的istio的tag</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~  istioctl1.9 x revision tag list
+</span></span><span style="display:flex;"><span>TAG         REVISION NAMESPACES
+</span></span><span style="display:flex;"><span>default     1-19-3
+</span></span><span style="display:flex;"><span>prod-canary 1-19-3
+</span></span><span style="display:flex;"><span>prod-stable 1-18-5
+</span></span></code></pre></div><p>给<code>l7-traffic-alpha</code>和<code>l7-traffic-beta</code>这两个NameSpace添加标签<code>istio.io/rev=prod-canary</code>和<code>istio.io/rev=prod-stable</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ k label ns l7-traffic-alpha istio.io/rev<span style="color:#f92672">=</span>prod-canary
+</span></span><span style="display:flex;"><span>namespace/l7-traffic-alpha labeled
+</span></span><span style="display:flex;"><span>➜ ~ k label ns l7-traffic-alpha istio-tag<span style="color:#f92672">=</span>istio-canary
+</span></span><span style="display:flex;"><span>namespace/l7-traffic-alpha labeled
+</span></span><span style="display:flex;"><span>➜ ~ k label ns l7-traffic-beta istio.io/rev<span style="color:#f92672">=</span>prod-stable
+</span></span><span style="display:flex;"><span>namespace/l7-traffic-beta labeled
+</span></span><span style="display:flex;"><span>➜ ~ k label ns l7-traffic-beta istio-tag<span style="color:#f92672">=</span>istio-prod
+</span></span><span style="display:flex;"><span>namespace/l7-traffic-beta labeled
+</span></span></code></pre></div><p>再检查一下现有的istio的tag，我们可以看到现在的tag<code>prod-canary</code>和<code>prod-stable</code>已经在<code>l7-traffic-alpha</code>和<code>l7-traffic-beta</code>这两个NameSpace中生效了</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ istioctl1.9 x revision tag list
+</span></span><span style="display:flex;"><span>TAG         REVISION NAMESPACES
+</span></span><span style="display:flex;"><span>default     1-19-3
+</span></span><span style="display:flex;"><span>prod-canary 1-19-3   l7-traffic-alpha
+</span></span><span style="display:flex;"><span>prod-stable 1-18-5   l7-traffic-beta
+</span></span></code></pre></div><h3 id="卸载">卸载</h3>
+<p>我们可以使用下面的命令来卸载istio</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>➜ ~ istioctl uninstall --revision istio-canary
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># failed to get proxy infos: unable to find any Istiod instances</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed IstioOperator:istio-canary:installed-state-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed Deployment:istio-canary:istiod-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed Service:istio-canary:istiod-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed ConfigMap:istio-canary:istio-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed ConfigMap:istio-canary:istio-sidecar-injector-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed Pod:istio-canary:istiod-istio-canary-775df986c-f97rg.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed ServiceAccount:istio-canary:istiod-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed RoleBinding:istio-canary:istiod-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed Role:istio-canary:istiod-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed HorizontalPodAutoscaler:istio-canary:istiod-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed PodDisruptionBudget:istio-canary:istiod-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed MutatingWebhookConfiguration::istio-sidecar-injector-istio-canary-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed ValidatingWebhookConfiguration::istio-validator-istio-canary-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed ClusterRole::istio-reader-clusterrole-istio-canary-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed ClusterRole::istiod-clusterrole-istio-canary-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed ClusterRole::istiod-gateway-controller-istio-canary-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed ClusterRoleBinding::istio-reader-clusterrole-istio-canary-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed ClusterRoleBinding::istiod-clusterrole-istio-canary-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   Removed ClusterRoleBinding::istiod-gateway-controller-istio-canary-istio-canary.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ✔ Uninstall complete</span>
+</span></span></code></pre></div><h3 id="总结">总结</h3>
+<p>本文主要介绍了如何在一个k8s集群中安装多个istio的control plane，以及如何使用revision和tag来管理多个istio的control plane。后续的文章会介绍如何在多个istio的环境中部署自己的应用。</p>
+<h3 id="参考文章">参考文章</h3>
+<ul>
+<li><a href="https://istio.io/latest/docs/setup/install/multiple-controlplanes/">multiple-controlplanes</a></li>
+<li><a href="https://istio.io/v1.16/blog/2021/revision-tags/">Safely upgrade the Istio control plane with revisions and tags</a></li>
+<li><a href="https://istio.io/latest/docs/setup/install/operator/#canary-upgrade">Istio Operator Install</a></li>
+<li><a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/">IstioOperator Options</a></li>
+<li><a href="https://istio.io/v1.16/blog/2021/discovery-selectors/">discovery selectors</a></li>
+<li><a href="https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/">sidecar-injection</a></li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

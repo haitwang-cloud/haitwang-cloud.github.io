@@ -1,0 +1,470 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>深入理解Istio：网络原理与Sidecar的自动注入机制 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="Istio 简介 Istio，作为一款服务网格领域的佼佼者，为微服务架构提供了强大而灵活的网络能力。 本文旨在深入探讨Istio的网络原理，揭示其如何在复杂的服务间通信中发挥关键作用，同时保持高可观察性和安全性。
+Istio 的核心在于其服务网格模型，它围绕着Envoy sideCar构建。每个服务实例旁边都会部署一个Envoy代理，负责处理进出服务的所有网络流量。 这一设计允许Istio在透明地拦截、路由和监控所有通信的同时，不对服务代码本身做出任何修改。
+Istio sidecar 注入过程 Istio sidecar 注入过程是指在 Kubernetes 集群中，将 Istio 的 Envoy 代理作为一个 sidecar 容器，注入到每个业务容器所在的 Pod 中，从而实现对业务容器的流量管理和控制。
+Istio sidecar 注入过程主要有两种方式：手动注入和自动注入。
+手动注入是指在创建 Pod 时，在 Pod 的 YAML 文件中，手动添加 Istio 的 Envoy 代理容器，并且配置好 Istio 和 Envoy 代理容器之间的通信方式。这种方式比较繁琐，且容易出错。
+自动注入是指在创建 Pod 时，由 Istio 的 sidecar 注入器（Istio-sidecar-injector）自动将 Istio 的 Envoy 代理容器注入到 Pod 中。这种方式比较简便，且可以保证 Istio 和 Envoy 代理容器之间的通信方式是正确的。
+Istio-sidecar-injector 的工作原理是基于 Kubernetes 的 Admission Controller 机制。在创建 Pod 时，Kubernetes 会将 Pod 的创建请求提交给 Admission Controller 进行校验，如果校验通过，则将 Pod 创建成功。Istio-sidecar-injector 就是一个自定义的 Admission Controller，它在接收到 Pod 的创建请求时，会将 Istio 的 Envoy 代理容器注入到 Pod 中，然后将修改后的 Pod 创建请求提交给 Kubernetes 进行创建。" />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">深入理解Istio：网络原理与Sidecar的自动注入机制</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 20, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><h2 id="istio-简介">Istio 简介</h2>
+<p><img src="./pics/istio-pod-sidecar-container-envoy.png" alt="mps">
+Istio，作为一款服务网格领域的佼佼者，为微服务架构提供了强大而灵活的网络能力。
+本文旨在深入探讨Istio的网络原理，揭示其如何在复杂的服务间通信中发挥关键作用，同时保持高可观察性和安全性。</p>
+<p>Istio 的核心在于其服务网格模型，它围绕着Envoy sideCar构建。每个服务实例旁边都会部署一个Envoy代理，负责处理进出服务的所有网络流量。
+这一设计允许Istio在透明地拦截、路由和监控所有通信的同时，不对服务代码本身做出任何修改。</p>
+<h2 id="istio-sidecar-注入过程">Istio sidecar 注入过程</h2>
+<p><img src="./pics/Istio-Sidecar-Injector-Webhook.png" alt="mps">
+Istio sidecar 注入过程是指在 Kubernetes 集群中，将 Istio 的 Envoy 代理作为一个 sidecar 容器，注入到每个业务容器所在的 Pod 中，从而实现对业务容器的流量管理和控制。</p>
+<p>Istio sidecar 注入过程主要有两种方式：手动注入和自动注入。</p>
+<p>手动注入是指在创建 Pod 时，在 Pod 的 YAML 文件中，手动添加 Istio 的 Envoy 代理容器，并且配置好 Istio 和 Envoy 代理容器之间的通信方式。这种方式比较繁琐，且容易出错。</p>
+<p>自动注入是指在创建 Pod 时，由 Istio 的 sidecar 注入器（<code>Istio-sidecar-injector</code>）自动将 Istio 的 Envoy 代理容器注入到 Pod 中。这种方式比较简便，且可以保证 Istio 和 Envoy 代理容器之间的通信方式是正确的。</p>
+<p>Istio-sidecar-injector 的工作原理是基于 Kubernetes 的 Admission Controller 机制。在创建 Pod 时，Kubernetes 会将 Pod 的创建请求提交给 Admission Controller 进行校验，如果校验通过，则将 Pod 创建成功。Istio-sidecar-injector 就是一个自定义的 Admission Controller，它在接收到 Pod 的创建请求时，会将 Istio 的 Envoy 代理容器注入到 Pod 中，然后将修改后的 Pod 创建请求提交给 Kubernetes 进行创建。</p>
+<p>以下是 Istio-sidecar-injector 的工作流程：</p>
+<ol>
+<li>在 Kubernetes 集群中部署 Istio-sidecar-injector，并将其注册为一个 Admission Controller。</li>
+<li>在创建 Pod 时，将 Pod 的创建请求提交给 Kubernetes。</li>
+<li>Kubernetes 接收到 Pod 的创建请求后，会将其提交给 Istio-sidecar-injector 进行校验。</li>
+<li>Istio-sidecar-injector 在接收到 Pod 的创建请求时，会首先判断该 Pod 是否需要注入 Istio 的 Envoy 代理容器。如果不需要，则直接将 Pod 创建请求提交给 Kubernetes 进行创建。如果需要，则进行下一步。</li>
+<li>Istio-sidecar-injector 会根据 Istio 的 ConfigMap 中的配置，将 Istio 的 Envoy 代理容器注入到 Pod 中，并且配置好 Istio 和 Envoy 代理容器之间的通信方式。</li>
+<li>Istio-sidecar-injector 将修改后的 Pod 创建请求提交给 Kubernetes 进行创建。</li>
+<li>Kubernetes 接收到修改后的 Pod 创建请求后，会将 Pod 创建成功。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">webhooks</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">rev.namespace.sidecar-injector.istio.io</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">clientConfig</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">service</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">istio-system</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">istiod</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">path</span>: <span style="color:#ae81ff">/inject</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#ae81ff">443</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">rules</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">operations</span>:
+</span></span><span style="display:flex;"><span>          - <span style="color:#ae81ff">CREATE</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apiGroups</span>:
+</span></span><span style="display:flex;"><span>          - <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apiVersions</span>:
+</span></span><span style="display:flex;"><span>          - <span style="color:#ae81ff">v1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">resources</span>:
+</span></span><span style="display:flex;"><span>          - <span style="color:#ae81ff">pods</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">scope</span>: <span style="color:#e6db74">&#39;*&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">failurePolicy</span>: <span style="color:#ae81ff">Fail</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">matchPolicy</span>: <span style="color:#ae81ff">Equivalent</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">namespaceSelector</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">matchExpressions</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">key</span>: <span style="color:#ae81ff">istio.io/rev</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">operator</span>: <span style="color:#ae81ff">In</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">values</span>:
+</span></span><span style="display:flex;"><span>            - <span style="color:#ae81ff">default</span>
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">key</span>: <span style="color:#ae81ff">istio-injection</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">operator</span>: <span style="color:#ae81ff">DoesNotExist</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">objectSelector</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">matchExpressions</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">key</span>: <span style="color:#ae81ff">sidecar.istio.io/inject</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">operator</span>: <span style="color:#ae81ff">NotIn</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">values</span>:
+</span></span><span style="display:flex;"><span>            - <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">sideEffects</span>: <span style="color:#ae81ff">None</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">timeoutSeconds</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">admissionReviewVersions</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">v1beta1</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">v1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">reinvocationPolicy</span>: <span style="color:#ae81ff">Never</span>
+</span></span></code></pre></div><p>以下是 Istio-sidecar-injector 的部分代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Controller</span>) <span style="color:#a6e22e">Handle</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">admission</span>.<span style="color:#a6e22e">Request</span>, <span style="color:#a6e22e">resp</span> <span style="color:#a6e22e">admission</span>.<span style="color:#a6e22e">Response</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">ok</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">extractor</span>.<span style="color:#a6e22e">Extract</span>(<span style="color:#a6e22e">req</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Allowed</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Allowed</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">shouldInjectSidecar</span>(<span style="color:#a6e22e">pod</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">injectedPod</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">injectSidecar</span>(<span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Object</span> = <span style="color:#a6e22e">injectedPod</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Allowed</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">shouldInjectSidecar</span>(<span style="color:#a6e22e">pod</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 判断 Pod 是否需要注入 Istio 的 Envoy 代理容器
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 具体的判断逻辑可能会根据 Istio 的 ConfigMap 中的配置而有所不同
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 这里以判断 Pod 是否带有 istio-injection=enabled 的标签为例
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">val</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Labels</span>[<span style="color:#e6db74">&#34;istio-injection&#34;</span>]; <span style="color:#a6e22e">ok</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">val</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;enabled&#34;</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">injectSidecar</span>(<span style="color:#a6e22e">pod</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 根据 Istio 的 ConfigMap 中的配置，将 Istio 的 Envoy 代理容器注入到 Pod 中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 并且配置好 Istio 和 Envoy 代理容器之间的通信方式
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 这里的具体实现可能会比较复杂，且可能会根据 Istio 的版本和配置而有所不同
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 因此这里省略了具体的实现
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">pod</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>可以看到，Istio-sidecar-injector 的 Handle 函数是在接收到 Pod 的创建请求时，
+首先判断该 Pod 是否需要注入 Istio 的 Envoy 代理容器。如果不需要，则直接将 Pod 创建请求提交给 Kubernetes 进行创建。
+如果需要，则调用 injectSidecar 函数将 Istio 的 Envoy 代理容器注入到 Pod 中，
+并且配置好 Istio 和 Envoy 代理容器之间的通信方式。最后将修改后的 Pod 创建请求提交给 Kubernetes 进行创建。</p>
+<h3 id="istio如何动态加载configmap配置istio-sidecar-injector">Istio如何动态加载ConfigMap配置<code>istio-sidecar-injector</code></h3>
+<p>尽管在istiod的部署配置中未直接显现对<code>istio-sidecar-injector</code>的引用，实际上，<code>istio-sidecar-injector</code>的配置是通过<code>MutatingWebhookConfiguration</code>动态加载的。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>➜  k get deploy -n istio-system istiod -o yaml | grep istio-sidecar-injector | wc
+</span></span><span style="display:flex;"><span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p>源码分析证实了这一点，如<code>kubeinject.go</code>中的逻辑展示了如何从ConfigMap读取Istio的网格配置信息，进而指导sidecar的注入过程。这表明，尽管直接检查部署描述可能看不到明确的关联，但sidecar-injector确实在背后利用ConfigMap动态配置其行为。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">getMeshConfigFromConfigMap</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">cli</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">command</span>, <span style="color:#a6e22e">revision</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">meshconfig</span>.<span style="color:#a6e22e">MeshConfig</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">client</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">CLIClient</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">meshConfigMapName</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">defaultMeshConfigMapName</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">revision</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">meshConfigMapName</span> = <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%s-%s&#34;</span>, <span style="color:#a6e22e">defaultMeshConfigMapName</span>, <span style="color:#a6e22e">revision</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">meshConfigMap</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Kube</span>().<span style="color:#a6e22e">CoreV1</span>().<span style="color:#a6e22e">ConfigMaps</span>(<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">IstioNamespace</span>()).<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">TODO</span>(), <span style="color:#a6e22e">meshConfigMapName</span>, <span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">GetOptions</span>{})
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;could not read valid configmap %q from namespace %q: %v - &#34;</span><span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#e6db74">&#34;Use --meshConfigFile or re-run &#34;</span><span style="color:#f92672">+</span><span style="color:#a6e22e">command</span><span style="color:#f92672">+</span><span style="color:#e6db74">&#34; with `-i &lt;istioSystemNamespace&gt; and ensure valid MeshConfig exists&#34;</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">meshConfigMapName</span>, <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">IstioNamespace</span>(), <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// values in the data are strings, while proto might use a
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// different data type.  therefore, we have to get a value by a
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// key
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">configYaml</span>, <span style="color:#a6e22e">exists</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">meshConfigMap</span>.<span style="color:#a6e22e">Data</span>[<span style="color:#a6e22e">configMapKey</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">exists</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;missing configuration map key %q&#34;</span>, <span style="color:#a6e22e">configMapKey</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mesh</span>.<span style="color:#a6e22e">ApplyMeshConfigDefaults</span>(<span style="color:#a6e22e">configYaml</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">multierror</span>.<span style="color:#a6e22e">Append</span>(<span style="color:#a6e22e">err</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;istioctl version %s cannot parse mesh config.  Install istioctl from the latest Istio release&#34;</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">version</span>.<span style="color:#a6e22e">Info</span>.<span style="color:#a6e22e">Version</span>))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>综上所述，Istio通过巧妙的sidecar注入机制和动态配置加载，实现了对微服务网络的深度管理和优化，展现了其在现代云原生架构中的核心价值。</p>
+<h2 id="reference">Reference</h2>
+<ul>
+<li><a href="https://www.solo.io/blog/istios-networking-in-depth/">istios-networking-in-depth/</a></li>
+<li><a href="https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/#customizing-injection">Installing the Sidecar</a></li>
+<li><a href="https://kubebyexample.com/learning-paths/istio/intro">Learn Kubernetes Basics with Learning Paths-Istio</a></li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

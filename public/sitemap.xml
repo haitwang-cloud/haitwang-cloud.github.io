@@ -2,10 +2,19 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/golang/</loc>
-    <lastmod>2024-06-19T17:21:25+08:00</lastmod>
-  </url><url>
     <loc>http://localhost:1313/</loc>
+    <lastmod>2024-06-20T16:24:32+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/istio/istio-sidecar-inject/</loc>
+    <lastmod>2024-06-20T16:24:32+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/istio/how-to-install-multi-istio-control-plane/</loc>
+    <lastmod>2024-06-20T16:23:23+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/istio/build-app-under-multi-istio/</loc>
+    <lastmod>2024-06-20T16:20:52+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/</loc>
     <lastmod>2024-06-19T17:21:25+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/golang/init-function-introduction/</loc>

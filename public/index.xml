@@ -6,8 +6,29 @@
     <description>Recent content in Welcome to My Blog on Tim Wang的技术博客</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Wed, 19 Jun 2024 17:21:25 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 20 Jun 2024 16:24:32 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>深入理解Istio：网络原理与Sidecar的自动注入机制</title>
+      <link>http://localhost:1313/istio/istio-sidecar-inject/</link>
+      <pubDate>Thu, 20 Jun 2024 16:24:32 +0800</pubDate>
+      <guid>http://localhost:1313/istio/istio-sidecar-inject/</guid>
+      <description>Istio 简介 Istio，作为一款服务网格领域的佼佼者，为微服务架构提供了强大而灵活的网络能力。 本文旨在深入探讨Istio的网络原理，揭示其如何在复杂的服务间通信中发挥关键作用，同时保持高可观察性和安全性。&#xA;Istio 的核心在于其服务网格模型，它围绕着Envoy sideCar构建。每个服务实例旁边都会部署一个Envoy代理，负责处理进出服务的所有网络流量。 这一设计允许Istio在透明地拦截、路由和监控所有通信的同时，不对服务代码本身做出任何修改。&#xA;Istio sidecar 注入过程 Istio sidecar 注入过程是指在 Kubernetes 集群中，将 Istio 的 Envoy 代理作为一个 sidecar 容器，注入到每个业务容器所在的 Pod 中，从而实现对业务容器的流量管理和控制。&#xA;Istio sidecar 注入过程主要有两种方式：手动注入和自动注入。&#xA;手动注入是指在创建 Pod 时，在 Pod 的 YAML 文件中，手动添加 Istio 的 Envoy 代理容器，并且配置好 Istio 和 Envoy 代理容器之间的通信方式。这种方式比较繁琐，且容易出错。&#xA;自动注入是指在创建 Pod 时，由 Istio 的 sidecar 注入器（Istio-sidecar-injector）自动将 Istio 的 Envoy 代理容器注入到 Pod 中。这种方式比较简便，且可以保证 Istio 和 Envoy 代理容器之间的通信方式是正确的。&#xA;Istio-sidecar-injector 的工作原理是基于 Kubernetes 的 Admission Controller 机制。在创建 Pod 时，Kubernetes 会将 Pod 的创建请求提交给 Admission Controller 进行校验，如果校验通过，则将 Pod 创建成功。Istio-sidecar-injector 就是一个自定义的 Admission Controller，它在接收到 Pod 的创建请求时，会将 Istio 的 Envoy 代理容器注入到 Pod 中，然后将修改后的 Pod 创建请求提交给 Kubernetes 进行创建。</description>
+    </item>
+    <item>
+      <title>如何在同一个k8s cluster中安装多个istio版本</title>
+      <link>http://localhost:1313/istio/how-to-install-multi-istio-control-plane/</link>
+      <pubDate>Thu, 20 Jun 2024 16:23:23 +0800</pubDate>
+      <guid>http://localhost:1313/istio/how-to-install-multi-istio-control-plane/</guid>
+      <description>准备工作 首先我们创建两个NameSpaceistio-canary &amp;amp; istio-prod,分别用于部署istio的canary版本和prod版本，然后我们给这两个NameSpace打上标签，用于后续的istio的版本选择。&#xA;➜ ~ k create ns istio-canary ➜ ~ k create ns istio-prod ➜ ~ k label ns istio-canary istio-tag=istio-canary ➜ ~ k label ns istio-prod istio-tag=istio-prod 接下来我们将要安装istio的版本，这里我们选择了1.19.3和1.18.5两个版本，分别用于canary和prod的版本。&#xA;➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.19.3 sh - ➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.18.5 sh - 首先给两个版本的istioctl设置alias，方便后续的操作。&#xA;➜ ~ istioctl1.9=&amp;#39;~/istio-1.19.3/bin/istioctl&amp;#39; ➜ ~ istioctl1.8=&amp;#39;~/istio-1.18.5/bin/istioctl&amp;#39; 开始安装istio 我们使用下面的命令来在istio-canary的NameSpace中安装istio 1.19.3版本&#xA;➜ ~ istioctl1.9 install -y -f - &amp;lt;&amp;lt;EOF apiVersion: install.istio.io/v1alpha1 kind: IstioOperator metadata: namespace: istio-canary name: istio-1-19-3 spec: profile: default revision: 1-19-3 tag: 1.</description>
+    </item>
+    <item>
+      <title>在多个istio版本的k8s环境中构建应用</title>
+      <link>http://localhost:1313/istio/build-app-under-multi-istio/</link>
+      <pubDate>Thu, 20 Jun 2024 16:20:52 +0800</pubDate>
+      <guid>http://localhost:1313/istio/build-app-under-multi-istio/</guid>
+      <description>本教程主要基于Istio官方文档中的 Bookinfo Application，在多个istio版本的k8s环境中构建应用。&#xA;前提条件 请先参考上一篇文章Kubernetes集群中的Istio环境管理:控制平面的多实例部署实践配置好相应的istio环境， 接下来请将对应的bookinfo.yaml 文件下载到本地。&#xA;开始安装bookInfo应用 通过下面的命令来在l7-traffic-alpha namespace中安装bookInfo应用&#xA;➜ ~ k apply -f book-info.yaml -n l7-traffic-alpha # service/details created # serviceaccount/bookinfo-details created # deployment.apps/details-v1 created # service/ratings created # serviceaccount/bookinfo-ratings created # deployment.apps/ratings-v1 created # service/reviews created # serviceaccount/bookinfo-reviews created # deployment.apps/reviews-v1 created # deployment.apps/reviews-v2 created # deployment.apps/reviews-v3 created # service/productpage created # serviceaccount/bookinfo-productpage created # deployment.apps/productpage-v1 created 通过下面命令来查看对应的svc和pod是否已经创建成功,我们可以发现对应的svc已经创建成功&#xA;➜ ~ k get svc -n l7-traffic-alpha NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE details ClusterIP 100.</description>
+    </item>
     <item>
       <title>深入了解 Go 的 init 函数</title>
       <link>http://localhost:1313/golang/init-function-introduction/</link>
@@ -233,7 +254,7 @@
       <description>这是旨在澄清、易懂和完整的版本：&#xA;本文章是 controller-runtime 和 client-go 中的速率限制 的中文翻译。内容有所删减。&#xA;如果您曾经编写过 Kubernetes 控制器，您可能熟悉 controller-runtime，或者至少了解 client-go。 controller-runtime 是用于构建控制器的框架，允许用户设置多个控制器，并由控制器管理器进行管理。在幕后，controller-runtime 使用 client-go 与 Kubernetes API 服务器 进行通信，以监视资源变化并将其传递给相关的控制器。它处理了许多与控制器相关的方面，包括缓存、队列等。其中一个组件是速率限制。&#xA;速率限制是什么？ 自从计算机网络问世以来，限流（Rate Limiting）就一直存在于软件中，在此之前也存在于许多其他人类流程中。当讨论限流时，您可能会发现与您日常执行任务、公司和社区组织模式有许多相似之处。&#xA;在实现任何两方之间的有效通信时，限流是必要的。软件通过在不同的执行过程之间传递消息进行通信，无论是通过操作系统、专用硬件设备、网络还是三者的组合。在客户端-服务器模型中，客户端通常会请求服务器代表其执行工作。服务器执行这些工作需要时间，这意味着如果有许多客户端同时请求服务器执行工作，而服务器容量不足以处理这些请求，服务器就需要做出选择。&#xA;服务器可以选择：&#xA;丢弃没有响应的请求。 等待请求的响应，直到可以完全执行工作。 响应请求，指示当前无法执行工作，但客户端应在未来的某个时间再次请求执行工作。 将工作添加到队列中，并响应请求，告知客户端在完成工作时会通知客户端。 如果客户端和服务器彼此非常了解（即它们对彼此的通信模式非常熟悉），那么上述任何一种方法都可以作为有效的通信模型。想象一下您与生活中其他人的关系。您可能会认识那些以各种方式进行沟通的人，但如果通信方式是彼此了解的，您可能能够与所有这些人有效地合作。&#xA;不幸的是，与人类一样，软件也可能不可靠。例如，服务器可能会表示将在未来的某个时间响应请求，要求客户端在该时间再次请求执行工作，但客户端与服务器之间的连接可能被阻塞，导致请求被丢弃。同样地，客户端可能会收到回复，表示工作在未来的某个时间才能执行，但它可能会继续请求立即执行工作。因为这些原因以及其他许多原因（我们今天不会讨论的），服务器端和客户端的限流对于构建可扩展、可靠的系统至关重要。&#xA;由于 controller-runtime 和 client-go 是构建 Kubernetes 控制器的框架，而控制器是 Kubernetes API 服务器的客户端，所以今天我们将重点关注客户端的限流。&#xA;控制器是什么？ 如果您对 controller-runtime 已经非常了解，可以跳过这一部分。 controller-runtime 主要通过执行一个由 controller abstraction 实现并传递给框架的 reconciliation loop）向使用者提供控制器抽象。以下是一个简单的 Reconciler 示例，可传递给 controller-runtime 控制器：&#xA;type Reconciler struct {} func (r *Reconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) { fmt.</description>
     </item>
     <item>
-      <title>【译】Istio上游连接重置502错误分析与排查指南</title>
+      <title>Istio上游连接重置502错误分析与排查指南</title>
       <link>http://localhost:1313/istio/istio-upstream-error/</link>
       <pubDate>Fri, 14 Jun 2024 17:47:42 +0800</pubDate>
       <guid>http://localhost:1313/istio/istio-upstream-error/</guid>

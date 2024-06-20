@@ -1,5 +1,5 @@
 +++
-title = '[译]K8s informers的介绍'
+title = 'K8s informers的介绍'
 date = 2024-06-16T16:19:35+08:00
 draft = false
 +++

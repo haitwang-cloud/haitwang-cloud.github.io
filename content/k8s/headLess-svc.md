@@ -1,5 +1,5 @@
 +++
-title = '[译]Kubernetes headless Service介绍'
+title = 'Kubernetes headless Service介绍'
 date = 2024-06-16T16:09:57+08:00
 draft = false
 +++

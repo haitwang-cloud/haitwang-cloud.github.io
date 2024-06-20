@@ -2,13 +2,61 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/golang/cobra-user-guide/</loc>
-    <lastmod>2024-06-19T16:36:24+08:00</lastmod>
-  </url><url>
     <loc>http://localhost:1313/golang/</loc>
-    <lastmod>2024-06-19T16:36:24+08:00</lastmod>
+    <lastmod>2024-06-19T17:21:25+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/</loc>
+    <lastmod>2024-06-19T17:21:25+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/init-function-introduction/</loc>
+    <lastmod>2024-06-19T17:21:25+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/getting-started-with-golang-plugins/</loc>
+    <lastmod>2024-06-19T17:15:30+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/leakprof-featherlight/</loc>
+    <lastmod>2024-06-19T17:14:21+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/golang-memory-leaks/</loc>
+    <lastmod>2024-06-19T17:12:30+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/table-driven-unit-tests/</loc>
+    <lastmod>2024-06-19T17:11:05+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/go-fuzz-testing/</loc>
+    <lastmod>2024-06-19T17:10:05+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/go-sync-cond/</loc>
+    <lastmod>2024-06-19T17:08:50+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/how-to-upgrade-golang-dependencies/</loc>
+    <lastmod>2024-06-19T17:07:32+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/managing-multiple-go-versions-with-go/</loc>
+    <lastmod>2024-06-19T17:06:22+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/golang-pass-by-value-vs-pass-by-reference/</loc>
+    <lastmod>2024-06-19T17:04:45+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/error-hanlde/</loc>
+    <lastmod>2024-06-19T17:03:55+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/go-version-118-release-new/</loc>
+    <lastmod>2024-06-19T17:02:21+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/go-sync-map/</loc>
+    <lastmod>2024-06-19T17:00:35+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/direct-indirect-dependency-module-go/</loc>
+    <lastmod>2024-06-19T16:58:53+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/the-golang-init-func/</loc>
+    <lastmod>2024-06-19T16:44:28+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/compare-slice/</loc>
+    <lastmod>2024-06-19T16:40:44+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/golang/cobra-user-guide/</loc>
     <lastmod>2024-06-19T16:36:24+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/k8s/k8s-secret-configmap-lease/</loc>

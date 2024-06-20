@@ -1,5 +1,5 @@
 +++
-title = '[译]在K8s controller-runtime和client-go中实现速率限制'
+title = '在K8s controller-runtime和client-go中实现速率限制'
 date = 2024-06-16T16:02:23+08:00
 draft = false
 +++

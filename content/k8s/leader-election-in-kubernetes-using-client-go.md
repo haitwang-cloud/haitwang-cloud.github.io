@@ -1,5 +1,5 @@
 +++
-title = '[译]使用client-go在Kubernetes中进行leader election'
+title = '使用client-go在Kubernetes中进行leader election'
 date = 2024-06-16T16:13:34+08:00
 draft = false
 +++

@@ -1,5 +1,5 @@
 +++
-title = '[译]用k8sgpt-localai解锁Kubernetes的超能力'
+title = '用k8sgpt-localai解锁Kubernetes的超能力'
 date = 2024-06-16T16:14:52+08:00
 draft = false
 +++

@@ -279,33 +279,43 @@
 <li>go.mod 文件中的直接和间接依赖：掌握依赖管理，优化项目构建过程。 <a href="./golang/direct-indirect-dependency-module-go">深入了解</a></li>
 <li>使用Go管理多个Go版本：学习如何在开发环境中管理不同版本的Go <a href="./golang/managing-multiple-go-versions-with-go">高效管理</a></li>
 </ul>
-<h2 id="gpu探索gpu的奥秘从基础到高级应用">GPU：探索GPU的奥秘，从基础到高级应用。</h2>
+<h2 id="gpu探索gpu的奥秘从基础到高级应用">GPU：探索GPU的奥秘，从基础到高级应用</h2>
 <ul>
 <li><a href="./gpu/nvml-error/">nvml错误解析</a></li>
 </ul>
-<h2 id="istio深入理解微服务之间的流量管理">Istio：深入理解微服务之间的流量管理。</h2>
+<h2 id="istio深入理解微服务之间的流量管理">Istio：深入理解微服务之间的流量管理</h2>
 <ul>
 <li><a href="./istio/istio-upstream-error/">Istio上游错误处理</a></li>
 </ul>
-<h2 id="kubernetes-k8s">Kubernetes (K8s)：</h2>
+<h2 id="kubernetes-k8s">Kubernetes (K8s)</h2>
 <p>从裸机部署到高级调度策略，全方位掌握Kubernetes。</p>
+<h3 id="kubernetes-基础和核心概念">Kubernetes 基础和核心概念</h3>
 <ul>
-<li><a href="./k8s/bare-metal-kubernetes/">裸机Kubernetes部署</a></li>
-<li><a href="./k8s/controller-runtime-client-go-rate-limiting/">控制器运行时客户端Go速率限制</a></li>
-<li><a href="./k8s/diff-of-Affinity-and-taint/">亲和性与污点的区别</a></li>
-<li><a href="./k8s/headLess-svc/">无头服务详解</a></li>
-<li><a href="./k8s/k8s-cloud-provider/">Kubernetes云服务提供商</a></li>
-<li><a href="./k8s/k8s-schedule-road-path/">Kubernetes调度路径</a></li>
-<li><a href="./k8s/k8s-secret-configMap-Lease/">Kubernetes密钥与配置映射</a></li>
-<li><a href="./k8s/k8s-vs-k3s/">Kubernetes与K3s比较</a></li>
-<li><a href="./k8s/k8s_informers/">Kubernetes信息者机制</a></li>
-<li><a href="./k8s/k8sgpt-operater/">Kubernetes GPT操作器</a></li>
-<li><a href="./k8s/leader-election-in-kubernetes-using-client-go/">使用Client Go进行Kubernetes领导者选举</a></li>
-<li><a href="./k8s/learning-k8s-by-running-app/">通过运行应用学习Kubernetes</a></li>
-<li><a href="./k8s/object-stores-and-indexers/">对象存储与索引器</a></li>
-<li><a href="./k8s/oci-error/">OCI错误处理</a></li>
-<li><a href="./k8s/oom-killed-by-client-go-label-select/">Client-go 中的label selector 引起的 CPU Throttling问题</a></li>
-<li><a href="./k8s/using-the-helm-tpl-function/">使用Helm模板函数</a></li>
+<li>通过运行应用学习Kubernetes：为初学者设计的入门指南<a href="./k8s/learning-k8s-by-running-app/">开始学习</a></li>
+<li>Kubernetes headless Service介绍：了解headless服务的基本概念<a href="./k8s/headLess-svc/">了解headless服务</a></li>
+<li>k8s Affinity与 taint/toleration的区别：理解工作节点的亲和性与排斥性配置<a href="./k8s/diff-of-Affinity-and-taint/">比较affinity与taint/toleration</a></li>
+<li>k8s 默认的调度器工作机制和策略：深入理解Kubernetes调度器的工作原理。<a href="./k8s/k8s-schedule-road-path/">调度器机制</a></li>
+<li>如何在 Kubernetes 中有效使用 Secret、ConfigMap 和 Lease：详解及示例。<a href="./k8s/k8s-secret-configMap-Lease/">使用 Secret、ConfigMap 和 Lease</a></li>
+</ul>
+<h3 id="kubernetes-高级特性与优化-advanced">Kubernetes 高级特性与优化 (Advanced)</h3>
+<ul>
+<li>全面解析Bare Metal Kubernetes:必知的关键点：深入理解在裸金属上部署Kubernetes的关键要素<a href="./k8s/bare-metal-kubernetes/">Bare Metal Kubernetes解析</a></li>
+<li>K8s Cloud Provider源码解析：深入分析Kubernetes云服务提供商的源码<a href="./k8s/k8s-cloud-provider/">源码解析</a></li>
+<li>Kubernetes与K3s比较：探索Kubernetes与K3s的不同之处<a href="./k8s/k8s-vs-k3s/">Kubernetes与K3s比较</a></li>
+<li>K8s informers的介绍：掌握Kubernetes的事件通知机制<a href="./k8s/k8s_informers/">K8s informers的介绍</a></li>
+</ul>
+<h3 id="kubernetes-运维与开发">Kubernetes 运维与开发</h3>
+<ul>
+<li>在K8s controller-runtime和client-go中实现速率限制：学习如何在Kubernetes中控制API调用频率。<a href="./k8s/controller-runtime-client-go-rate-limiting/">速率限制实现</a></li>
+<li>OCI runtime create failed: expected cgroupsPath：解决容器运行时配置问题。 <a href="./k8s/oci-error/">解决OCI配置问题</a></li>
+<li>Client-go 中的label selector 引起的 CPU Throttling问题：诊断和修复CPU限制问题。<a href="./k8s/oom-killed-by-client-go-label-select/">CPU Throttling问题解决</a></li>
+<li>使用client-go在Kubernetes中进行leader election：实现高可用性集群。<a href="./k8s/leader-election-in-kubernetes-using-client-go/">leader选举</a></li>
+<li>深入了解Kubernetes控制器对象存储（object stores）和索引器（indexers）：提升控制器性能的高级技巧<a href="./k8s/object-stores-and-indexers/">控制器对象存储与索引器</a></li>
+</ul>
+<h3 id="kubernetes-工具与实践">Kubernetes 工具与实践</h3>
+<ul>
+<li>用k8sgpt-localai解锁Kubernetes的超能力：<a href="./k8s/k8sgpt-operater/">探索AI技术在Kubernetes中的应用</a></li>
+<li>简化Helm Charts部署：使用tpl函数引用Values：提高Helm部署效率<a href="./k8s/using-the-helm-tpl-function/">简化Helm 部署</a></li>
 </ul>
 <p>🎯 About Me: I am a tech enthusiast and an engineer, specializing in cloud-native technologies, distributed systems, network engineering, and Golang. With over 5 years of technical experience 🔧, I have played significant roles at companies like eBay and SAP 👨‍💻, focusing on the construction and maintenance of K8S and Istio mesh. Recently, I have been deeply involved in the management of vGPUs within K8S clusters, exploring new technologies and best practices in this field. As a lifelong learner 🎓, I enjoy sharing my knowledge and experience through my blog. Whether you are a seasoned professional or a newcomer, I welcome you to engage and learn with me!</p>
 <p>🎯 关于我：我是一名热爱技术的工程师，专注于云原生、分布式系统、网络工程、Golang 等领域, 我拥有超过 5 年的技术经验🔧，在 eBay 和 SAP 担任过重要角色👨‍💻，专注于 K8S 和 Istio mesh 的构建和维护。最近，我深入研究了 K8S 集群中的 vGPU 管理，探索这一领域的新技术和最佳实践。作为一个终身学习者🎓，我乐于通过博客分享我的知识和经验，无论您是经验丰富的专业人士还是刚起步的新手，都欢迎与我交流和学习！</p>

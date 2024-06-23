@@ -1,0 +1,380 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>No Elasticsearch Node Available for olivere/elastic - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="前言 最近笔者接到了公司内部的ES团队的通知，需要将自己应用的数据从ES5搬迁到ES7。我在维护一个基于Golang语言开发的项目，遇到了一些关于ES 的Golang Client https://github.com/olivere/elastic 的问题，特此写这篇博客记录一下。
+具体任务 在从ES5迁移到ES7的过程中，由于ES的换代的一些新特性和改变，需要首先进行具体任务的分解，主要包括
+数据格式升级：从ES6开始，ES便不推荐在同一个Index下存在多个type的数据。因此需要将此前在同一个Index下数据拆散到不同的Index之中就可以解决问题（官方原因是之前index下不同实体太多，切分布稀疏不均匀，严重干扰 Lucene 压缩文档的能力，具体可参考 Removal of mapping types） ES client（olivere/elastic）的升级：由于底层已经切换到了最新的ES7，并且在我司内部的ES7 将强制启动token认证，同时由于采用了 ES的client olivere/elastic 所以需要选择最合适的方案进行代码的迁移。 &ldquo;No Elasticsearch Node Available&rdquo; 首先为了改最少的代码，笔者的第一个想法便是用olivere的ES5的client elastic.v5 直接访问最新的ES Endpoint,结果第一个遇到的问题便是&quot;No Elasticsearch Node Available&quot;。在经过Google一番之后, 从这篇博客中 程序印象 ，查出初步的主要原因是Sniffing的配置造成的。
+Elasticsearch：Sniffing Sniffing 的主要功能是将Elasticsearch的静态节点列表传递给客户端，然后将客户端请求平均分布在Elasticsearch 集群节点之间.如果启用 sniffing，则客户端将开始调用 _nodes /_all /http 端点(类似 http://127.0.0.1:9200/__nodes /_all /http)，并且响应将是群集中存在的所有节点及其 IP 地址的列表。然后，客户端将更新其连接池以使用所有新节点，并使群集状态与客户端的连接池保持同步。
+如果想要检查自己的ES集群的Sniffing的配置，可以通过访问
+curl -XGET &#39;http://127.0.0.1:9200/_nodes/http?pretty=true { &#34;_nodes&#34; : { &#34;total&#34; : 1, &#34;successful&#34; : 1, &#34;failed&#34; : 0 }, &#34;cluster_name&#34; : &#34;elasticsearch&#34;, &#34;nodes&#34; : { &#34;v9vBH0xXQ1-GZw-bOfxlFQ&#34; : { &#34;name&#34; : &#34;v9vBH0x&#34;, &#34;transport_address&#34; : &#34;127." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">No Elasticsearch Node Available for olivere/elastic</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 23, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><h4 id="前言">前言</h4>
+<p>最近笔者接到了公司内部的ES团队的通知，需要将自己应用的数据从ES5搬迁到ES7。我在维护一个基于Golang语言开发的项目，遇到了一些关于ES 的Golang Client <a href="https://github.com/olivere/elastic">https://github.com/olivere/elastic</a> 的问题，特此写这篇博客记录一下。</p>
+<h4 id="具体任务">具体任务</h4>
+<p>在从ES5迁移到ES7的过程中，由于ES的换代的一些新特性和改变，需要首先进行具体任务的分解，主要包括</p>
+<ul>
+<li><strong>数据格式升级</strong>：从ES6开始，ES便不推荐在同一个Index下存在多个type的数据。因此需要将此前在同一个Index下数据拆散到不同的Index之中就可以解决问题（官方原因是之前index下不同实体太多，切分布稀疏不均匀，严重干扰 Lucene 压缩文档的能力，具体可参考 <a href="https://www.elastic.co/guide/en/elasticsearch/reference/6.8/removal-of-types.html">Removal of mapping types</a>）</li>
+<li><strong>ES client（olivere/elastic）的升级</strong>：由于底层已经切换到了最新的ES7，并且在我司内部的ES7 将强制启动token认证，同时由于采用了 ES的client <a href="https://github.com/olivere/elastic">olivere/elastic</a> 所以需要选择最合适的方案进行代码的迁移。</li>
+</ul>
+<h4 id="no-elasticsearch-node-available">&ldquo;No Elasticsearch Node Available&rdquo;</h4>
+<p>首先为了改最少的代码，笔者的第一个想法便是用<!-- raw HTML omitted --><strong>olivere</strong><!-- raw HTML omitted -->的ES5的client <a href="https://gopkg.in/olivere/elastic.v5">elastic.v5</a> 直接访问最新的ES Endpoint,结果第一个遇到的问题便是&quot;No Elasticsearch Node Available&quot;。在经过Google一番之后, 从这篇博客中 <a href="https://www.do1618.com/archives/1355/no-elasticsearch-node-available/">程序印象</a> ，查出初步的主要原因是<a href="https://github.com/olivere/elastic/wiki/Sniffing">Sniffing</a>的配置造成的。</p>
+<h5 id="elasticsearchsniffing">Elasticsearch：Sniffing</h5>
+<p><a href="https://github.com/olivere/elastic/wiki/Sniffing">Sniffing</a> 的主要功能是将Elasticsearch的静态节点列表传递给客户端，然后将客户端请求平均分布在Elasticsearch 集群节点之间.如果启用 sniffing，则客户端将开始调用 <code>_nodes /_all /http</code> 端点(类似 <code>http://127.0.0.1:9200/__nodes /_all /http</code>)，并且响应将是群集中存在的所有节点及其 IP 地址的列表。然后，客户端将更新其连接池以使用所有新节点，并使群集状态与客户端的连接池保持同步。</p>
+<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a9deded0a28945e0beb5ecdba0309e88~tplv-k3u1fbpfcp-watermark.image" alt=""></p>
+<p>如果想要检查自己的ES集群的Sniffing的配置，可以通过访问</p>
+<ul>
+<li><code>curl -XGET 'http://127.0.0.1:9200/_nodes/http?pretty=true</code></li>
+</ul>
+<pre tabindex="0"><code>{
+  &#34;_nodes&#34; : {
+    &#34;total&#34; : 1,
+    &#34;successful&#34; : 1,
+    &#34;failed&#34; : 0
+  },
+  &#34;cluster_name&#34; : &#34;elasticsearch&#34;,
+  &#34;nodes&#34; : {
+    &#34;v9vBH0xXQ1-GZw-bOfxlFQ&#34; : {
+      &#34;name&#34; : &#34;v9vBH0x&#34;,
+      &#34;transport_address&#34; : &#34;127.0.0.1:9300&#34;,
+      &#34;host&#34; : &#34;127.0.0.1&#34;,
+      &#34;ip&#34; : &#34;127.0.0.1&#34;,
+      &#34;version&#34; : &#34;7.2.1&#34;,
+      &#34;build_hash&#34; : &#34;fe6cb20&#34;,
+      &#34;roles&#34; : [
+        &#34;master&#34;,
+        &#34;data&#34;,
+        &#34;ingest&#34;
+      ],
+      &#34;attributes&#34; : {
+        &#34;ml.max_open_jobs&#34; : &#34;10&#34;,
+        &#34;ml.enabled&#34; : &#34;true&#34;
+      },
+      &#34;http&#34; : {
+        &#34;bound_address&#34; : [
+          &#34;0.0.0.0:9200&#34;
+        ],
+        &#34;publish_address&#34; : &#34;127.0.0.1:9200&#34;, # sniffing mode setting
+        &#34;max_content_length_in_bytes&#34; : 104857600
+      }
+    }
+  }
+}
+</code></pre><p>如果想要在<a href="https://gopkg.in/olivere/elastic.v5">elastic.v5</a>中禁止sniffing，在进行Client初始化的时候可以通过<code>SetSniff(false)</code>来实现。</p>
+<p><code>client, err := elastic.NewClient(elastic.SetURL(host), elastic.SetSniff(false)) </code></p>
+<p>但是在进行了上述的尝试之后，还是遇到了“No Elasticsearch Node Available”这个问题，证明Sniffing并不是链接不上ES7集群这个问题的主要原因。又经过了一番搜索之后， 查到了原因是 elastic.v5驱动的工作方式与 ES7配合的过程中存在某些问题，这个GitHub issue中则提供了进一步的分析。<a href="https://github.com/olivere/elastic/issues/387">v5 connect panic: no Elasticsearch node available </a>。那么只能放弃使用elastic.v5的想法，将ES的Client升级到<a href="https://gopkg.in/olivere/elastic.v7">elastic.v7</a>去。</p>
+<h4 id="总结">总结</h4>
+<p>经过这次踩的坑，个人觉得对ES进行CRUD最好的方式还是用原生的HTTP请求便可，这样子下一次升级的时候只需要将ES的endpoint 切换一下便可，省去了才不同版本之间的Library切换所需要的时间和精力。</p>
+<h4 id="参考链接">参考链接</h4>
+<ul>
+<li><a href="https://github.com/olivere/elastic/wiki/Sniffing">Sniffing</a></li>
+<li><a href="https://www.do1618.com/archives/1355/no-elasticsearch-node-available/">“No Elasticsearch Node Available”</a></li>
+<li><a href="https://github.com/olivere/elastic/issues/312">https://github.com/olivere/elastic/issues/312</a></li>
+<li><a href="https://blog.csdn.net/UbuntuTouch/article/details/107199603">Elasticsearch：sniffing 的最佳实践：What, when, why, how</a></li>
+<li><a href="https://github.com/elastic/go-elasticsearch/issues/86">https://github.com/elastic/go-elasticsearch/issues/86</a></li>
+<li><a href="https://www.elastic.co/guide/en/elasticsearch/reference/6.8/removal-of-types.html">removal-of-types.html</a></li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

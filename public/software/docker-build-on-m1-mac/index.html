@@ -1,0 +1,360 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>如何在Apple 芯片也称为M1芯片）上构建Docker镜像 - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="How To Build Docker Images For Apple Silicon (Aka M1 Chip) 的中文翻译版本,内容有删减
+背景（Background） 苹果不久前发布了基于M1芯片的新MacBook。与之前所有基于英特尔的Apple笔记本电脑不同，M1具有不同的架构 - arm64而不是英特尔的“amd64”。
+新的架构意味着大多数软件产品应该重新编译,至少对于用编译语言编写的软件必须这样做。该规则适用于主要用Go写的项目。然而，这并不是100%正确的：苹果不遗余力地使旧的编译代码与新架构兼容，Roseta 2是用来达成这个目标的主要工具.
+Docker 也试图迎头赶上 the M1 support came out a few weeks ago.但是，事情并不像预期那样无缝运行：
+Docker依靠 qemu 在M1芯片上模拟英特尔的架构。然而事实是 QEMU有时不能很好地工作：在 Apple Silicon 机器上尝试运行基于 Intel 的容器可能会崩溃，因为 QEMU 有时无法运行容器。例如文件变更 API File System Events（例如 inotify）在 QEMU 仿真下不起作用 [&hellip;]。 因此，我们建议您在 Apple Silicon 机器上运行 ARM64 容器。与基于 Intel 的容器相比，这些容器也更快且使用更少的内存。
+如何为arm64打包镜像（How to build an image for arm64） 幸运的是，Docker 已经宣布 一项实验性功能 buildx，它可以为特定架构（arm64、amd64 等）构建映像。
+Step 1." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">如何在Apple 芯片也称为M1芯片）上构建Docker镜像</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 23, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p><a href="https://jitsu.com/blog/multi-platform-docker-builds">How To Build Docker Images For Apple Silicon (Aka M1 Chip)</a> 的中文翻译版本,内容有删减</p>
+</blockquote>
+<h2 id="背景background">背景（Background）</h2>
+<p>苹果不久前发布了基于M1芯片的新MacBook。与之前所有基于英特尔的Apple笔记本电脑不同，M1具有不同的架构 - <code>arm64</code>而不是英特尔的“amd64”。</p>
+<p>新的架构意味着大多数软件产品应该重新编译,至少对于用编译语言编写的软件必须这样做。该规则适用于主要用<code>Go</code>写的项目。然而，这并不是100%正确的：苹果不遗余力地使旧的编译代码与新架构兼容，<a href="https://en.wikipedia.org/wiki/Rosetta_(software)">Roseta 2</a>是用来达成这个目标的主要工具.</p>
+<p>Docker 也试图迎头赶上 <a href="https://docs.docker.com/docker-for-mac/apple-silicon/">the M1 support came out a few weeks ago</a>.但是，事情并不像预期那样无缝运行：</p>
+<p>Docker依靠 <a href="https://www.qemu.org/">qemu</a> 在M1芯片上模拟英特尔的架构。然而事实是 QEMU有时不能很好地工作：<em>在 Apple Silicon 机器上尝试运行基于 Intel 的容器可能会崩溃，因为 QEMU 有时无法运行容器。例如文件变更 API <a href="https://developer.apple.com/documentation/coreservices/file_system_events">File System Events</a>（例如 inotify）在 QEMU 仿真下不起作用 [&hellip;]。  因此，我们建议您在 Apple Silicon 机器上运行 ARM64 容器。与基于 Intel 的容器相比，这些容器也更快且使用更少的内存</em>。</p>
+<h2 id="如何为arm64打包镜像how-to-build-an-image-for-arm64">如何为<code>arm64</code>打包镜像（How to build an image for <code>arm64</code>）</h2>
+<p>幸运的是，<a href="https://www.docker.com/blog/multi-platform-docker-builds/">Docker 已经宣布</a> 一项实验性功能 <strong><a href="https://github.com/docker/buildx">buildx</a></strong>，它可以为特定架构（arm64、amd64 等）构建映像。</p>
+<h3 id="step-1开启实验功能-enable-experimental-features0">Step 1.开启实验功能（ Enable experimental features0</h3>
+<p>如果您使用的是 Mac 版 Docker Desktop，您只需在 Docker CLI 上启用实验性功能 —— 编辑 <strong>~/.docker/config.json</strong> 添加以下内容：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;experimental&#34;</span>: <span style="color:#e6db74">&#34;enabled&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>之后重新启动您的 Docker Desktop</p>
+<p>如果您使用的是 Linux，只需运行以下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker run --privileged --rm docker/binfmt:a7996909642ee92942dcd6cff44b9b95f08dad64
+</span></span></code></pre></div><p>并使用 <code>service docker restart</code> 重启 Docker</p>
+<h3 id="step-2-创建一个新的构建器实例create-a-new-builder-instance">Step 2. 创建一个新的构建器实例(Create a new builder instance)</h3>
+<p>创建一个新的构建器实例：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker buildx create --use
+</span></span></code></pre></div><p>It enables multiple builds in parallel. Make sure that new builder instance is created:</p>
+<p>它支持多个并行构建。 可以用以下命令来确保创建了新的构建器实例：</p>
+<p>Output:</p>
+<pre tabindex="0"><code>$ docker buildx ls
+NAME/NODE     DRIVER/ENDPOINT       STATUS  PLATFORMS
+mystifying_bell * docker-container
+  mystifying_bell0 unix:///var/run/docker.sock inactive
+default      docker
+  default     default           running linux/amd64, linux/arm64, linux/riscv64, linux/ppc64le, linux/s390x, linux/386, linux/arm/v7, linux/arm/v6
+</code></pre><h3 id="step-3-build-multi-architecture-imagestep-3-build-multiarchitecture-image">Step 3. Build multi-architecture image<a href="#step-3-build-multiarchitecture-image">#</a></h3>
+<p>Build your multi-architecture image:</p>
+<p>通过以下命令构建您的多架构映像：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker buildx build --platform linux/amd64,linux/arm64 -t company/image_name .
+</span></span></code></pre></div><p><strong>platform</strong> 标志指定将为哪些平台构建 Docker 映像。 目前Docker 支持 10 个平台，但可能你应该只使用 <code>linux/amd64</code> (Intel) 和 <code>linux/arm64</code> (M1)：</p>
+<p><img src="https://jitsu.com/img/blog/multi-platform-docker-builds/docker-hub-result.png" alt=""></p>
+<p>Docker Hub result</p>
+<h2 id="reference">Reference</h2>
+<ul>
+<li><a href="https://github.com/docker/buildx">buildx</a></li>
+<li><a href="https://www.qemu.org/">qemu</a></li>
+</ul>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Softwares on Tim Wang的技术博客</title>
+    <link>http://localhost:1313/software/</link>
+    <description>Recent content in Softwares on Tim Wang的技术博客</description>
+    <generator>Hugo</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Sun, 23 Jun 2024 09:50:29 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/software/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Upstream Downstream</title>
+      <link>http://localhost:1313/software/upstream-downstream/</link>
+      <pubDate>Sun, 23 Jun 2024 09:50:29 +0800</pubDate>
+      <guid>http://localhost:1313/software/upstream-downstream/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

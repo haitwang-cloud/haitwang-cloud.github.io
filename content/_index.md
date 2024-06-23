@@ -8,18 +8,18 @@ Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technolog
 
 ## GPU：探索GPU的奥秘，从基础到高级应用
 
-- Kubernetes GPU 管理基础：Device Plugin 介绍与源码分析[Kubernetes GPU 管理基础](./gpu/k8s-device-plugin)
-- Kubernetes GPU 管理进阶：启用 Nvidia MPS[启用 Nvidia MPS](./gpu/k8s-device-plugin-mps)
-- 故障排查：解决 "Failed to initialize NVML: Unknown Error"[解决 Kubernetes GPU 管理错误](./gpu/nvml-error/)
-- Kubernetes GPU 优化：最大化 GPU 利用率[Kubernetes GPU 优化](./gpu/how-to-increase-gpu-utilization-in-kubernetes)
-- 特定环境 GPU 管理：在 Rocky Linux 上安装 NVIDIA GPU Operator[在 Rocky Linux 上安装 NVIDIA GPU Operator](./gpu/how-to-install-nvidia-gpu-operator-with-a100-on-kubernetes-base-rocky-linux)
+- Kubernetes GPU 管理基础：Device Plugin 介绍与源码分析 [Kubernetes GPU 管理基础](./gpu/k8s-device-plugin)
+- Kubernetes GPU 管理进阶：启用 Nvidia MPS [启用 Nvidia MPS](./gpu/k8s-device-plugin-mps)
+- 故障排查：解决 "Failed to initialize NVML: Unknown Error" [解决 Kubernetes GPU 管理错误](./gpu/nvml-error/)
+- Kubernetes GPU 优化：最大化 GPU 利用率 [Kubernetes GPU 优化](./gpu/how-to-increase-gpu-utilization-in-kubernetes)
+- 特定环境 GPU 管理：在 Rocky Linux 上安装 NVIDIA GPU Operator [在 Rocky Linux 上安装 NVIDIA GPU Operator](./gpu/how-to-install-nvidia-gpu-operator-with-a100-on-kubernetes-base-rocky-linux)
 
 ## Istio：深入理解微服务之间的流量管理
 
-- [Kubernetes集群中的Istio环境管理:控制平面的多实例部署实践](./istio/how-to-install-multi-istio-control-plane)
-- [Kubernetes集群中的Istio环境管理:多环境应用构建实践](./istio/build-app-under-multi-istio)
-- [Istio上游连接重置502错误分析与排查指南](./istio/istio-upstream-error)
-- [深入理解Istio：网络原理与Sidecar的自动注入机制](./istio/istio-sidecar-inject)
+- Kubernetes上的Istio控制面管理：多实例部署实战 [多控制平面配置指南](./istio/how-to-install-multi-istio-control-plane)
+- 多环境应用开发实战：Istio下的微服务构建策略 [无缝对接多环境:基于Istio的微服务应用构建技巧](./istio/build-app-under-multi-istio)
+- Istio流量异常处理：502错误根源分析与解决 [Istio应用故障排查手册:上游连接重置502错误详解](./istio/istio-upstream-error)
+- Istio核心技术探秘：网络原理与Sidecar自动注入机制 [深入理解Istio：网络原理与Sidecar的自动注入机制](./istio/istio-sidecar-inject)
 
 
 ## Golang 资源大全：从基础到高级特性
@@ -65,18 +65,18 @@ Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technolog
 
 ### Kubernetes 基础和核心概念
 
-- 通过运行应用学习Kubernetes：为初学者设计的入门指南[开始学习](./k8s/learning-k8s-by-running-app/)
-- Kubernetes headless Service介绍：了解headless服务的基本概念[了解headless服务](./k8s/headLess-svc/)
-- k8s Affinity与 taint/toleration的区别：理解工作节点的亲和性与排斥性配置[比较affinity与taint/toleration](./k8s/diff-of-Affinity-and-taint/)
+- 通过运行应用学习Kubernetes：为初学者设计的入门指南 [开始学习](./k8s/learning-k8s-by-running-app/)
+- Kubernetes headless Service介绍：了解headless服务的基本概念 [了解headless服务](./k8s/headLess-svc/)
+- k8s Affinity与 taint/toleration的区别：理解工作节点的亲和性与排斥性配置 [比较affinity与taint/toleration](./k8s/diff-of-Affinity-and-taint/)
 - k8s 默认的调度器工作机制和策略：深入理解Kubernetes调度器的工作原理。[调度器机制](./k8s/k8s-schedule-road-path/)
 - 如何在 Kubernetes 中有效使用 Secret、ConfigMap 和 Lease：详解及示例。[使用 Secret、ConfigMap 和 Lease](./k8s/k8s-secret-configMap-Lease/)
   
 ### Kubernetes 高级特性与优化 (Advanced)
 
-- 全面解析Bare Metal Kubernetes:必知的关键点：深入理解在裸金属上部署Kubernetes的关键要素[Bare Metal Kubernetes解析](./k8s/bare-metal-kubernetes/)
-- K8s Cloud Provider源码解析：深入分析Kubernetes云服务提供商的源码[源码解析](./k8s/k8s-cloud-provider/)
-- Kubernetes与K3s比较：探索Kubernetes与K3s的不同之处[Kubernetes与K3s比较](./k8s/k8s-vs-k3s/)
-- K8s informers的介绍：掌握Kubernetes的事件通知机制[K8s informers的介绍](./k8s/k8s_informers/)
+- 全面解析Bare Metal Kubernetes:必知的关键点：深入理解在裸金属上部署Kubernetes的关键要素 [Bare Metal Kubernetes解析](./k8s/bare-metal-kubernetes/)
+- K8s Cloud Provider源码解析：深入分析Kubernetes云服务提供商的源码 [源码解析](./k8s/k8s-cloud-provider/)
+- Kubernetes与K3s比较：探索Kubernetes与K3s的不同之处 [Kubernetes与K3s比较](./k8s/k8s-vs-k3s/)
+- K8s informers的介绍：掌握Kubernetes的事件通知机制 [K8s informers的介绍](./k8s/k8s_informers/)
 
 ### Kubernetes 运维与开发
 
@@ -84,28 +84,28 @@ Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technolog
 - OCI runtime create failed: expected cgroupsPath：解决容器运行时配置问题。 [解决OCI配置问题](./k8s/oci-error/)
 - Client-go 中的label selector 引起的 CPU Throttling问题：诊断和修复CPU限制问题。[CPU Throttling问题解决](./k8s/oom-killed-by-client-go-label-select/)
 - 使用client-go在Kubernetes中进行leader election：实现高可用性集群。[leader选举](./k8s/leader-election-in-kubernetes-using-client-go/)
-- 深入了解Kubernetes控制器对象存储（object stores）和索引器（indexers）：提升控制器性能的高级技巧[控制器对象存储与索引器](./k8s/object-stores-and-indexers/)
+- 深入了解Kubernetes控制器对象存储（object stores）和索引器（indexers）：提升控制器性能的高级技巧 [控制器对象存储与索引器](./k8s/object-stores-and-indexers/)
 
 ### Kubernetes 工具与实践
 
 - 用k8sgpt-localai解锁Kubernetes的超能力：[探索AI技术在Kubernetes中的应用](./k8s/k8sgpt-operater/)
-- 简化Helm Charts部署：使用tpl函数引用Values：提高Helm部署效率[简化Helm 部署](./k8s/using-the-helm-tpl-function/)
+- 简化Helm Charts部署：使用tpl函数引用Values：提高Helm部署效率 [简化Helm 部署](./k8s/using-the-helm-tpl-function/)
   
-## 网络工程：网络技术的实践与应用
+## 网络技术深度解析：实战指南与核心概念
 
-- [什么是BGP？ | BGP路由解析](./network/what-is-bgp)
-- [如何在Linux中使用ipset命令](./network/how-to-use-ipset)
-- [根证书和中间证书之间的区别](./network/root-certificates-intermediate)
-- [在OSX中使用tcpdump](./network/tcp-dump-in-OSX)
-- [QUIC的发展之路](./network/the-road-to-quic)
+- BGP路由协议深度揭秘：网络架构的基石 [网络基础构建：揭秘BGP路由协议](./network/what-is-bgp)
+- Linux网络管理实战：精通ipset命令运用 [Linux网络高手秘籍：高效利用ipset命令](./network/how-to-use-ipset)
+- SSL/TLS安全基础：根证书与中间证书解析 [安全基石：根证书与中间证书的区别与应用](./network/root-certificates-intermediate)
+- OSX网络监控精粹：tcpdump高级操作手册 [OSX环境下的网络监听艺术：tcpdump高级技巧](./network/tcp-dump-in-OSX)
+- QUIC协议前瞻：下一代互联网传输协议的探索 [QUIC协议：重塑互联网传输的未来之路](./network/the-road-to-quic)
 
 ## Software Development：软件开发实践与技术
 
-- [软件开发中的上游和下游](./software/upstream-downstream)
-- [如何在Apple 芯片也称为M1芯片）上构建Docker镜像](./software/docker-build-on-m1-mac)
-- [如何解决No Elasticsearch Node Available for olivere/elastic](./software/elastic)
-- [JSON Patch and JSON Merge Patch](./software/json-patch-vs-merge-patch)
-- [什么是即时编译 (Just in Time)](./software/just-in-time)
+- 软件开发的上下游链路解析 [探索软件开发生命周期中的上下游协作](./software/upstream-downstream)
+- Apple M1芯片（M1 Mac）Docker镜像构建全面指南 [M1芯片上的Docker构建实战](./software/docker-build-on-m1-mac)
+- 解决Elasticsearch连接问题：No Node Available [实战教程](./software/elastic)
+- JSON补丁技术对比：Patch vs Merge Patch [JSON补丁技术深度比较：Patch与Merge Patch的优劣分析](./software/json-patch-vs-merge-patch)
+- 即时编译(JIT)全面解读：提升程序执行效率的关键 [即时编译(JIT)技术揭秘](./software/just-in-time)
 
 🎯 About Me: I am a tech enthusiast and an engineer, specializing in cloud-native technologies, distributed systems, network engineering, and Golang. With over 5 years of technical experience 🔧, I have played significant roles at companies like eBay and SAP 👨‍💻, focusing on the construction and maintenance of K8S and Istio mesh. Recently, I have been deeply involved in the management of vGPUs within K8S clusters, exploring new technologies and best practices in this field. As a lifelong learner 🎓, I enjoy sharing my knowledge and experience through my blog. Whether you are a seasoned professional or a newcomer, I welcome you to engage and learn with me!
 

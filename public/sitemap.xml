@@ -2,8 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>http://localhost:1313/gpu/k8s-device-plugin/</loc>
+    <lastmod>2024-06-20T17:14:15+08:00</lastmod>
+  </url><url>
     <loc>http://localhost:1313/</loc>
-    <lastmod>2024-06-20T16:24:32+08:00</lastmod>
+    <lastmod>2024-06-20T17:14:15+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/gpu/k8s-device-plugin-mps/</loc>
+    <lastmod>2024-06-20T17:13:34+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/gpu/how-to-install-nvidia-gpu-operator-with-a100-on-kubernetes-base-rocky-linux/</loc>
+    <lastmod>2024-06-20T17:12:38+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/gpu/how-to-increase-gpu-utilization-in-kubernetes/</loc>
+    <lastmod>2024-06-20T17:10:52+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/istio/istio-sidecar-inject/</loc>
     <lastmod>2024-06-20T16:24:32+08:00</lastmod>

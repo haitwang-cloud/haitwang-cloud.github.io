@@ -90,6 +90,14 @@ Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technolog
 
 - 用k8sgpt-localai解锁Kubernetes的超能力：[探索AI技术在Kubernetes中的应用](./k8s/k8sgpt-operater/)
 - 简化Helm Charts部署：使用tpl函数引用Values：提高Helm部署效率[简化Helm 部署](./k8s/using-the-helm-tpl-function/)
+  
+## 网络工程：网络技术的实践与应用
+
+- [什么是BGP？ | BGP路由解析](./network/what-is-bgp)
+- [如何在Linux中使用ipset命令](./network/how-to-use-ipset)
+- [根证书和中间证书之间的区别](./network/root-certificates-intermediate)
+- [在OSX中使用tcpdump](./network/tcp-dump-in-OSX)
+- [QUIC的发展之路](./network/the-road-to-quic)
 
 🎯 About Me: I am a tech enthusiast and an engineer, specializing in cloud-native technologies, distributed systems, network engineering, and Golang. With over 5 years of technical experience 🔧, I have played significant roles at companies like eBay and SAP 👨‍💻, focusing on the construction and maintenance of K8S and Istio mesh. Recently, I have been deeply involved in the management of vGPUs within K8S clusters, exploring new technologies and best practices in this field. As a lifelong learner 🎓, I enjoy sharing my knowledge and experience through my blog. Whether you are a seasoned professional or a newcomer, I welcome you to engage and learn with me!
 

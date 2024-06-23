@@ -6,8 +6,36 @@
     <description>Recent content in GPU on Tim Wang的技术博客</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Fri, 14 Jun 2024 17:42:52 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 20 Jun 2024 17:14:15 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/gpu/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Kubernetes GPU管理探秘第一篇：Kubernetes Device Plugin介绍和源码分析</title>
+      <link>http://localhost:1313/gpu/k8s-device-plugin/</link>
+      <pubDate>Thu, 20 Jun 2024 17:14:15 +0800</pubDate>
+      <guid>http://localhost:1313/gpu/k8s-device-plugin/</guid>
+      <description>k8s GPU device plugin介绍和源码分析 前言 在 Kubernetes 集群中,有些工作负载需要访问节点上的硬件资源,比如 GPU、FPGA、InfiniBand 等。为了让 Kubernetes 能够感知和调度这些硬件资源,Kubernetes 引入了 Device Plugin 的概念。本文将详细介绍 Device Plugin 的工作原理。&#xA;Device Plugin 简介 Device Plugin 是 Kubernetes 中一种特殊的插件,负责管理节点上的硬件设备,并将设备信息呈现给 Kubernetes。每种类型的硬件设备,都需要有它对应的 Device Plugin 进程在运行。通常,这些 Device Plugin 进程是由硬件供应商提供的。&#xA;Device Plugin 通过 gRPC 服务与 kubelet 进行通信,履行了以下两个主要职责:&#xA;发现节点上的硬件设备 准备并安装需要使用设备的容器运行时环境 Device Plugin 工作流程 下面让我们通过一个具体的例子,来了解 Device Plugin 的工作流程。假设有一个节点上安装了 3 块 NVIDIA GPU 设备,现在要让一个 Pod 使用其中一块 GPU 设备。&#xA;设备发现 在节点启动时,kubelet 首先启动该节点上的所有 Device Plugin。以 NVIDIA GPU 设备为例,kubelet 会启动 nvidia-device-plugin 进程。</description>
+    </item>
+    <item>
+      <title>Kubernetes GPU管理探秘第二篇：在Kubernetes中启用 Nvidia MPS</title>
+      <link>http://localhost:1313/gpu/k8s-device-plugin-mps/</link>
+      <pubDate>Thu, 20 Jun 2024 17:13:34 +0800</pubDate>
+      <guid>http://localhost:1313/gpu/k8s-device-plugin-mps/</guid>
+      <description>背景介绍 多进程服务（Multi-Process Service，MPS）是一个与CUDA API二进制兼容的客户端-服务器运行时实现，它由几个组件构成：&#xA;控制守护进程：负责启动和停止服务器，并协调客户端与服务器之间的连接。 客户端运行时：集成在CUDA驱动库中的MPS客户端运行时，可被任何CUDA应用程序透明地使用。 服务器进程：作为客户端共享访问GPU的桥梁，提供客户端间的并发。 本文档将介绍Volta MPS相较于前Volta GPU上的MPS的新功能，并指出两者之间的差异。在Volta上运行MPS会自动启用新功能。 在K8s中使用NVIDIA MPS 根据来自NVIDIA GPU Device Plugin v0.15.0的说明，这个MPS功能还没有准备好用于生产环境，并包括一些已知问题，包括：&#xA;device plugin可能在准备好分配共享GPU之前就显示为已启动，同时等待CUDA MPS控制守护进程上线。 在重启或配置更改下，CUDA MPS控制守护进程和GPU device plugin之间没有同步。这意味着，如果工作负载在失去对由CUDA MPS控制守护进程控制的共享资源的访问时可能会崩溃。 MPS仅支持完整的GPU。 不可能“组合”MPS GPU请求，以允许单个容器访问更多内存。 本文将对该功能进行验证，以便在未来的版本中使用。&#xA;环境准备 k8s集群信息 Kernel Version: 5.15.135-amd64 containerd version 1.6.20 Kubelet Version: v1.26.11 k8s-device-plugin version: v0.15.0 nvidia-toolkit upgrade: v1.13.4 安装 Nvidia GPU Operator 首先，我们需要安装Nvidia GPU Operator，以提供GPU资源的监控指标。&#xA;helm install --wait --generate-name -n ssdl-vgpu nvidia/gpu-operator \ --set driver.enabled=false \ --set toolkit.enabled=false \ --set devicePlugin.enabled=false 准备MPS对应的configMap # k apply -f ntr-mps-cm.</description>
+    </item>
+    <item>
+      <title>如何在基于 Rocky Linux 的 Kubernetes 上安装带有 A100 的 NVIDIA GPU Operator</title>
+      <link>http://localhost:1313/gpu/how-to-install-nvidia-gpu-operator-with-a100-on-kubernetes-base-rocky-linux/</link>
+      <pubDate>Thu, 20 Jun 2024 17:12:38 +0800</pubDate>
+      <guid>http://localhost:1313/gpu/how-to-install-nvidia-gpu-operator-with-a100-on-kubernetes-base-rocky-linux/</guid>
+      <description>本文是How to install NVIDIA GPU Operator with A100 on Kubernetes base Rocky linux的中文翻译版本，内容有删减&#xA;以前在kubernetes使用NVIDIA GPU非常复杂。为了部署一个简单的容器，我们需要构建驱动程序drivers、容器运行时CRI、设备插件device plugin和监控等基本组件。最近NVIDIA GPU Feature Discovery添加了一些功能，以减少 GPU 配置的麻烦，但系统工程师的需求仍然没有得到满足，因为 NVIDIA 驱动程序和运行时仍然需要手动配置。NVIDIA GPU Feature Discovery 在 Kubernetes 集群中以 DaemonSet 的方式运行，每个节点上都会运行一个 GPU Feature Discovery 容器。该容器使用 NVIDIA Device Plugin 来访问节点上的 GPU 设备，并收集相关属性.&#xA;Fig1. https://developer.nvidia.com/blog/nvidia-gpu-operator-simplifying-gpu-management-in-kubernetes&#xA;通过使用NVIDIA GPU Operator，可以解决在Kubernetes中使用GPU的复杂配置问题。如果查看NVIDIA博客提供的与NVIDIA GPU Operator相关的内容（图1），可以看到驱动程序、运行时、设备插件和监控都被配置为容器。因此，您不再需要在操作系统中安装NVIDIA驱动程序。&#xA;Fig2. https://developer.nvidia.com/blog/nvidia-gpu-operator-simplifying-gpu-management-in-kubernetes/&#xA;此外，NVIDIA A100 GPU引入了一项名为MIG的功能。与此同时，GPU过去仅限于一种称为Virtual GPU的功能，以使用类似于Intel CPU的超线程的并行处理功能。这是一种在分片后并行使用GPU内存的功能，为使用此功能需要额外的许可费用，并且由于必须在Hypervisor和Guest OS中安装GPU驱动程序，管理起来也非常困难。基本上，由于内存被分片和使用，导致在机器学习或深度学习中可以训练的模型大小受到限制，因此它在ML/DL中的使用受到限制，在虚拟桌面基础设施中使用较多。&#xA;Fig3. https://blogs.vmware.com/apps/2018/09/using-gpus-with-virtual-machines-on-vsphere-part-3-installing-the-nvidia-grid-technology.html&#xA;A100 GPU引入的MIG功能在GPU上支持虚拟化，将一个GPU分割为最多7个实例，减少了Hypervisor部分，提供了管理和性能上的收益。然而，基于实例的VRAM碎片化仍然存在，这是GPU架构中无法避免的问题。&#xA;Fig4. https://docs.nvidia.com/datacenter/tesla/mig-user-guide/&#xA;现在，我将解释如何配置NVIDIA GPU Operator。首先，让我们检查配置NVIDIA GPU Operator的基本要求。&#xA;Kubernetes v1.19+ NVIDIA GPU Operator v1.</description>
+    </item>
+    <item>
+      <title>Kubernetes GPU 优化：最大化 GPU 利用率</title>
+      <link>http://localhost:1313/gpu/how-to-increase-gpu-utilization-in-kubernetes/</link>
+      <pubDate>Thu, 20 Jun 2024 17:10:52 +0800</pubDate>
+      <guid>http://localhost:1313/gpu/how-to-increase-gpu-utilization-in-kubernetes/</guid>
+      <description>本文是How to Increase GPU Utilization in Kubernetes with NVIDIA MPS的中文翻译版本，内容有删减&#xA;本文主要介绍在 Kubernetes 中集成 NVIDIA 多进程服务（MPS,Multi-Process Service），以在工作负载之间共享 GPU，以最大化利用率并降低基础设施成本。&#xA;大多数workload不需要每个 GPU 的全部内存和计算资源。因此，将一个 GPU 在多个进程之间共享对于提高 GPU 利用率和降低基础设施成本至关重要。&#xA;在 Kubernetes 中，可以通过将单个 GPU 公开为多个资源（即切片），每个切片具有特定的内存和计算大小，这些资源可以由单个容器请求来实现。通过为每个容器只创建所需的 GPU 切片，您可以释放集群中富余的GPU资源。这些资源可用于调度更多的 Pod，或允许您减少集群中的GPU节点数。无论哪种方式，在进程之间共享 GPU 都可以帮助您降低基础设施成本。&#xA;Kubernetes 中的 GPU 支持由 NVIDIA Kubernetes Device Plugin 提供，该插件目前仅支持两种 GPU 共享策略：时间切片和多实例 GPU（MIG,Multi-Instance GPU）。但是，还有一种 GPU 共享策略，它平衡了时间切片和 MIG 的优缺点：多进程服务 Multi-Process Service (MPS)。尽管 MPS 不受 NVIDIA Device Plugin 支持，但在 Kubernetes 中使用它仍然可行。&#xA;在本文中，我们将首先对比所有三种 GPU 共享技术的优缺点，然后提供有关如何在 Kubernetes 中使用 MPS 的逐步指南。此外，我们还提出了一种自动化 MPS 资源管理的解决方案，以优化利用率并降低运营成本：动态MPS (Dynamic MPS Partitioning)。</description>
+    </item>
     <item>
       <title>如何解决 `Failed to initialize NVML: Unknown Error` 问题</title>
       <link>http://localhost:1313/gpu/nvml-error/</link>

@@ -1,0 +1,436 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>在OSX上的Tcpdump和Wireshark - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="本文是 theagileadmin.com的中文翻译版本，内容有删减
+其他wire-shark的文章：
+wireshark 抓包新手使用教程 在此之前，我遇到了亚马逊网络服务ELB的连接时间激增的问题，因此是时候用tcpdump以获取数据包跟踪和wireshark（很久以前就很虚无缥缈）来分析TCP连接问题了。
+tcpdump默认已经在OSX 上安装了，因此第一步是确定要转储的网络接口。以下命令将列出您的所有网络接口。
+networksetup -listallhardwareports (base)  ~/ networksetup -listallhardwareports Hardware Port: Ethernet Adapter (en4) Device: en4 Ethernet Address: ba:cc:8a:ee:3f:32 Hardware Port: Wi-Fi Device: en0 Ethernet Address: bc:d0:74:0a:34:98 Hardware Port: Thunderbolt 1 Device: en1 Ethernet Address: 36:0e:31:4d:99:80 Hardware Port: Thunderbolt 2 Device: en2 Ethernet Address: 36:0e:31:4d:99:84 Hardware Port: Thunderbolt 3 Device: en3 Ethernet Address: 36:0e:31:4d:99:88 Hardware Port: Thunderbolt Bridge Device: bridge0 Ethernet Address: 36:0e:31:4d:99:80 VLAN Configurations =================== 然后，运行该接口上的数据包跟踪。我使用en0主无线接口，因此我运行：" />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">在OSX上的Tcpdump和Wireshark</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jun 23, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文是 <a href="https://theagileadmin.com/2017/05/26/tcpdump-and-wireshark-on-osx/">theagileadmin.com</a>的中文翻译版本，内容有删减</p>
+</blockquote>
+<p>其他wire-shark的文章：</p>
+<ul>
+<li><a href="https://www.cnblogs.com/linyfeng/p/9496126.html">wireshark 抓包新手使用教程 </a></li>
+</ul>
+<p>在此之前，我遇到了亚马逊网络服务ELB的连接时间激增的问题，因此是时候用tcpdump以获取数据包跟踪和wireshark（很久以前就很虚无缥缈）来分析TCP连接问题了。</p>
+<p>tcpdump默认已经在OSX 上安装了，因此第一步是确定要转储的网络接口。以下命令将列出您的所有网络接口。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>networksetup -listallhardwareports
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span>  ~/ networksetup -listallhardwareports
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Hardware Port: Ethernet Adapter <span style="color:#f92672">(</span>en4<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Device: en4
+</span></span><span style="display:flex;"><span>Ethernet Address: ba:cc:8a:ee:3f:32
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Hardware Port: Wi-Fi
+</span></span><span style="display:flex;"><span>Device: en0
+</span></span><span style="display:flex;"><span>Ethernet Address: bc:d0:74:0a:34:98
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Hardware Port: Thunderbolt <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>Device: en1
+</span></span><span style="display:flex;"><span>Ethernet Address: 36:0e:31:4d:99:80
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Hardware Port: Thunderbolt <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>Device: en2
+</span></span><span style="display:flex;"><span>Ethernet Address: 36:0e:31:4d:99:84
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Hardware Port: Thunderbolt <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>Device: en3
+</span></span><span style="display:flex;"><span>Ethernet Address: 36:0e:31:4d:99:88
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Hardware Port: Thunderbolt Bridge
+</span></span><span style="display:flex;"><span>Device: bridge0
+</span></span><span style="display:flex;"><span>Ethernet Address: 36:0e:31:4d:99:80
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>VLAN Configurations
+</span></span><span style="display:flex;"><span><span style="color:#f92672">===================</span>
+</span></span></code></pre></div><p>然后，运行该接口上的数据包跟踪。我使用en0主无线接口，因此我运行：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>tcpdump -i en0 -s <span style="color:#ae81ff">0</span> -B <span style="color:#ae81ff">524288</span> -w ~/Desktop/demo.pcap
+</span></span></code></pre></div><p>然后在命令行中另开一个tab，运行下面的命令，我使用的是ab（Apachebench），它是OSX自带的。其他常用的URL-hitters是curl，wget和siege。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>ab -n <span style="color:#ae81ff">1000</span> -c <span style="color:#ae81ff">100</span> https://www.ebay.com/
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span>  ~/ ab -n <span style="color:#ae81ff">1000</span> -c <span style="color:#ae81ff">100</span> https://www.ebay.com/
+</span></span><span style="display:flex;"><span>This is ApacheBench, Version 2.3 &lt;$Revision: <span style="color:#ae81ff">1901567</span> $&gt;
+</span></span><span style="display:flex;"><span>Copyright <span style="color:#ae81ff">1996</span> Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+</span></span><span style="display:flex;"><span>Licensed to The Apache Software Foundation, http://www.apache.org/
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Benchmarking www.ebay.com <span style="color:#f92672">(</span>be patient<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Completed <span style="color:#ae81ff">100</span> requests
+</span></span><span style="display:flex;"><span>Completed <span style="color:#ae81ff">200</span> requests
+</span></span><span style="display:flex;"><span>Completed <span style="color:#ae81ff">300</span> requests
+</span></span><span style="display:flex;"><span>Completed <span style="color:#ae81ff">400</span> requests
+</span></span><span style="display:flex;"><span>Completed <span style="color:#ae81ff">500</span> requests
+</span></span><span style="display:flex;"><span>Completed <span style="color:#ae81ff">600</span> requests
+</span></span><span style="display:flex;"><span>Completed <span style="color:#ae81ff">700</span> requests
+</span></span><span style="display:flex;"><span>Completed <span style="color:#ae81ff">800</span> requests
+</span></span><span style="display:flex;"><span>Completed <span style="color:#ae81ff">900</span> requests
+</span></span><span style="display:flex;"><span>Completed <span style="color:#ae81ff">1000</span> requests
+</span></span><span style="display:flex;"><span>Finished <span style="color:#ae81ff">1000</span> requests
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Server Software:        ebay-proxy-server
+</span></span><span style="display:flex;"><span>Server Hostname:        www.ebay.com
+</span></span><span style="display:flex;"><span>Server Port:            <span style="color:#ae81ff">443</span>
+</span></span><span style="display:flex;"><span>SSL/TLS Protocol:       TLSv1.2,ECDHE-RSA-AES128-GCM-SHA256,2048,128
+</span></span><span style="display:flex;"><span>Server Temp Key:        ECDH P-256 <span style="color:#ae81ff">256</span> bits
+</span></span><span style="display:flex;"><span>TLS Server Name:        www.ebay.com
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Document Path:          /
+</span></span><span style="display:flex;"><span>Document Length:        <span style="color:#ae81ff">274015</span> bytes
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Concurrency Level:      <span style="color:#ae81ff">100</span>
+</span></span><span style="display:flex;"><span>Time taken <span style="color:#66d9ef">for</span> tests:   11.180 seconds
+</span></span><span style="display:flex;"><span>Complete requests:      <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>Failed requests:        <span style="color:#ae81ff">999</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">(</span>Connect: 0, Receive: 0, Length: 999, Exceptions: 0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Non-2xx responses:      <span style="color:#ae81ff">894</span>
+</span></span><span style="display:flex;"><span>Total transferred:      <span style="color:#ae81ff">25431453</span> bytes
+</span></span><span style="display:flex;"><span>HTML transferred:       <span style="color:#ae81ff">24854366</span> bytes
+</span></span><span style="display:flex;"><span>Requests per second:    89.44 <span style="color:#f92672">[</span><span style="color:#75715e">#/sec] (mean)</span>
+</span></span><span style="display:flex;"><span>Time per request:       1118.043 <span style="color:#f92672">[</span>ms<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>mean<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Time per request:       11.180 <span style="color:#f92672">[</span>ms<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>mean, across all concurrent requests<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Transfer rate:          2221.33 <span style="color:#f92672">[</span>Kbytes/sec<span style="color:#f92672">]</span> received
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Connection Times <span style="color:#f92672">(</span>ms<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>              min  mean<span style="color:#f92672">[</span>+/-sd<span style="color:#f92672">]</span> median   max
+</span></span><span style="display:flex;"><span>Connect:      <span style="color:#ae81ff">121</span>  <span style="color:#ae81ff">407</span> 135.6    <span style="color:#ae81ff">364</span>     <span style="color:#ae81ff">855</span>
+</span></span><span style="display:flex;"><span>Processing:    <span style="color:#ae81ff">38</span>  <span style="color:#ae81ff">557</span> 842.6    <span style="color:#ae81ff">361</span>    <span style="color:#ae81ff">4273</span>
+</span></span><span style="display:flex;"><span>Waiting:       <span style="color:#ae81ff">38</span>  <span style="color:#ae81ff">401</span> 399.0    <span style="color:#ae81ff">358</span>    <span style="color:#ae81ff">2287</span>
+</span></span><span style="display:flex;"><span>Total:        <span style="color:#ae81ff">342</span>  <span style="color:#ae81ff">964</span> 911.7    <span style="color:#ae81ff">691</span>    <span style="color:#ae81ff">4917</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Percentage of the requests served within a certain time <span style="color:#f92672">(</span>ms<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>  50%    <span style="color:#ae81ff">691</span>
+</span></span><span style="display:flex;"><span>  66%    <span style="color:#ae81ff">747</span>
+</span></span><span style="display:flex;"><span>  75%    <span style="color:#ae81ff">838</span>
+</span></span><span style="display:flex;"><span>  80%    <span style="color:#ae81ff">852</span>
+</span></span><span style="display:flex;"><span>  90%   <span style="color:#ae81ff">1649</span>
+</span></span><span style="display:flex;"><span>  95%   <span style="color:#ae81ff">3786</span>
+</span></span><span style="display:flex;"><span>  98%   <span style="color:#ae81ff">4244</span>
+</span></span><span style="display:flex;"><span>  99%   <span style="color:#ae81ff">4521</span>
+</span></span><span style="display:flex;"><span> 100%   <span style="color:#ae81ff">4917</span> <span style="color:#f92672">(</span>longest request<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>然后回到最初的命令行，使用control-C停止tcpdump捕获数据。现在我有了一个网络dump，其中包含我访问该URL的数据包（以及我计算机在此期间执行的其他任何其他网络数据，因此其中可能包含大量来自聊天客户端等的噪音）。</p>
+<p>现在用wireshark来对上面的demo.pcap进行分析。下面是wireshark安装步骤我。</p>
+<p>如果你想要UI界面，你需要安装它：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>brew install wireshark --with-qt
+</span></span></code></pre></div><p>如果你只是安装wireshark而不是–with-qt，你不会得到wireshark，你会得到一个叫tshark的命令行，然后你需要重新安装……对于这个，以及大多数事情，你需要Xcode或至少Xcode命令行工具（我总是只安装工具）。你可以使用下面的命令安装它们：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>xcode-select --install
+</span></span></code></pre></div><p>但是，如果你有一个旧版本（&lt;8.2.1），wireshark构建将失败。要更新命令行工具，你……据说你不再需要了。App Store不再提供命令行工具更新，苹果公司对它们是否仍然存在变得越来越模糊和混乱。所以我只是从App Store安装了完整的XCode，无论如何，它只是网络和磁盘空间，以及对宇宙的热死亡做出贡献，但我不生气，然后它构建。</p>
+<p>然后，你需要安装wireshark-chmodbpf cask：</p>
+<p>或者，如果你想在本地wireshark中捕获而不是单独使用tcpdump，你还需要运行下面的命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>brew cask install wireshark-chmodbpf
+</span></span></code></pre></div><p>要分析你的tcpdump文件，只需运行</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>wireshark
+</span></span></code></pre></div><p>并且加载捕获文件。然后将其排序到你想要的最快方法是找到一个感兴趣的事务的一部分——比如在我的例子中通过过滤“TCP”或者只是看看——然后右键单击一个包，并用“Follow… TCP stream”，你就可以得到一个完整的事务。</p>
+<p><img src="./pics/tcp01.jpg" alt="">
+<img src="./pics/tcp02.jpg" alt="">
+<img src="./pics/tcp03.jpg" alt=""></p>
+<p>现在你可以通过查看并查看是否可以找到出错的原因来测试你的TCP/IP网络知识！</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

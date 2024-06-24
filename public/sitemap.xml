@@ -2,10 +2,46 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/gpu/k8s-device-plugin/</loc>
-    <lastmod>2024-06-20T17:14:15+08:00</lastmod>
+    <loc>http://localhost:1313/software/</loc>
+    <lastmod>2024-06-23T09:56:47+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/</loc>
+    <lastmod>2024-06-23T09:56:47+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/software/just-in-time/</loc>
+    <lastmod>2024-06-23T09:56:47+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/software/json-patch-vs-merge-patch/</loc>
+    <lastmod>2024-06-23T09:55:47+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/software/elastic/</loc>
+    <lastmod>2024-06-23T09:54:22+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/software/docker-build-on-m1-mac/</loc>
+    <lastmod>2024-06-23T09:52:55+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/software/upstream-downstream/</loc>
+    <lastmod>2024-06-23T09:50:29+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/network/what-is-bgp/</loc>
+    <lastmod>2024-06-23T09:47:26+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/network/the-road-to-quic/</loc>
+    <lastmod>2024-06-23T09:45:05+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/network/tcp-dump-in-osx/</loc>
+    <lastmod>2024-06-23T09:44:04+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/network/root-certificates-intermediate/</loc>
+    <lastmod>2024-06-23T09:42:42+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/network/</loc>
+    <lastmod>2024-06-23T09:39:40+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/network/how-to-use-ipset/</loc>
+    <lastmod>2024-06-23T09:39:22+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/gpu/k8s-device-plugin/</loc>
     <lastmod>2024-06-20T17:14:15+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/gpu/k8s-device-plugin-mps/</loc>

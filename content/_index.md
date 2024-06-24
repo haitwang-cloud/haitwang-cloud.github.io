@@ -2,7 +2,6 @@
 title: "Welcome to My Blog"
 draft: false
 ---
-Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technology, Golang, networking engineering, software development ecosystems, and practical insights on Kubernetes. Each article, whether original or meticulously translated, aims to build a bridge between theoretical knowledge and hands-on skills, expanding your technical horizons. Let's embark on this journey together, level by level! 📚
 
 🎉 欢迎莅临我的技术探索空间! 🚀 在这里，我们深入探讨 Istio、GPU 技术、Golang、网络工程、软件开发生态以及 Kubernetes 的实践智慧。每一篇文章，无论是原创还是精心翻译，都旨在为您搭建一座桥梁，连接理论知识与实战技巧，拓宽您的技术视界。📚 结伴同行，在技术之旅上步步高升！
 
@@ -106,7 +105,5 @@ Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technolog
 - 解决Elasticsearch连接问题：No Node Available [实战教程](./software/elastic)
 - JSON补丁技术对比：Patch vs Merge Patch [JSON补丁技术深度比较：Patch与Merge Patch的优劣分析](./software/json-patch-vs-merge-patch)
 - 即时编译(JIT)全面解读：提升程序执行效率的关键 [即时编译(JIT)技术揭秘](./software/just-in-time)
-
-🎯 About Me: I am a tech enthusiast and an engineer, specializing in cloud-native technologies, distributed systems, network engineering, and Golang. With over 5 years of technical experience 🔧, I have played significant roles at companies like eBay and SAP 👨‍💻, focusing on the construction and maintenance of K8S and Istio mesh. Recently, I have been deeply involved in the management of vGPUs within K8S clusters, exploring new technologies and best practices in this field. As a lifelong learner 🎓, I enjoy sharing my knowledge and experience through my blog. Whether you are a seasoned professional or a newcomer, I welcome you to engage and learn with me!
 
 🎯 关于我：我是一名热爱技术的工程师，专注于云原生、分布式系统、网络工程、Golang 等领域, 我拥有超过 5 年的技术经验🔧，在 eBay 和 SAP 担任过重要角色👨‍💻，专注于 K8S 和 Istio mesh 的构建和维护。最近，我深入研究了 K8S 集群中的 vGPU 管理，探索这一领域的新技术和最佳实践。作为一个终身学习者🎓，我乐于通过博客分享我的知识和经验，无论您是经验丰富的专业人士还是刚起步的新手，都欢迎与我交流和学习！

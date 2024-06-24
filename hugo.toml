@@ -16,3 +16,11 @@ theme = "paper"
   avatar = 'https://gravatar.com/haitaoking1993'                 # gravatar email or image url
   name = 'Tim Wang'
 
+[params.giscus]
+  repo = 'haitwang-cloud/haitwang-cloud.github.io'                 # see https://giscus.app for more details
+  repoId = 'R_kgDOMH03cQ'
+  category = 'General'
+  categoryId = 'DIC_kwDOMH03cc4CgVak'
+  mapping = 'pathname'
+  theme = 'light'
+  lang = 'zh-CN'

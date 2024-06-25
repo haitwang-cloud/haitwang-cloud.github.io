@@ -199,9 +199,9 @@
     </item>
     <item>
       <title>Golang 错误处理的最佳实践</title>
-      <link>http://localhost:1313/golang/error-hanlde/</link>
+      <link>http://localhost:1313/golang/error-handle/</link>
       <pubDate>Wed, 19 Jun 2024 17:03:55 +0800</pubDate>
-      <guid>http://localhost:1313/golang/error-hanlde/</guid>
+      <guid>http://localhost:1313/golang/error-handle/</guid>
       <description>本文是 Effective Error Handling in Golang的中文翻译版本，内容有删减。&#xA;其他优秀的Golang error handle 文章：&#xA;一套优雅的 Go 错误问题解决方案 Go 中的 Errors 处理与其他主流编程语言（如 Java、JavaScript 或 Python）略有不同。Go 的内置 Errors 不包含堆栈跟踪，也不支持传统的 try/catch 方法来处理。相反，Go 中的 Errors 只是函数返回的值，它们可以像处理任何其他数据类型一样被处理, 它为 Go 带来了令人惊讶的轻量级和简单的设计。&#xA;在本文中，我将从 Go 中处理错误的基础知识开始讲解，同时还有在代码中可以遵循的一些简单策略，以确保您的程序是健壮的和易于调试的。&#xA;Error类型 (The Error Type) Go 中的错误类型是通过以下接口实现的：&#xA;type error interface { Error() string } 所以，Go 中的错误是实现了 Error()的任何方法，该方法返回一个字符串类型的错误消息。就是这么简单！&#xA;构建Errors (Constructing Errors) Errors 可以使用 Go 的内置 errors 或 fmt 包进行构造。例如，以下函数使用 errors 包返回一个带有静态错误消息的 error：&#xA;package main import &amp;#34;errors&amp;#34; func DoSomething() error { return errors.</description>
     </item>
     <item>
@@ -371,6 +371,13 @@
       <pubDate>Fri, 14 Jun 2024 16:58:03 +0800</pubDate>
       <guid>http://localhost:1313/k8s/oci-error/</guid>
       <description>本文是针对作者遇到的OCI runtime create failed: expected cgroupsPath to be of format \&amp;quot;slice:prefix:name\&amp;quot; for systemd cgroups, got \&amp;quot;/kubepods/burstable/...&amp;quot;的问题总结&#xA;问题总结 问题描述 在特定的k8s node上不能通过containerd启动pod,pod的状态一直是ContainerCreating,通过kubectl describe pod查看pod的状态,发现如下错误:&#xA;OCI runtime create failed: runc create failed: expected cgroupsPath to be of format &amp;#34;slice:prefix:name&amp;#34; for systemd cgroups k8s集群信息 k8s版本: v1.26.13 containerd版本: 1.6.24 Linnux kernel版本: 6.6.20-amd64 Linux发行版: Garden Linux 1443.0 kubeProxyVersion: v1.26.13 kubeletVersion: v1.26.13 问题分析 此问题是因为kubelet配置为使用cgroupfs cgroup驱动程序，而containerd配置为使用sytemd cgroup驱动程序。&#xA;解决方法 为了解决上面的问题，可以从以下两种方式中选择一种：&#xA;让containerd使用cgroupfs驱动程序，需要从/etc/containerd/config.toml中删除SystemdCgroup = true行。 让kubelet使用systemd驱动程序，需要将KubeletConfiguration中的cgroupDriver设置为&amp;quot;systemd&amp;quot;。 扩展阅读 查看Kubelet配置 Kubelet的配置文件通常位于/var/lib/kubelet/位置，可以通过查看该文件来确认Kubelet的cgroup驱动程序配置。关于其他CRIs的配置文件位置可以参考Container Runtimes。</description>
+    </item>
+    <item>
+      <title></title>
+      <link>http://localhost:1313/intro-zh/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/intro-zh/</guid>
+      <description>English | 简体中文&#xA;🎉 欢迎莅临我的技术探索空间! 🚀 在这里，我们深入探讨 Istio、GPU 技术、Golang、网络工程、软件开发生态以及 Kubernetes 的实践智慧。每一篇文章，无论是原创还是精心翻译，都旨在为您搭建一座桥梁，连接理论知识与实战技巧，拓宽您的技术视界。📚 结伴同行，在技术之旅上步步高升！&#xA;GPU：探索GPU的奥秘，从基础到高级应用 Kubernetes GPU 管理基础：Device Plugin 介绍与源码分析 Kubernetes GPU 管理基础 Kubernetes GPU 管理进阶：启用 Nvidia MPS 启用 Nvidia MPS 故障排查：解决 &amp;ldquo;Failed to initialize NVML: Unknown Error&amp;rdquo; 解决 Kubernetes GPU 管理错误 Kubernetes GPU 优化：最大化 GPU 利用率 Kubernetes GPU 优化 特定环境 GPU 管理：在 Rocky Linux 上安装 NVIDIA GPU Operator 在 Rocky Linux 上安装 NVIDIA GPU Operator Istio：深入理解微服务之间的流量管理 Kubernetes上的Istio控制面管理：多实例部署实战 多控制平面配置指南 多环境应用开发实战：Istio下的微服务构建策略 无缝对接多环境:基于Istio的微服务应用构建技巧 Istio流量异常处理：502错误根源分析与解决 Istio应用故障排查手册:上游连接重置502错误详解 Istio核心技术探秘：网络原理与Sidecar自动注入机制 深入理解Istio：网络原理与Sidecar的自动注入机制 Golang 资源大全：从基础到高级特性 探索 Golang 的世界，这里有你需要的所有资源，从基础语法到高级特性，一网打尽！</description>
     </item>
   </channel>
 </rss>

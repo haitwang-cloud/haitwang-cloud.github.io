@@ -80,9 +80,9 @@
     </item>
     <item>
       <title>Golang 错误处理的最佳实践</title>
-      <link>http://localhost:1313/golang/error-hanlde/</link>
+      <link>http://localhost:1313/golang/error-handle/</link>
       <pubDate>Wed, 19 Jun 2024 17:03:55 +0800</pubDate>
-      <guid>http://localhost:1313/golang/error-hanlde/</guid>
+      <guid>http://localhost:1313/golang/error-handle/</guid>
       <description>本文是 Effective Error Handling in Golang的中文翻译版本，内容有删减。&#xA;其他优秀的Golang error handle 文章：&#xA;一套优雅的 Go 错误问题解决方案 Go 中的 Errors 处理与其他主流编程语言（如 Java、JavaScript 或 Python）略有不同。Go 的内置 Errors 不包含堆栈跟踪，也不支持传统的 try/catch 方法来处理。相反，Go 中的 Errors 只是函数返回的值，它们可以像处理任何其他数据类型一样被处理, 它为 Go 带来了令人惊讶的轻量级和简单的设计。&#xA;在本文中，我将从 Go 中处理错误的基础知识开始讲解，同时还有在代码中可以遵循的一些简单策略，以确保您的程序是健壮的和易于调试的。&#xA;Error类型 (The Error Type) Go 中的错误类型是通过以下接口实现的：&#xA;type error interface { Error() string } 所以，Go 中的错误是实现了 Error()的任何方法，该方法返回一个字符串类型的错误消息。就是这么简单！&#xA;构建Errors (Constructing Errors) Errors 可以使用 Go 的内置 errors 或 fmt 包进行构造。例如，以下函数使用 errors 包返回一个带有静态错误消息的 error：&#xA;package main import &amp;#34;errors&amp;#34; func DoSomething() error { return errors.</description>
     </item>
     <item>

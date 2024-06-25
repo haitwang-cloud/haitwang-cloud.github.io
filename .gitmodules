@@ -1,3 +1,6 @@
+[submodule "themes/themes/paper"]
+	path = themes/themes/paper
+	url = https://github.com/haitwang-cloud/hugo-paper
 [submodule "themes/paper"]
 	path = themes/paper
-	url = https://github.com/nanxiaobei/hugo-paper
+	url = https://github.com/haitwang-cloud/hugo-paper

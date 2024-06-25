@@ -1,0 +1,421 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title> - Tim Wang的技术博客</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="English | 简体中文
+🎉 欢迎莅临我的技术探索空间! 🚀 在这里，我们深入探讨 Istio、GPU 技术、Golang、网络工程、软件开发生态以及 Kubernetes 的实践智慧。每一篇文章，无论是原创还是精心翻译，都旨在为您搭建一座桥梁，连接理论知识与实战技巧，拓宽您的技术视界。📚 结伴同行，在技术之旅上步步高升！
+GPU：探索GPU的奥秘，从基础到高级应用 Kubernetes GPU 管理基础：Device Plugin 介绍与源码分析 Kubernetes GPU 管理基础 Kubernetes GPU 管理进阶：启用 Nvidia MPS 启用 Nvidia MPS 故障排查：解决 &ldquo;Failed to initialize NVML: Unknown Error&rdquo; 解决 Kubernetes GPU 管理错误 Kubernetes GPU 优化：最大化 GPU 利用率 Kubernetes GPU 优化 特定环境 GPU 管理：在 Rocky Linux 上安装 NVIDIA GPU Operator 在 Rocky Linux 上安装 NVIDIA GPU Operator Istio：深入理解微服务之间的流量管理 Kubernetes上的Istio控制面管理：多实例部署实战 多控制平面配置指南 多环境应用开发实战：Istio下的微服务构建策略 无缝对接多环境:基于Istio的微服务应用构建技巧 Istio流量异常处理：502错误根源分析与解决 Istio应用故障排查手册:上游连接重置502错误详解 Istio核心技术探秘：网络原理与Sidecar自动注入机制 深入理解Istio：网络原理与Sidecar的自动注入机制 Golang 资源大全：从基础到高级特性 探索 Golang 的世界，这里有你需要的所有资源，从基础语法到高级特性，一网打尽！" />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang的技术博客</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5"></h1>
+
+    
+  </header>
+
+  <section><p><a href="/">English</a> |
+简体中文</p>
+<p>🎉 欢迎莅临我的技术探索空间! 🚀 在这里，我们深入探讨 Istio、GPU 技术、Golang、网络工程、软件开发生态以及 Kubernetes 的实践智慧。每一篇文章，无论是原创还是精心翻译，都旨在为您搭建一座桥梁，连接理论知识与实战技巧，拓宽您的技术视界。📚 结伴同行，在技术之旅上步步高升！</p>
+<h2 id="gpu探索gpu的奥秘从基础到高级应用">GPU：探索GPU的奥秘，从基础到高级应用</h2>
+<ul>
+<li>Kubernetes GPU 管理基础：Device Plugin 介绍与源码分析 <a href="./gpu/k8s-device-plugin">Kubernetes GPU 管理基础</a></li>
+<li>Kubernetes GPU 管理进阶：启用 Nvidia MPS <a href="./gpu/k8s-device-plugin-mps">启用 Nvidia MPS</a></li>
+<li>故障排查：解决 &ldquo;Failed to initialize NVML: Unknown Error&rdquo; <a href="./gpu/nvml-error/">解决 Kubernetes GPU 管理错误</a></li>
+<li>Kubernetes GPU 优化：最大化 GPU 利用率 <a href="./gpu/how-to-increase-gpu-utilization-in-kubernetes">Kubernetes GPU 优化</a></li>
+<li>特定环境 GPU 管理：在 Rocky Linux 上安装 NVIDIA GPU Operator <a href="./gpu/how-to-install-nvidia-gpu-operator-with-a100-on-kubernetes-base-rocky-linux">在 Rocky Linux 上安装 NVIDIA GPU Operator</a></li>
+</ul>
+<h2 id="istio深入理解微服务之间的流量管理">Istio：深入理解微服务之间的流量管理</h2>
+<ul>
+<li>Kubernetes上的Istio控制面管理：多实例部署实战 <a href="./istio/how-to-install-multi-istio-control-plane">多控制平面配置指南</a></li>
+<li>多环境应用开发实战：Istio下的微服务构建策略 <a href="./istio/build-app-under-multi-istio">无缝对接多环境:基于Istio的微服务应用构建技巧</a></li>
+<li>Istio流量异常处理：502错误根源分析与解决 <a href="./istio/istio-upstream-error">Istio应用故障排查手册:上游连接重置502错误详解</a></li>
+<li>Istio核心技术探秘：网络原理与Sidecar自动注入机制 <a href="./istio/istio-sidecar-inject">深入理解Istio：网络原理与Sidecar的自动注入机制</a></li>
+</ul>
+<h2 id="golang-资源大全从基础到高级特性">Golang 资源大全：从基础到高级特性</h2>
+<p>探索 Golang 的世界，这里有你需要的所有资源，从基础语法到高级特性，一网打尽！</p>
+<h3 id="golang-基础与入门">Golang 基础与入门</h3>
+<ul>
+<li>Cobra使用指南：学习如何使用Cobra创建强大的现代CLI应用程序 <a href="./golang/cobra-user-guide/">阅读更多</a></li>
+<li>Go init 函数详解：深入了解Go程序的自动初始化过程 <a href="./golang/init-function-introduction">点击了解</a></li>
+<li>Golang中的值传递与引用传递：掌握Go中数据传递的基本概念 <a href="./golang/golang-pass-by-value-vs-pass-by-reference">深入理解</a></li>
+<li>Golang 中的有效错误处理：探索错误处理的最佳实践，提高代码的健壮性 <a href="./golang/error-handling-best-practices">掌握技巧</a></li>
+<li>Go切片操作秘籍：三种高效比较技巧 <a href="./golang/compare-slice">探索技巧</a></li>
+</ul>
+<h3 id="golang-并发与性能">Golang 并发与性能</h3>
+<ul>
+<li>Golang sync.Map使用介绍：理解并使用Go的高效并发Map。 <a href="./golang/go-sync-Map">学习使用</a></li>
+<li>Go 1.18 中的新功能：探索Go语言最新版本的特性，提升开发效率。 <a href="./golang/go-version-118-release-new">查看更新</a></li>
+<li>Golang中正确使用条件变量sync.Cond：学习如何在并发编程中正确使用条件变量。 <a href="./golang/go-sync-cond">学习使用</a></li>
+</ul>
+<h3 id="golang-测试调试与性能优化">Golang 测试、调试与性能优化</h3>
+<ul>
+<li>在Go中进行 Fuzz Testing：使用Fuzz Testing发现代码中的潜在问题 <a href="./golang/go-fuzz-testing">探索测试</a></li>
+<li>在 Golang中进行 Table Driven Unit Tests：通过表驱动测试提高代码的测试覆盖率 <a href="./golang/table-driven-unit-tests">高效测试</a></li>
+<li>Golang内存泄漏问题详细：诊断和修复内存泄漏，优化程序性能 <a href="./golang/golang-Memory-Leaks">解决内存问题</a></li>
+<li>LeakProf: 轻量级在线Goroutine泄漏检测：使用LeakProf工具检测和修复Goroutine泄漏 <a href="./golang/leakprof-featherlight">检测泄漏</a></li>
+</ul>
+<h3 id="golang-高级特性与最佳实践">Golang 高级特性与最佳实践</h3>
+<ul>
+<li>go.mod 文件中的直接和间接依赖：掌握依赖管理，优化项目构建过程。 <a href="./golang/direct-indirect-dependency-module-go">深入了解</a></li>
+<li>如何升级Golang module的依赖：学习如何高效地管理和升级项目依赖。 <a href="./golang/how-to-upgrade-golang-dependencies">升级指南</a></li>
+<li>开始使用Golang Plugins：探索Go的插件系统，扩展语言能力。 <a href="./golang/getting-started-with-golang-plugins">插件入门</a></li>
+</ul>
+<h3 id="golang-依赖管理与版本控制">Golang 依赖管理与版本控制</h3>
+<ul>
+<li>go.mod 文件中的直接和间接依赖：掌握依赖管理，优化项目构建过程。 <a href="./golang/direct-indirect-dependency-module-go">深入了解</a></li>
+<li>使用Go管理多个Go版本：学习如何在开发环境中管理不同版本的Go <a href="./golang/managing-multiple-go-versions-with-go">高效管理</a></li>
+</ul>
+<h2 id="kubernetes-k8s">Kubernetes (K8s)</h2>
+<p>从裸机部署到高级调度策略，全方位掌握Kubernetes。</p>
+<h3 id="kubernetes-基础和核心概念">Kubernetes 基础和核心概念</h3>
+<ul>
+<li>通过运行应用学习Kubernetes：为初学者设计的入门指南 <a href="./k8s/learning-k8s-by-running-app/">开始学习</a></li>
+<li>Kubernetes headless Service介绍：了解headless服务的基本概念 <a href="./k8s/headLess-svc/">了解headless服务</a></li>
+<li>k8s Affinity与 taint/toleration的区别：理解工作节点的亲和性与排斥性配置 <a href="./k8s/diff-of-Affinity-and-taint/">比较affinity与taint/toleration</a></li>
+<li>k8s 默认的调度器工作机制和策略：深入理解Kubernetes调度器的工作原理。<a href="./k8s/k8s-schedule-road-path/">调度器机制</a></li>
+<li>如何在 Kubernetes 中有效使用 Secret、ConfigMap 和 Lease：详解及示例。<a href="./k8s/k8s-secret-configMap-Lease/">使用 Secret、ConfigMap 和 Lease</a></li>
+</ul>
+<h3 id="kubernetes-高级特性与优化-advanced">Kubernetes 高级特性与优化 (Advanced)</h3>
+<ul>
+<li>全面解析Bare Metal Kubernetes:必知的关键点：深入理解在裸金属上部署Kubernetes的关键要素 <a href="./k8s/bare-metal-kubernetes/">Bare Metal Kubernetes解析</a></li>
+<li>K8s Cloud Provider源码解析：深入分析Kubernetes云服务提供商的源码 <a href="./k8s/k8s-cloud-provider/">源码解析</a></li>
+<li>Kubernetes与K3s比较：探索Kubernetes与K3s的不同之处 <a href="./k8s/k8s-vs-k3s/">Kubernetes与K3s比较</a></li>
+<li>K8s informers的介绍：掌握Kubernetes的事件通知机制 <a href="./k8s/k8s_informers/">K8s informers的介绍</a></li>
+</ul>
+<h3 id="kubernetes-运维与开发">Kubernetes 运维与开发</h3>
+<ul>
+<li>在K8s controller-runtime和client-go中实现速率限制：学习如何在Kubernetes中控制API调用频率。<a href="./k8s/controller-runtime-client-go-rate-limiting/">速率限制实现</a></li>
+<li>OCI runtime create failed: expected cgroupsPath：解决容器运行时配置问题。 <a href="./k8s/oci-error/">解决OCI配置问题</a></li>
+<li>Client-go 中的label selector 引起的 CPU Throttling问题：诊断和修复CPU限制问题。<a href="./k8s/oom-killed-by-client-go-label-select/">CPU Throttling问题解决</a></li>
+<li>使用client-go在Kubernetes中进行leader election：实现高可用性集群。<a href="./k8s/leader-election-in-kubernetes-using-client-go/">leader选举</a></li>
+<li>深入了解Kubernetes控制器对象存储（object stores）和索引器（indexers）：提升控制器性能的高级技巧 <a href="./k8s/object-stores-and-indexers/">控制器对象存储与索引器</a></li>
+</ul>
+<h3 id="kubernetes-工具与实践">Kubernetes 工具与实践</h3>
+<ul>
+<li>用k8sgpt-localai解锁Kubernetes的超能力：<a href="./k8s/k8sgpt-operater/">探索AI技术在Kubernetes中的应用</a></li>
+<li>简化Helm Charts部署：使用tpl函数引用Values：提高Helm部署效率 <a href="./k8s/using-the-helm-tpl-function/">简化Helm 部署</a></li>
+</ul>
+<h2 id="网络技术深度解析实战指南与核心概念">网络技术深度解析：实战指南与核心概念</h2>
+<ul>
+<li>BGP路由协议深度揭秘：网络架构的基石 <a href="./network/what-is-bgp">网络基础构建：揭秘BGP路由协议</a></li>
+<li>Linux网络管理实战：精通ipset命令运用 <a href="./network/how-to-use-ipset">Linux网络高手秘籍：高效利用ipset命令</a></li>
+<li>SSL/TLS安全基础：根证书与中间证书解析 <a href="./network/root-certificates-intermediate">安全基石：根证书与中间证书的区别与应用</a></li>
+<li>OSX网络监控精粹：tcpdump高级操作手册 <a href="./network/tcp-dump-in-OSX">OSX环境下的网络监听艺术：tcpdump高级技巧</a></li>
+<li>QUIC协议前瞻：下一代互联网传输协议的探索 <a href="./network/the-road-to-quic">QUIC协议：重塑互联网传输的未来之路</a></li>
+</ul>
+<h2 id="software-development软件开发实践与技术">Software Development：软件开发实践与技术</h2>
+<ul>
+<li>软件开发的上下游链路解析 <a href="./software/upstream-downstream">探索软件开发生命周期中的上下游协作</a></li>
+<li>Apple M1芯片（M1 Mac）Docker镜像构建全面指南 <a href="./software/docker-build-on-m1-mac">M1芯片上的Docker构建实战</a></li>
+<li>解决Elasticsearch连接问题：No Node Available <a href="./software/elastic">实战教程</a></li>
+<li>JSON补丁技术对比：Patch vs Merge Patch <a href="./software/json-patch-vs-merge-patch">JSON补丁技术深度比较：Patch与Merge Patch的优劣分析</a></li>
+<li>即时编译(JIT)全面解读：提升程序执行效率的关键 <a href="./software/just-in-time">即时编译(JIT)技术揭秘</a></li>
+</ul>
+<p>🎯 关于我：我是一名热爱技术的工程师，专注于云原生、分布式系统、网络工程、Golang 等领域, 我拥有超过 5 年的技术经验🔧，在 eBay 和 SAP 担任过重要角色👨‍💻，专注于 K8S 和 Istio mesh 的构建和维护。最近，我深入研究了 K8S 集群中的 vGPU 管理，探索这一领域的新技术和最佳实践。作为一个终身学习者🎓，我乐于通过博客分享我的知识和经验，无论您是经验丰富的专业人士还是刚起步的新手，都欢迎与我交流和学习！</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  <div class="giscus mt-24"></div>
+  <script
+    src="https://giscus.app/client.js"
+    data-repo="haitwang-cloud/haitwang-cloud.github.io"
+    data-repo-id="R_kgDOMH03cQ"
+    data-category="General"
+    data-category-id="DIC_kwDOMH03cc4CgVak"
+    data-mapping="pathname"
+    data-strict="1"
+    data-reactions-enabled="0"
+    data-emit-metadata="0"
+    data-input-position="top"
+    data-theme="light"
+    data-lang="zh-CN"
+    data-loading="lazy"
+    crossorigin="anonymous"
+    async
+  ></script>
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang的技术博客</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

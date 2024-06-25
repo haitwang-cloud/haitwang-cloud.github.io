@@ -2,45 +2,45 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Network on Tim Wang的技术博客</title>
-    <link>http://localhost:1313/network/</link>
+    <link>http://localhost:53654/network/</link>
     <description>Recent content in Network on Tim Wang的技术博客</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
     <lastBuildDate>Sun, 23 Jun 2024 09:47:26 +0800</lastBuildDate>
-    <atom:link href="http://localhost:1313/network/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:53654/network/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>What Is Bgp</title>
-      <link>http://localhost:1313/network/what-is-bgp/</link>
+      <link>http://localhost:53654/network/what-is-bgp/</link>
       <pubDate>Sun, 23 Jun 2024 09:47:26 +0800</pubDate>
-      <guid>http://localhost:1313/network/what-is-bgp/</guid>
+      <guid>http://localhost:53654/network/what-is-bgp/</guid>
       <description>What is BGP? | BGP routing explained 的中文翻译版本,内容有删减&#xA;其他BGP相关的文章: border-gateway-protocol-bgp&#xA;BGP是什么（What is BGP?） 边界网关协议（BGP）可以类比为互联网的邮政服务。当有人将一封信放入邮箱时，邮政服务会处理该邮件，并选择一条快速、有效的线路将该信递送给收件人。同样当有人通过互联网提交数据时，BGP 负责查看数据可以传输的所有可用路径，并选择最佳路由，这通常意味着在自治系统之间跳转。&#xA;BGP 是通过启用数据路由, 然后使互联网工作的协议。当一个新加坡的用户访问服务器位于阿根廷的网站时，此时BGP就是使通信能够快速有效地发生的协议。&#xA;什么是自治系统(What is an autonomous system?) 互联网是一个小型网络的集合。它由数十万个较小的被称为自治系统网络构成。这些子网络本质上都是由单个组织运行的大型路由器池。&#xA;如果我们继续将BGP类比互联网中的邮政服务，那么AS就像单个邮局分支机构。一个城镇可能有数百个邮箱，但这些邮箱中的邮件必须通过当地的邮政分支机构，然后才能发送到另一个目的地。AS内部的路由器类似于邮箱。它们将其出站信息转发到 AS，然后 AS 使用 BGP 路由将这些信息传输到目的地。&#xA;上图是 BGP 的简化版本。在这个版本中，互联网上只有六个 AS。如果 AS1 需要将数据包路由到 AS3，则它有两个不同的选项：&#xA;数据先到 AS2，然后到 AS3： AS2 → AS3 或者数据先到 AS6，然后到 AS5、AS4，最后到 AS3： AS6 → AS5 → AS4 → AS3 在这个简化的BGP模型中，我们可以很明确地做出决定: AS2 路由比 AS6 路由需要的跳数少，因此它是最快速、最有效的路由。现在想象一下有数十万个 AS，而且跳数只是复杂路由选择算法的一部分。这就是互联网上 BGP 路由的现实。&#xA;互联网的拓扑一直在不断变化，新的系统不断出现，已有的系统会面临变得不可用的情况。因此，每个 AS 必须保持新路由和旧路由的信息保持同步。这是通过会话完成的，其中每个 AS 通过 TCP/IP 连接连接到相邻的 AS，以便共享路由信息。通过使用此信息，每个 AS 都能够正确路由来自内部的出站数据传输。</description>
     </item>
     <item>
       <title>QUIC的发展之路</title>
-      <link>http://localhost:1313/network/the-road-to-quic/</link>
+      <link>http://localhost:53654/network/the-road-to-quic/</link>
       <pubDate>Sun, 23 Jun 2024 09:45:05 +0800</pubDate>
-      <guid>http://localhost:1313/network/the-road-to-quic/</guid>
+      <guid>http://localhost:53654/network/the-road-to-quic/</guid>
       <description>本文是 the-road-to-quic 的中文翻译版本，内容有删减。&#xA;QUIC（快速 UDP Internet 连接）是一种新式使用默认加密的 Internet 传输协议，它提供了许多旨在加速 HTTP 流量并使其更安全的改进，其最终目前是最终取代 TCP 和 TLS 。在这篇博文中，我们将概述QUIC的一些关键功能以及它们如何使网络受益，与此同时还有这种激进新协议带来的一些挑战。&#xA;事实上，有两个协议共享：“Google QUIC”（简称“gQUIC”）这个名称。它是谷歌工程师几年前设计的原始协议，经过多年的实验，现在已经被 IETF（互联网工程任务组）采用并进行标准化。&#xA;“IETF QUIC”（从现在开始只是“QUIC”）已经与gQUIC有很大不同，因此我们已经可以将其视为一个单独的协议333。从数据包的格式，到HTTP的握手和映射，QUIC改进了原始的gQUIC设计，其共同目标是使互联网更快，更安全。&#xA;那么，QUIC提供了哪些方面的改进？&#xA;内置安全性和性能 Built-in security (and performance) QUIC与现在古老的TCP的一个更根本的区别是，QUIC在是提供默认安全传输的目标下进行设计的。QUIC 通过提供安全功能（如身份验证和加密）来实现这一点，这些功能通常由传输协议之上更高层协议（如 TLS）处理。&#xA;起初，QUIC 握手是通过类比TCP的三次握手与 TLS 1.3 握手相结合实现的，TLS 1.3 握手提供端点身份验证以及加密参数协商。对于那些熟悉TLS协议的人来说，QUIC用自己的帧格式替换TLS记录层，达到保持相同的TLS握手消息的目的。&#xA;这不仅确保了连接始终经过身份验证和加密，而且还使初始连接建立速度更快：QUIC 握手只需要客户端和服务器之间的一轮往返即可完成，而 TCP 和 TLS 1.3 握手需要两轮往返。&#xA;但 QUIC 其实更进一步，它还加密了可能被中间设备滥用，来干扰连接的其他数据。例如，当采用连接迁移时，被动中间人攻击者可以使用数据包编号来关联用户在多个网络路径上的活动（见下文）。通过加密数据包编号，QUIC 可确保它们不能用于关联连接中端点以外的任何实体的活动。&#xA;但加密有时也会导致协议的是使用更僵化，因为它使得协议中内置的灵活性（例如能够协商该协议的不同版本）在实践中无法使用，例如因为做出了错误的假设，TLS 1.3的大规模使用被推迟数次。&#xA;队头阻塞（Head-of-line blocking） HTTP/2 的主要改进之一就是能够将不同的HTTP请求多路复用到同一个TCP连接上。这允许HTTP / 2应用程序并发处理请求，可以更好地利用可用的网络带宽。&#xA;这是对现状的一大改进，此前如果应用程序需要同时处理多个HTTP / 1.1请求（例如，当浏览器需要获取CSS和Javascript资产来呈现网页时），那需要启动多个TCP + TLS连接。而创建新连接意味着需要多次重复初始握手，并经历初始拥塞窗口的加速，它意味着网页的呈现速度会变慢。HTTP交换的多路复用解决了这些问题。&#xA;然而，HTTP/2多路复用也带来了另一个缺点：由于多个请求/响应通过同一TCP连接传输，当在网络拥塞时，所有的请求均会受到数据包丢失的影响，即使丢失的数据仅涉及单个请求。这种现象被称为“队头阻塞”。&#xA;QUIC 则更深入一些，它为多路复用提供了一流的支持，它将不同的 HTTP 流依次映射到不同的 QUIC 传输流。HTTP 流仍然共享相同的 QUIC 连接，因此不需要额外的握手，并且拥塞状态是共享的。由于QUIC 流是独立交付的，因此在大多数情况下，一个流的数据包丢失不会影响其他流。</description>
     </item>
     <item>
       <title>在OSX上的Tcpdump和Wireshark</title>
-      <link>http://localhost:1313/network/tcp-dump-in-osx/</link>
+      <link>http://localhost:53654/network/tcp-dump-in-osx/</link>
       <pubDate>Sun, 23 Jun 2024 09:44:04 +0800</pubDate>
-      <guid>http://localhost:1313/network/tcp-dump-in-osx/</guid>
+      <guid>http://localhost:53654/network/tcp-dump-in-osx/</guid>
       <description>本文是 theagileadmin.com的中文翻译版本，内容有删减&#xA;其他wire-shark的文章：&#xA;wireshark 抓包新手使用教程 在此之前，我遇到了亚马逊网络服务ELB的连接时间激增的问题，因此是时候用tcpdump以获取数据包跟踪和wireshark（很久以前就很虚无缥缈）来分析TCP连接问题了。&#xA;tcpdump默认已经在OSX 上安装了，因此第一步是确定要转储的网络接口。以下命令将列出您的所有网络接口。&#xA;networksetup -listallhardwareports (base)  ~/ networksetup -listallhardwareports Hardware Port: Ethernet Adapter (en4) Device: en4 Ethernet Address: ba:cc:8a:ee:3f:32 Hardware Port: Wi-Fi Device: en0 Ethernet Address: bc:d0:74:0a:34:98 Hardware Port: Thunderbolt 1 Device: en1 Ethernet Address: 36:0e:31:4d:99:80 Hardware Port: Thunderbolt 2 Device: en2 Ethernet Address: 36:0e:31:4d:99:84 Hardware Port: Thunderbolt 3 Device: en3 Ethernet Address: 36:0e:31:4d:99:88 Hardware Port: Thunderbolt Bridge Device: bridge0 Ethernet Address: 36:0e:31:4d:99:80 VLAN Configurations =================== 然后，运行该接口上的数据包跟踪。我使用en0主无线接口，因此我运行：</description>
     </item>
     <item>
       <title>根证书与中间证书的区别</title>
-      <link>http://localhost:1313/network/root-certificates-intermediate/</link>
+      <link>http://localhost:53654/network/root-certificates-intermediate/</link>
       <pubDate>Sun, 23 Jun 2024 09:42:42 +0800</pubDate>
-      <guid>http://localhost:1313/network/root-certificates-intermediate/</guid>
+      <guid>http://localhost:53654/network/root-certificates-intermediate/</guid>
       <description>本文是 The Difference in Root Certificates vs Intermediate Certificates的中文翻译版本，内容有删减&#xA;如果你正在为你的网站申请SSL证书，你可能会遇到两个术语——根证书和中间证书，这两个术语其实很容易被混淆。&#xA;首先，根证书和中间证书之间的基本区别就在于根。一个根证书颁发机构在主流浏览器的信任存储中有自己的受信任根证书。另一方面，中间证书颁发机构或子证书颁发机构会颁发一个中间根证书，因为它们在浏览器的信任存储中没有根证书。因此，中间证书颁发机构的根指向了信任方的根。&#xA;SSL 是如何工作的？ 公钥基础设施(Public Key Infrastructure,PKI) SSL 基本上采用了私钥-公钥对的实现。网站数据根据私钥进行加密，只有拥有正确公钥的客户端才能访问该网站。公钥以证书文件的形式分发给客户端，每当用户尝试访问网站时都会使用该证书文件。&#xA;如果网站的证书无效，意味着该网站尚未经过适当验证，存在潜在威胁。网站可以选择各种不同的认证级别，每个级别具有不同的信任级别和验证过程。&#xA;证书(Certificates)由合适的认证机构签发，这些机构会对申请SSL证书的网站进行调查，以确定其是否真实。每个证书都有一个到期日期，过期后将被视为无效，必须进行更新以继续使用SSL保护功能。&#xA;正如你所看到的，SSL是一种机制，允许用户知道他们正在连接的网站是否经过认证机构的适当验证，并确实是他们想要访问的真实网站。没有SSL，就不会有加密，你也会面临数据泄露和安全漏洞的风险。&#xA;数字签名 （Digital Signatures） 数字签名可以被视为验证特定证书文件的数字信息。这类似于我们如何通过合格的公证员公证实体文件。在 SSL 证书链中，每个组件（无论是证书还是公钥）都将由适当的证书签名。。&#xA;浏览器在验证 SSL 证书时，会首先检查证书是否由受信任的 CA 颁发。如果证书是由受信任的 CA 颁发的，浏览器会检查证书的数字签名是否有效。如果数字签名有效，浏览器会检查证书链中的所有证书是否有效。如果证书链的所有证书都有效，浏览器会认为该 SSL 证书是有效的。&#xA;证书链 (Certificate Chains) 公钥或证书颁发过程包括许多与安全相关的服务，以确保公钥/私钥对的正确使用。在此过程中会使用一系列可能无法被最终用户访问的证书。这个证书链也被称为信任链或认证路径。&#xA;每个证书链都包含一个证书列表，其中包括最终的用户证书和一个或多个 CA（证书颁发机构）证书，以及一个自签名证书。每个证书具有以下属性：&#xA;证书颁发者的详细信息。除了证书链中的最后一个证书外，这个值将与链中下一个证书的主体相匹配。 用于对链中下一个证书进行签名的秘钥。再次强调，链中的最后一个证书不需要进行此秘钥签名过程。 正如前面所述，证书链的最后一个证书与其他证书不同。它被称为信任锚定点，始终由可信实体提供，如有效的认证机构（CA）。通常被称为CA证书。只有经过验证且高度受信任的认证机构才能颁发此类根证书，因为它们是证书链中的信任锚定点 如果证书链无法追溯到有效的根证书，则该证书链将被视为无效，并且最终用户应用程序不会将相应的网站视为来自受信任的来源。&#xA;证书层级(Certificate Hierarchy) 证书链 或 信任链 定义了您的实际 SSL 证书与受信任 CA 之间的链接。任何 SSL 证书要想被视为有效，都必须追溯到有效的 CA。&#xA;当您存储您尝试连接的新网站的证书时，您可以查看证书以获取更多详细信息并获得证书层次结构。您拥有的第一个证书将是根证书，其次是中间 CA，然后最终证书应指向有效的 CA。&#xA;根证书（Root Certificate） 这是由CA颁发的数字证书文件，用于所有使用SSL保护的网站。你的浏览器会下载这个文件并将其存储在信任存储中。所有根证书都受到颁发它们的CA的严密保护。&#xA;中间证书（Intermediate Certificate） 这些证书在证书层级中位于根证书之后。它们就像根证书的分支，充当根证书和向公众颁发的公共服务器证书之间的中间者。大多数证书链通常只有一个中间证书，但也有可能会有多个中间证书。&#xA;服务器证书(Server Certificate) 最终用户证书 是 CA 向需要实施 SSL 协议的域名颁发的证书。</description>
     </item>
     <item>
       <title>如何在Linux中使用ipset命令</title>
-      <link>http://localhost:1313/network/how-to-use-ipset/</link>
+      <link>http://localhost:53654/network/how-to-use-ipset/</link>
       <pubDate>Sun, 23 Jun 2024 09:39:22 +0800</pubDate>
-      <guid>http://localhost:1313/network/how-to-use-ipset/</guid>
+      <guid>http://localhost:53654/network/how-to-use-ipset/</guid>
       <description>本文是 How to use ipset Command in Linux的中文翻译版本，内容有删减&#xA;IP sets 是 IP 地址、网络范围、MAC 地址、端口号和网络接口名称的存储集合。iptables 工具可以利用 IP sets进行更高效的规则匹配。例如，假设您要让自己的应用丢弃来自已知为恶意的多个 IP 地址范围之一的访问流量。您可以创建一个 IP sets，然后在 iptables 规则中引用该 SET，而不是直接为 iptables 中的每个范围配置规则。这使您的规则集具有动态性，因此更易于配置;每当需要添加或交换由防火墙处理的网络标识符时，只需更改 IP sets即可。&#xA;ipset 命令使您能够创建和修改 IP sets。首先，您需要为IP sets设置名称、存储方法和数据类型，例如：&#xA;# ipset create range_set hash:net 在上面的情况下，range_set是IP sets的名称，hash是IP sets的存储方法，net 是数据类型。接下来，您可以将数据添加到IP sets中：&#xA;# ipset add range_set 178.137.87.0/24 # ipset add range_set 46.148.22.0/24 然后，您可以使用 iptables 规则来丢弃source中和range_set中的IP范围匹配的流量：&#xA;# iptables -I INPUT -m set --match-set range_set src -j DROP 或者，你可以设置丢弃target与集合range_set中的IP范围匹配的流量：&#xA;iptables -I OUTPUT -m set --match-set range_set dst -j DROP IPSet语法 （SYNTAX） ipset 命令的语法是：</description>
     </item>
   </channel>

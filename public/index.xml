@@ -6,8 +6,15 @@
     <description>Recent content in Welcome to My Blog on Tim Wang Tech Blog</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Sun, 23 Jun 2024 09:56:47 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 26 Jun 2024 09:53:59 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>SAP Referral</title>
+      <link>http://localhost:1313/referral/</link>
+      <pubDate>Wed, 26 Jun 2024 09:53:59 +0800</pubDate>
+      <guid>http://localhost:1313/referral/</guid>
+      <description>上海 岗位名 岗位总结 工作年限 Developer in Cloud ALM Development Team-388062 技术扎实、本科、微服务、Java/JS、Git、云平台、创新、结果导向、英语流利 3 年以上 单元格4 单元格5 单元格6 单元格7 单元格8 单元格9 北京 大连 成都 </description>
+    </item>
     <item>
       <title>什么是即时编译 (Just in Time)</title>
       <link>http://localhost:1313/software/just-in-time/</link>

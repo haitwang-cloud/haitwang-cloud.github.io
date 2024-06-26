@@ -1,6 +1,6 @@
 baseURL = 'https://tim-wang-tecg-blog.pages.dev/'
 languageCode = 'zh-CN'
-title = 'Tim Wang的技术博客'
+title = 'Tim Wang Tech Blog'
 theme = "paper"
 
 [params]

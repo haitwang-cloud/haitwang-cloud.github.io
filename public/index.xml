@@ -1,383 +1,383 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Welcome to My Blog on Tim Wang的技术博客</title>
-    <link>http://localhost:53654/</link>
-    <description>Recent content in Welcome to My Blog on Tim Wang的技术博客</description>
+    <title>Welcome to My Blog on Tim Wang Tech Blog</title>
+    <link>http://localhost:1313/</link>
+    <description>Recent content in Welcome to My Blog on Tim Wang Tech Blog</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
     <lastBuildDate>Sun, 23 Jun 2024 09:56:47 +0800</lastBuildDate>
-    <atom:link href="http://localhost:53654/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>什么是即时编译 (Just in Time)</title>
-      <link>http://localhost:53654/software/just-in-time/</link>
+      <link>http://localhost:1313/software/just-in-time/</link>
       <pubDate>Sun, 23 Jun 2024 09:56:47 +0800</pubDate>
-      <guid>http://localhost:53654/software/just-in-time/</guid>
+      <guid>http://localhost:1313/software/just-in-time/</guid>
       <description>本文由 Just in Time Compilation Explained 的中文翻译版本，内容有删减&#xA;即时编译(JIT)是一种提高解释程序性能的方法。在执行过程中，程序被编译为本机代码以提高其性能。它也被称为动态编译。&#xA;比静态编译相比, 动态编译具有一些优点。当运行 Java 或 C# 应用程序时，运行时可以对应用程序进行性能分析，最终生成更优化的代码。如果程序在运行时发生更改，则运行时可以重新编译代码。&#xA;与之对应的缺点则是启动延迟和运行时的编译开销。为了限制开销，许多 JIT 编译器仅编译经常使用的代码。&#xA;概览（Overview） 传统上，有两种方法可以将源代码转换为可以在平台上运行的机器码。静态编译将代码转换为特定平台的机器码，解释器直接执行源代码。&#xA;JIT 则结合两者的优点。在运行解释程序时，JIT 编译器确定最常用的关键代码并将其编译为机器码。根据编译器的配置不同，它可以在小范围的代码或者方法上完成此编译操作。&#xA;动态编译最早是在 J. McCarthy 在 1960 年一篇关于 LISP 的论文中提出。&#xA;JIT是在程序执行期间完成编译，意味着将源代码转换为机器码是发生在运行时，而不是在执行之前。JIT 的优点是在于因为编译是在运行时进行的，所以JIT 编译器可以访问动态运行时信息，使其能够进行更好的优化（例如内联函数）。&#xA;关于JIT编译，重要的是要了解它将字节码编译成适配当前架构的机器码。这意味着，生成的机器代码对正在运行的计算机的 CPU 架构进行了优化。&#xA;JIT 编译器的常见例子是是 Java 中的 JVM（Java 虚拟机）和 C# 中的 CLR（公共语言运行时）。&#xA;历史（History） 起初，编译器负责将高级语言（定义为比汇编程序更高级别）转换为目标代码（机器指令），然后通过链接器将其链接为可执行文件。&#xA;在语言发展过程中的某一时刻，编译器能够将高级语言编译为伪代码，然后由解释器来运行程序。这消除了目标代码和可执行文件，并允许这些语言移植到多个操作系统和硬件平台。Pascal（编译为P代码）是第一个这样做的语言; Java和C#是最近的例子。最终，术语P代码被字节码取代，因为大多数伪操作都可以用一个字节来描述。&#xA;JIT 编译器是运行时解释器的一项功能，它不是在每次调用方法时解释字节码，而是将字节码编译为当前计算机的机器码，然后改为调用此机器码。理想情况下，直接运行目标代码将解决每次运行时，重新编译程序带来的低效率问题。&#xA;典型场景 (Typical scenario) The source code is completely converted into machine code&#xA;源代码完全转换为机器代码&#xA;(JIT 场景) JIT scenario The source code will be converted into assembly language like structure [for ex IL (intermediate language) for C#, ByteCode for java].</description>
     </item>
     <item>
       <title>JSON Patch and JSON Merge Patch</title>
-      <link>http://localhost:53654/software/json-patch-vs-merge-patch/</link>
+      <link>http://localhost:1313/software/json-patch-vs-merge-patch/</link>
       <pubDate>Sun, 23 Jun 2024 09:55:47 +0800</pubDate>
-      <guid>http://localhost:53654/software/json-patch-vs-merge-patch/</guid>
+      <guid>http://localhost:1313/software/json-patch-vs-merge-patch/</guid>
       <description>JSON Patch and JSON Merge Patch 的中文翻译版本。&#xA;作为近年来受到关注HTTP的 “PATCH” 方法的带动，人们开始提出关于表示 JSON 驱动的 PATCH 格式的想法，它以声明方式描述了两个 JSON 文档之间的差异。 目前已经有许多解决方案被提出，不计其数。而其中IETF 已经发布了两种格式作为 RFC 文档来解决这个问题：RFC 6902 (JSON Patch) 和 RFC 7396 (JSON Merge Patch)。两者都有优缺点，会根据不同的用例因人而异，所以让我们快速比较，看看你会使用哪一个。&#xA;JSON Patch JSON Patch format 和数据库事务类似：它是JSON 文档上的更改操作，由适当的实现自动执行。它基本上是一系列 &amp;quot;add&amp;quot;, &amp;quot;remove&amp;quot;, &amp;quot;replace&amp;quot;, &amp;quot;move&amp;quot; 和 &amp;quot;copy&amp;quot; 操作。&#xA;让我们通过一个简单的例子来看看JSON 文档：&#xA;{ &amp;#34;users&amp;#34; : [ { &amp;#34;name&amp;#34; : &amp;#34;Alice&amp;#34; , &amp;#34;email&amp;#34; : &amp;#34;alice@example.org&amp;#34; }, { &amp;#34;name&amp;#34; : &amp;#34;Bob&amp;#34; , &amp;#34;email&amp;#34; : &amp;#34;bob@example.org&amp;#34; } ] } 我们可以通过PATCH操作更新它，这次操作更改了Alice的邮件地址，然后添加了一个新的元素到数组中：</description>
     </item>
     <item>
       <title>No Elasticsearch Node Available for olivere/elastic</title>
-      <link>http://localhost:53654/software/elastic/</link>
+      <link>http://localhost:1313/software/elastic/</link>
       <pubDate>Sun, 23 Jun 2024 09:54:22 +0800</pubDate>
-      <guid>http://localhost:53654/software/elastic/</guid>
+      <guid>http://localhost:1313/software/elastic/</guid>
       <description>前言 最近笔者接到了公司内部的ES团队的通知，需要将自己应用的数据从ES5搬迁到ES7。我在维护一个基于Golang语言开发的项目，遇到了一些关于ES 的Golang Client https://github.com/olivere/elastic 的问题，特此写这篇博客记录一下。&#xA;具体任务 在从ES5迁移到ES7的过程中，由于ES的换代的一些新特性和改变，需要首先进行具体任务的分解，主要包括&#xA;数据格式升级：从ES6开始，ES便不推荐在同一个Index下存在多个type的数据。因此需要将此前在同一个Index下数据拆散到不同的Index之中就可以解决问题（官方原因是之前index下不同实体太多，切分布稀疏不均匀，严重干扰 Lucene 压缩文档的能力，具体可参考 Removal of mapping types） ES client（olivere/elastic）的升级：由于底层已经切换到了最新的ES7，并且在我司内部的ES7 将强制启动token认证，同时由于采用了 ES的client olivere/elastic 所以需要选择最合适的方案进行代码的迁移。 &amp;ldquo;No Elasticsearch Node Available&amp;rdquo; 首先为了改最少的代码，笔者的第一个想法便是用olivere的ES5的client elastic.v5 直接访问最新的ES Endpoint,结果第一个遇到的问题便是&amp;quot;No Elasticsearch Node Available&amp;quot;。在经过Google一番之后, 从这篇博客中 程序印象 ，查出初步的主要原因是Sniffing的配置造成的。&#xA;Elasticsearch：Sniffing Sniffing 的主要功能是将Elasticsearch的静态节点列表传递给客户端，然后将客户端请求平均分布在Elasticsearch 集群节点之间.如果启用 sniffing，则客户端将开始调用 _nodes /_all /http 端点(类似 http://127.0.0.1:9200/__nodes /_all /http)，并且响应将是群集中存在的所有节点及其 IP 地址的列表。然后，客户端将更新其连接池以使用所有新节点，并使群集状态与客户端的连接池保持同步。&#xA;如果想要检查自己的ES集群的Sniffing的配置，可以通过访问&#xA;curl -XGET &#39;http://127.0.0.1:9200/_nodes/http?pretty=true { &amp;#34;_nodes&amp;#34; : { &amp;#34;total&amp;#34; : 1, &amp;#34;successful&amp;#34; : 1, &amp;#34;failed&amp;#34; : 0 }, &amp;#34;cluster_name&amp;#34; : &amp;#34;elasticsearch&amp;#34;, &amp;#34;nodes&amp;#34; : { &amp;#34;v9vBH0xXQ1-GZw-bOfxlFQ&amp;#34; : { &amp;#34;name&amp;#34; : &amp;#34;v9vBH0x&amp;#34;, &amp;#34;transport_address&amp;#34; : &amp;#34;127.</description>
     </item>
     <item>
       <title>如何在Apple 芯片也称为M1芯片）上构建Docker镜像</title>
-      <link>http://localhost:53654/software/docker-build-on-m1-mac/</link>
+      <link>http://localhost:1313/software/docker-build-on-m1-mac/</link>
       <pubDate>Sun, 23 Jun 2024 09:52:55 +0800</pubDate>
-      <guid>http://localhost:53654/software/docker-build-on-m1-mac/</guid>
+      <guid>http://localhost:1313/software/docker-build-on-m1-mac/</guid>
       <description>How To Build Docker Images For Apple Silicon (Aka M1 Chip) 的中文翻译版本,内容有删减&#xA;背景（Background） 苹果不久前发布了基于M1芯片的新MacBook。与之前所有基于英特尔的Apple笔记本电脑不同，M1具有不同的架构 - arm64而不是英特尔的“amd64”。&#xA;新的架构意味着大多数软件产品应该重新编译,至少对于用编译语言编写的软件必须这样做。该规则适用于主要用Go写的项目。然而，这并不是100%正确的：苹果不遗余力地使旧的编译代码与新架构兼容，Roseta 2是用来达成这个目标的主要工具.&#xA;Docker 也试图迎头赶上 the M1 support came out a few weeks ago.但是，事情并不像预期那样无缝运行：&#xA;Docker依靠 qemu 在M1芯片上模拟英特尔的架构。然而事实是 QEMU有时不能很好地工作：在 Apple Silicon 机器上尝试运行基于 Intel 的容器可能会崩溃，因为 QEMU 有时无法运行容器。例如文件变更 API File System Events（例如 inotify）在 QEMU 仿真下不起作用 [&amp;hellip;]。 因此，我们建议您在 Apple Silicon 机器上运行 ARM64 容器。与基于 Intel 的容器相比，这些容器也更快且使用更少的内存。&#xA;如何为arm64打包镜像（How to build an image for arm64） 幸运的是，Docker 已经宣布 一项实验性功能 buildx，它可以为特定架构（arm64、amd64 等）构建映像。&#xA;Step 1.</description>
     </item>
     <item>
       <title>软件开发中的上游和下游</title>
-      <link>http://localhost:53654/software/upstream-downstream/</link>
+      <link>http://localhost:1313/software/upstream-downstream/</link>
       <pubDate>Sun, 23 Jun 2024 09:50:29 +0800</pubDate>
-      <guid>http://localhost:53654/software/upstream-downstream/</guid>
+      <guid>http://localhost:1313/software/upstream-downstream/</guid>
       <description>What is Upstream and Downstream in Software Development的中文翻译版本。&#xA;在最近一段时间，我开始在软件开发环境中接触到 “上游” 和 “下游” 这两个词，常常迷惑不解。每次我都必须查一下它的含义，因此决定将它们写成blog来帮助理解。&#xA;生产过程中的上游和下游 让我们从一个简单的生产过程开始，尽管它与软件开发无关，但是我们可以在此基础上定义软件开发的上游和下游。&#xA;在上面的例子中，我们有三个步骤:&#xA;收集零件 组装零件 绘制装配体 上面的生产过程与河流非常相似，因此很容易理解 随着流程从一步到下一步，逐步向&amp;quot;下游&amp;quot;移动&#xA;我们可以推断以下规则:&#xA;依赖规则: 每个当前的项目都依赖于上游的所有项目 增值规则: 在向下游移动的过程中，每一步都为产品增加更多价值 现在，让我们尝试将这些规则应用于不同的软件开发环境。&#xA;软件依赖中的上游和下游 大多数软件组件都依赖于其他组件。那么什么是上游依赖和下游依赖呢？&#xA;如图所示:&#xA;组件 C 依赖于组件 B，而组件 B 又依赖于组件 A。&#xA;应用依赖规则，我们可以肯定地说组件 A 是组件 B 的上游，而组件 B 是组件 C 的上游（即使箭头指向另一个方向）。&#xA;在这里应用价值规则有点抽象，但我们可以说组件 C 拥有最大的价值，因为它“导入”了组件 B 和 A 的所有特征，并将自己的价值添加到这些特征中，使其成为下游组件。&#xA;上游和下游开源项目 另一个经常使用“上游”和“下游”这两个词的环境是开源开发。它实际上与上面讨论的组件依赖关系非常相似&#xA;考虑项目 A 和 B，其中 A 是原始项目，B 是 A 的分支：&#xA;这是开源项目中相当常见的开发风格：我们创建项目的分支，修复错误或在该分支中添加功能，然后向原始项目提交补丁。&#xA;在这种情况下，依赖规则使项目 A 成为上游项目，因为它可以在没有项目 B 的情况下很好地生存，但如果没有项目 A（原始项目），项目 B（分叉）甚至不会存在。</description>
     </item>
     <item>
       <title>What Is Bgp</title>
-      <link>http://localhost:53654/network/what-is-bgp/</link>
+      <link>http://localhost:1313/network/what-is-bgp/</link>
       <pubDate>Sun, 23 Jun 2024 09:47:26 +0800</pubDate>
-      <guid>http://localhost:53654/network/what-is-bgp/</guid>
+      <guid>http://localhost:1313/network/what-is-bgp/</guid>
       <description>What is BGP? | BGP routing explained 的中文翻译版本,内容有删减&#xA;其他BGP相关的文章: border-gateway-protocol-bgp&#xA;BGP是什么（What is BGP?） 边界网关协议（BGP）可以类比为互联网的邮政服务。当有人将一封信放入邮箱时，邮政服务会处理该邮件，并选择一条快速、有效的线路将该信递送给收件人。同样当有人通过互联网提交数据时，BGP 负责查看数据可以传输的所有可用路径，并选择最佳路由，这通常意味着在自治系统之间跳转。&#xA;BGP 是通过启用数据路由, 然后使互联网工作的协议。当一个新加坡的用户访问服务器位于阿根廷的网站时，此时BGP就是使通信能够快速有效地发生的协议。&#xA;什么是自治系统(What is an autonomous system?) 互联网是一个小型网络的集合。它由数十万个较小的被称为自治系统网络构成。这些子网络本质上都是由单个组织运行的大型路由器池。&#xA;如果我们继续将BGP类比互联网中的邮政服务，那么AS就像单个邮局分支机构。一个城镇可能有数百个邮箱，但这些邮箱中的邮件必须通过当地的邮政分支机构，然后才能发送到另一个目的地。AS内部的路由器类似于邮箱。它们将其出站信息转发到 AS，然后 AS 使用 BGP 路由将这些信息传输到目的地。&#xA;上图是 BGP 的简化版本。在这个版本中，互联网上只有六个 AS。如果 AS1 需要将数据包路由到 AS3，则它有两个不同的选项：&#xA;数据先到 AS2，然后到 AS3： AS2 → AS3 或者数据先到 AS6，然后到 AS5、AS4，最后到 AS3： AS6 → AS5 → AS4 → AS3 在这个简化的BGP模型中，我们可以很明确地做出决定: AS2 路由比 AS6 路由需要的跳数少，因此它是最快速、最有效的路由。现在想象一下有数十万个 AS，而且跳数只是复杂路由选择算法的一部分。这就是互联网上 BGP 路由的现实。&#xA;互联网的拓扑一直在不断变化，新的系统不断出现，已有的系统会面临变得不可用的情况。因此，每个 AS 必须保持新路由和旧路由的信息保持同步。这是通过会话完成的，其中每个 AS 通过 TCP/IP 连接连接到相邻的 AS，以便共享路由信息。通过使用此信息，每个 AS 都能够正确路由来自内部的出站数据传输。</description>
     </item>
     <item>
       <title>QUIC的发展之路</title>
-      <link>http://localhost:53654/network/the-road-to-quic/</link>
+      <link>http://localhost:1313/network/the-road-to-quic/</link>
       <pubDate>Sun, 23 Jun 2024 09:45:05 +0800</pubDate>
-      <guid>http://localhost:53654/network/the-road-to-quic/</guid>
+      <guid>http://localhost:1313/network/the-road-to-quic/</guid>
       <description>本文是 the-road-to-quic 的中文翻译版本，内容有删减。&#xA;QUIC（快速 UDP Internet 连接）是一种新式使用默认加密的 Internet 传输协议，它提供了许多旨在加速 HTTP 流量并使其更安全的改进，其最终目前是最终取代 TCP 和 TLS 。在这篇博文中，我们将概述QUIC的一些关键功能以及它们如何使网络受益，与此同时还有这种激进新协议带来的一些挑战。&#xA;事实上，有两个协议共享：“Google QUIC”（简称“gQUIC”）这个名称。它是谷歌工程师几年前设计的原始协议，经过多年的实验，现在已经被 IETF（互联网工程任务组）采用并进行标准化。&#xA;“IETF QUIC”（从现在开始只是“QUIC”）已经与gQUIC有很大不同，因此我们已经可以将其视为一个单独的协议333。从数据包的格式，到HTTP的握手和映射，QUIC改进了原始的gQUIC设计，其共同目标是使互联网更快，更安全。&#xA;那么，QUIC提供了哪些方面的改进？&#xA;内置安全性和性能 Built-in security (and performance) QUIC与现在古老的TCP的一个更根本的区别是，QUIC在是提供默认安全传输的目标下进行设计的。QUIC 通过提供安全功能（如身份验证和加密）来实现这一点，这些功能通常由传输协议之上更高层协议（如 TLS）处理。&#xA;起初，QUIC 握手是通过类比TCP的三次握手与 TLS 1.3 握手相结合实现的，TLS 1.3 握手提供端点身份验证以及加密参数协商。对于那些熟悉TLS协议的人来说，QUIC用自己的帧格式替换TLS记录层，达到保持相同的TLS握手消息的目的。&#xA;这不仅确保了连接始终经过身份验证和加密，而且还使初始连接建立速度更快：QUIC 握手只需要客户端和服务器之间的一轮往返即可完成，而 TCP 和 TLS 1.3 握手需要两轮往返。&#xA;但 QUIC 其实更进一步，它还加密了可能被中间设备滥用，来干扰连接的其他数据。例如，当采用连接迁移时，被动中间人攻击者可以使用数据包编号来关联用户在多个网络路径上的活动（见下文）。通过加密数据包编号，QUIC 可确保它们不能用于关联连接中端点以外的任何实体的活动。&#xA;但加密有时也会导致协议的是使用更僵化，因为它使得协议中内置的灵活性（例如能够协商该协议的不同版本）在实践中无法使用，例如因为做出了错误的假设，TLS 1.3的大规模使用被推迟数次。&#xA;队头阻塞（Head-of-line blocking） HTTP/2 的主要改进之一就是能够将不同的HTTP请求多路复用到同一个TCP连接上。这允许HTTP / 2应用程序并发处理请求，可以更好地利用可用的网络带宽。&#xA;这是对现状的一大改进，此前如果应用程序需要同时处理多个HTTP / 1.1请求（例如，当浏览器需要获取CSS和Javascript资产来呈现网页时），那需要启动多个TCP + TLS连接。而创建新连接意味着需要多次重复初始握手，并经历初始拥塞窗口的加速，它意味着网页的呈现速度会变慢。HTTP交换的多路复用解决了这些问题。&#xA;然而，HTTP/2多路复用也带来了另一个缺点：由于多个请求/响应通过同一TCP连接传输，当在网络拥塞时，所有的请求均会受到数据包丢失的影响，即使丢失的数据仅涉及单个请求。这种现象被称为“队头阻塞”。&#xA;QUIC 则更深入一些，它为多路复用提供了一流的支持，它将不同的 HTTP 流依次映射到不同的 QUIC 传输流。HTTP 流仍然共享相同的 QUIC 连接，因此不需要额外的握手，并且拥塞状态是共享的。由于QUIC 流是独立交付的，因此在大多数情况下，一个流的数据包丢失不会影响其他流。</description>
     </item>
     <item>
       <title>在OSX上的Tcpdump和Wireshark</title>
-      <link>http://localhost:53654/network/tcp-dump-in-osx/</link>
+      <link>http://localhost:1313/network/tcp-dump-in-osx/</link>
       <pubDate>Sun, 23 Jun 2024 09:44:04 +0800</pubDate>
-      <guid>http://localhost:53654/network/tcp-dump-in-osx/</guid>
+      <guid>http://localhost:1313/network/tcp-dump-in-osx/</guid>
       <description>本文是 theagileadmin.com的中文翻译版本，内容有删减&#xA;其他wire-shark的文章：&#xA;wireshark 抓包新手使用教程 在此之前，我遇到了亚马逊网络服务ELB的连接时间激增的问题，因此是时候用tcpdump以获取数据包跟踪和wireshark（很久以前就很虚无缥缈）来分析TCP连接问题了。&#xA;tcpdump默认已经在OSX 上安装了，因此第一步是确定要转储的网络接口。以下命令将列出您的所有网络接口。&#xA;networksetup -listallhardwareports (base)  ~/ networksetup -listallhardwareports Hardware Port: Ethernet Adapter (en4) Device: en4 Ethernet Address: ba:cc:8a:ee:3f:32 Hardware Port: Wi-Fi Device: en0 Ethernet Address: bc:d0:74:0a:34:98 Hardware Port: Thunderbolt 1 Device: en1 Ethernet Address: 36:0e:31:4d:99:80 Hardware Port: Thunderbolt 2 Device: en2 Ethernet Address: 36:0e:31:4d:99:84 Hardware Port: Thunderbolt 3 Device: en3 Ethernet Address: 36:0e:31:4d:99:88 Hardware Port: Thunderbolt Bridge Device: bridge0 Ethernet Address: 36:0e:31:4d:99:80 VLAN Configurations =================== 然后，运行该接口上的数据包跟踪。我使用en0主无线接口，因此我运行：</description>
     </item>
     <item>
       <title>根证书与中间证书的区别</title>
-      <link>http://localhost:53654/network/root-certificates-intermediate/</link>
+      <link>http://localhost:1313/network/root-certificates-intermediate/</link>
       <pubDate>Sun, 23 Jun 2024 09:42:42 +0800</pubDate>
-      <guid>http://localhost:53654/network/root-certificates-intermediate/</guid>
+      <guid>http://localhost:1313/network/root-certificates-intermediate/</guid>
       <description>本文是 The Difference in Root Certificates vs Intermediate Certificates的中文翻译版本，内容有删减&#xA;如果你正在为你的网站申请SSL证书，你可能会遇到两个术语——根证书和中间证书，这两个术语其实很容易被混淆。&#xA;首先，根证书和中间证书之间的基本区别就在于根。一个根证书颁发机构在主流浏览器的信任存储中有自己的受信任根证书。另一方面，中间证书颁发机构或子证书颁发机构会颁发一个中间根证书，因为它们在浏览器的信任存储中没有根证书。因此，中间证书颁发机构的根指向了信任方的根。&#xA;SSL 是如何工作的？ 公钥基础设施(Public Key Infrastructure,PKI) SSL 基本上采用了私钥-公钥对的实现。网站数据根据私钥进行加密，只有拥有正确公钥的客户端才能访问该网站。公钥以证书文件的形式分发给客户端，每当用户尝试访问网站时都会使用该证书文件。&#xA;如果网站的证书无效，意味着该网站尚未经过适当验证，存在潜在威胁。网站可以选择各种不同的认证级别，每个级别具有不同的信任级别和验证过程。&#xA;证书(Certificates)由合适的认证机构签发，这些机构会对申请SSL证书的网站进行调查，以确定其是否真实。每个证书都有一个到期日期，过期后将被视为无效，必须进行更新以继续使用SSL保护功能。&#xA;正如你所看到的，SSL是一种机制，允许用户知道他们正在连接的网站是否经过认证机构的适当验证，并确实是他们想要访问的真实网站。没有SSL，就不会有加密，你也会面临数据泄露和安全漏洞的风险。&#xA;数字签名 （Digital Signatures） 数字签名可以被视为验证特定证书文件的数字信息。这类似于我们如何通过合格的公证员公证实体文件。在 SSL 证书链中，每个组件（无论是证书还是公钥）都将由适当的证书签名。。&#xA;浏览器在验证 SSL 证书时，会首先检查证书是否由受信任的 CA 颁发。如果证书是由受信任的 CA 颁发的，浏览器会检查证书的数字签名是否有效。如果数字签名有效，浏览器会检查证书链中的所有证书是否有效。如果证书链的所有证书都有效，浏览器会认为该 SSL 证书是有效的。&#xA;证书链 (Certificate Chains) 公钥或证书颁发过程包括许多与安全相关的服务，以确保公钥/私钥对的正确使用。在此过程中会使用一系列可能无法被最终用户访问的证书。这个证书链也被称为信任链或认证路径。&#xA;每个证书链都包含一个证书列表，其中包括最终的用户证书和一个或多个 CA（证书颁发机构）证书，以及一个自签名证书。每个证书具有以下属性：&#xA;证书颁发者的详细信息。除了证书链中的最后一个证书外，这个值将与链中下一个证书的主体相匹配。 用于对链中下一个证书进行签名的秘钥。再次强调，链中的最后一个证书不需要进行此秘钥签名过程。 正如前面所述，证书链的最后一个证书与其他证书不同。它被称为信任锚定点，始终由可信实体提供，如有效的认证机构（CA）。通常被称为CA证书。只有经过验证且高度受信任的认证机构才能颁发此类根证书，因为它们是证书链中的信任锚定点 如果证书链无法追溯到有效的根证书，则该证书链将被视为无效，并且最终用户应用程序不会将相应的网站视为来自受信任的来源。&#xA;证书层级(Certificate Hierarchy) 证书链 或 信任链 定义了您的实际 SSL 证书与受信任 CA 之间的链接。任何 SSL 证书要想被视为有效，都必须追溯到有效的 CA。&#xA;当您存储您尝试连接的新网站的证书时，您可以查看证书以获取更多详细信息并获得证书层次结构。您拥有的第一个证书将是根证书，其次是中间 CA，然后最终证书应指向有效的 CA。&#xA;根证书（Root Certificate） 这是由CA颁发的数字证书文件，用于所有使用SSL保护的网站。你的浏览器会下载这个文件并将其存储在信任存储中。所有根证书都受到颁发它们的CA的严密保护。&#xA;中间证书（Intermediate Certificate） 这些证书在证书层级中位于根证书之后。它们就像根证书的分支，充当根证书和向公众颁发的公共服务器证书之间的中间者。大多数证书链通常只有一个中间证书，但也有可能会有多个中间证书。&#xA;服务器证书(Server Certificate) 最终用户证书 是 CA 向需要实施 SSL 协议的域名颁发的证书。</description>
     </item>
     <item>
       <title>如何在Linux中使用ipset命令</title>
-      <link>http://localhost:53654/network/how-to-use-ipset/</link>
+      <link>http://localhost:1313/network/how-to-use-ipset/</link>
       <pubDate>Sun, 23 Jun 2024 09:39:22 +0800</pubDate>
-      <guid>http://localhost:53654/network/how-to-use-ipset/</guid>
+      <guid>http://localhost:1313/network/how-to-use-ipset/</guid>
       <description>本文是 How to use ipset Command in Linux的中文翻译版本，内容有删减&#xA;IP sets 是 IP 地址、网络范围、MAC 地址、端口号和网络接口名称的存储集合。iptables 工具可以利用 IP sets进行更高效的规则匹配。例如，假设您要让自己的应用丢弃来自已知为恶意的多个 IP 地址范围之一的访问流量。您可以创建一个 IP sets，然后在 iptables 规则中引用该 SET，而不是直接为 iptables 中的每个范围配置规则。这使您的规则集具有动态性，因此更易于配置;每当需要添加或交换由防火墙处理的网络标识符时，只需更改 IP sets即可。&#xA;ipset 命令使您能够创建和修改 IP sets。首先，您需要为IP sets设置名称、存储方法和数据类型，例如：&#xA;# ipset create range_set hash:net 在上面的情况下，range_set是IP sets的名称，hash是IP sets的存储方法，net 是数据类型。接下来，您可以将数据添加到IP sets中：&#xA;# ipset add range_set 178.137.87.0/24 # ipset add range_set 46.148.22.0/24 然后，您可以使用 iptables 规则来丢弃source中和range_set中的IP范围匹配的流量：&#xA;# iptables -I INPUT -m set --match-set range_set src -j DROP 或者，你可以设置丢弃target与集合range_set中的IP范围匹配的流量：&#xA;iptables -I OUTPUT -m set --match-set range_set dst -j DROP IPSet语法 （SYNTAX） ipset 命令的语法是：</description>
     </item>
     <item>
       <title>Kubernetes GPU管理探秘第一篇：Kubernetes Device Plugin介绍和源码分析</title>
-      <link>http://localhost:53654/gpu/k8s-device-plugin/</link>
+      <link>http://localhost:1313/gpu/k8s-device-plugin/</link>
       <pubDate>Thu, 20 Jun 2024 17:14:15 +0800</pubDate>
-      <guid>http://localhost:53654/gpu/k8s-device-plugin/</guid>
+      <guid>http://localhost:1313/gpu/k8s-device-plugin/</guid>
       <description>k8s GPU device plugin介绍和源码分析 前言 在 Kubernetes 集群中,有些工作负载需要访问节点上的硬件资源,比如 GPU、FPGA、InfiniBand 等。为了让 Kubernetes 能够感知和调度这些硬件资源,Kubernetes 引入了 Device Plugin 的概念。本文将详细介绍 Device Plugin 的工作原理。&#xA;Device Plugin 简介 Device Plugin 是 Kubernetes 中一种特殊的插件,负责管理节点上的硬件设备,并将设备信息呈现给 Kubernetes。每种类型的硬件设备,都需要有它对应的 Device Plugin 进程在运行。通常,这些 Device Plugin 进程是由硬件供应商提供的。&#xA;Device Plugin 通过 gRPC 服务与 kubelet 进行通信,履行了以下两个主要职责:&#xA;发现节点上的硬件设备 准备并安装需要使用设备的容器运行时环境 Device Plugin 工作流程 下面让我们通过一个具体的例子,来了解 Device Plugin 的工作流程。假设有一个节点上安装了 3 块 NVIDIA GPU 设备,现在要让一个 Pod 使用其中一块 GPU 设备。&#xA;设备发现 在节点启动时,kubelet 首先启动该节点上的所有 Device Plugin。以 NVIDIA GPU 设备为例,kubelet 会启动 nvidia-device-plugin 进程。</description>
     </item>
     <item>
       <title>Kubernetes GPU管理探秘第二篇：在Kubernetes中启用 Nvidia MPS</title>
-      <link>http://localhost:53654/gpu/k8s-device-plugin-mps/</link>
+      <link>http://localhost:1313/gpu/k8s-device-plugin-mps/</link>
       <pubDate>Thu, 20 Jun 2024 17:13:34 +0800</pubDate>
-      <guid>http://localhost:53654/gpu/k8s-device-plugin-mps/</guid>
+      <guid>http://localhost:1313/gpu/k8s-device-plugin-mps/</guid>
       <description>背景介绍 多进程服务（Multi-Process Service，MPS）是一个与CUDA API二进制兼容的客户端-服务器运行时实现，它由几个组件构成：&#xA;控制守护进程：负责启动和停止服务器，并协调客户端与服务器之间的连接。 客户端运行时：集成在CUDA驱动库中的MPS客户端运行时，可被任何CUDA应用程序透明地使用。 服务器进程：作为客户端共享访问GPU的桥梁，提供客户端间的并发。 本文档将介绍Volta MPS相较于前Volta GPU上的MPS的新功能，并指出两者之间的差异。在Volta上运行MPS会自动启用新功能。 在K8s中使用NVIDIA MPS 根据来自NVIDIA GPU Device Plugin v0.15.0的说明，这个MPS功能还没有准备好用于生产环境，并包括一些已知问题，包括：&#xA;device plugin可能在准备好分配共享GPU之前就显示为已启动，同时等待CUDA MPS控制守护进程上线。 在重启或配置更改下，CUDA MPS控制守护进程和GPU device plugin之间没有同步。这意味着，如果工作负载在失去对由CUDA MPS控制守护进程控制的共享资源的访问时可能会崩溃。 MPS仅支持完整的GPU。 不可能“组合”MPS GPU请求，以允许单个容器访问更多内存。 本文将对该功能进行验证，以便在未来的版本中使用。&#xA;环境准备 k8s集群信息 Kernel Version: 5.15.135-amd64 containerd version 1.6.20 Kubelet Version: v1.26.11 k8s-device-plugin version: v0.15.0 nvidia-toolkit upgrade: v1.13.4 安装 Nvidia GPU Operator 首先，我们需要安装Nvidia GPU Operator，以提供GPU资源的监控指标。&#xA;helm install --wait --generate-name -n ssdl-vgpu nvidia/gpu-operator \ --set driver.enabled=false \ --set toolkit.enabled=false \ --set devicePlugin.enabled=false 准备MPS对应的configMap # k apply -f ntr-mps-cm.</description>
     </item>
     <item>
       <title>如何在基于 Rocky Linux 的 Kubernetes 上安装带有 A100 的 NVIDIA GPU Operator</title>
-      <link>http://localhost:53654/gpu/how-to-install-nvidia-gpu-operator-with-a100-on-kubernetes-base-rocky-linux/</link>
+      <link>http://localhost:1313/gpu/how-to-install-nvidia-gpu-operator-with-a100-on-kubernetes-base-rocky-linux/</link>
       <pubDate>Thu, 20 Jun 2024 17:12:38 +0800</pubDate>
-      <guid>http://localhost:53654/gpu/how-to-install-nvidia-gpu-operator-with-a100-on-kubernetes-base-rocky-linux/</guid>
+      <guid>http://localhost:1313/gpu/how-to-install-nvidia-gpu-operator-with-a100-on-kubernetes-base-rocky-linux/</guid>
       <description>本文是How to install NVIDIA GPU Operator with A100 on Kubernetes base Rocky linux的中文翻译版本，内容有删减&#xA;以前在kubernetes使用NVIDIA GPU非常复杂。为了部署一个简单的容器，我们需要构建驱动程序drivers、容器运行时CRI、设备插件device plugin和监控等基本组件。最近NVIDIA GPU Feature Discovery添加了一些功能，以减少 GPU 配置的麻烦，但系统工程师的需求仍然没有得到满足，因为 NVIDIA 驱动程序和运行时仍然需要手动配置。NVIDIA GPU Feature Discovery 在 Kubernetes 集群中以 DaemonSet 的方式运行，每个节点上都会运行一个 GPU Feature Discovery 容器。该容器使用 NVIDIA Device Plugin 来访问节点上的 GPU 设备，并收集相关属性.&#xA;Fig1. https://developer.nvidia.com/blog/nvidia-gpu-operator-simplifying-gpu-management-in-kubernetes&#xA;通过使用NVIDIA GPU Operator，可以解决在Kubernetes中使用GPU的复杂配置问题。如果查看NVIDIA博客提供的与NVIDIA GPU Operator相关的内容（图1），可以看到驱动程序、运行时、设备插件和监控都被配置为容器。因此，您不再需要在操作系统中安装NVIDIA驱动程序。&#xA;Fig2. https://developer.nvidia.com/blog/nvidia-gpu-operator-simplifying-gpu-management-in-kubernetes/&#xA;此外，NVIDIA A100 GPU引入了一项名为MIG的功能。与此同时，GPU过去仅限于一种称为Virtual GPU的功能，以使用类似于Intel CPU的超线程的并行处理功能。这是一种在分片后并行使用GPU内存的功能，为使用此功能需要额外的许可费用，并且由于必须在Hypervisor和Guest OS中安装GPU驱动程序，管理起来也非常困难。基本上，由于内存被分片和使用，导致在机器学习或深度学习中可以训练的模型大小受到限制，因此它在ML/DL中的使用受到限制，在虚拟桌面基础设施中使用较多。&#xA;Fig3. https://blogs.vmware.com/apps/2018/09/using-gpus-with-virtual-machines-on-vsphere-part-3-installing-the-nvidia-grid-technology.html&#xA;A100 GPU引入的MIG功能在GPU上支持虚拟化，将一个GPU分割为最多7个实例，减少了Hypervisor部分，提供了管理和性能上的收益。然而，基于实例的VRAM碎片化仍然存在，这是GPU架构中无法避免的问题。&#xA;Fig4. https://docs.nvidia.com/datacenter/tesla/mig-user-guide/&#xA;现在，我将解释如何配置NVIDIA GPU Operator。首先，让我们检查配置NVIDIA GPU Operator的基本要求。&#xA;Kubernetes v1.19+ NVIDIA GPU Operator v1.</description>
     </item>
     <item>
       <title>Kubernetes GPU 优化：最大化 GPU 利用率</title>
-      <link>http://localhost:53654/gpu/how-to-increase-gpu-utilization-in-kubernetes/</link>
+      <link>http://localhost:1313/gpu/how-to-increase-gpu-utilization-in-kubernetes/</link>
       <pubDate>Thu, 20 Jun 2024 17:10:52 +0800</pubDate>
-      <guid>http://localhost:53654/gpu/how-to-increase-gpu-utilization-in-kubernetes/</guid>
+      <guid>http://localhost:1313/gpu/how-to-increase-gpu-utilization-in-kubernetes/</guid>
       <description>本文是How to Increase GPU Utilization in Kubernetes with NVIDIA MPS的中文翻译版本，内容有删减&#xA;本文主要介绍在 Kubernetes 中集成 NVIDIA 多进程服务（MPS,Multi-Process Service），以在工作负载之间共享 GPU，以最大化利用率并降低基础设施成本。&#xA;大多数workload不需要每个 GPU 的全部内存和计算资源。因此，将一个 GPU 在多个进程之间共享对于提高 GPU 利用率和降低基础设施成本至关重要。&#xA;在 Kubernetes 中，可以通过将单个 GPU 公开为多个资源（即切片），每个切片具有特定的内存和计算大小，这些资源可以由单个容器请求来实现。通过为每个容器只创建所需的 GPU 切片，您可以释放集群中富余的GPU资源。这些资源可用于调度更多的 Pod，或允许您减少集群中的GPU节点数。无论哪种方式，在进程之间共享 GPU 都可以帮助您降低基础设施成本。&#xA;Kubernetes 中的 GPU 支持由 NVIDIA Kubernetes Device Plugin 提供，该插件目前仅支持两种 GPU 共享策略：时间切片和多实例 GPU（MIG,Multi-Instance GPU）。但是，还有一种 GPU 共享策略，它平衡了时间切片和 MIG 的优缺点：多进程服务 Multi-Process Service (MPS)。尽管 MPS 不受 NVIDIA Device Plugin 支持，但在 Kubernetes 中使用它仍然可行。&#xA;在本文中，我们将首先对比所有三种 GPU 共享技术的优缺点，然后提供有关如何在 Kubernetes 中使用 MPS 的逐步指南。此外，我们还提出了一种自动化 MPS 资源管理的解决方案，以优化利用率并降低运营成本：动态MPS (Dynamic MPS Partitioning)。</description>
     </item>
     <item>
       <title>深入理解Istio：网络原理与Sidecar的自动注入机制</title>
-      <link>http://localhost:53654/istio/istio-sidecar-inject/</link>
+      <link>http://localhost:1313/istio/istio-sidecar-inject/</link>
       <pubDate>Thu, 20 Jun 2024 16:24:32 +0800</pubDate>
-      <guid>http://localhost:53654/istio/istio-sidecar-inject/</guid>
+      <guid>http://localhost:1313/istio/istio-sidecar-inject/</guid>
       <description>Istio 简介 Istio，作为一款服务网格领域的佼佼者，为微服务架构提供了强大而灵活的网络能力。 本文旨在深入探讨Istio的网络原理，揭示其如何在复杂的服务间通信中发挥关键作用，同时保持高可观察性和安全性。&#xA;Istio 的核心在于其服务网格模型，它围绕着Envoy sideCar构建。每个服务实例旁边都会部署一个Envoy代理，负责处理进出服务的所有网络流量。 这一设计允许Istio在透明地拦截、路由和监控所有通信的同时，不对服务代码本身做出任何修改。&#xA;Istio sidecar 注入过程 Istio sidecar 注入过程是指在 Kubernetes 集群中，将 Istio 的 Envoy 代理作为一个 sidecar 容器，注入到每个业务容器所在的 Pod 中，从而实现对业务容器的流量管理和控制。&#xA;Istio sidecar 注入过程主要有两种方式：手动注入和自动注入。&#xA;手动注入是指在创建 Pod 时，在 Pod 的 YAML 文件中，手动添加 Istio 的 Envoy 代理容器，并且配置好 Istio 和 Envoy 代理容器之间的通信方式。这种方式比较繁琐，且容易出错。&#xA;自动注入是指在创建 Pod 时，由 Istio 的 sidecar 注入器（Istio-sidecar-injector）自动将 Istio 的 Envoy 代理容器注入到 Pod 中。这种方式比较简便，且可以保证 Istio 和 Envoy 代理容器之间的通信方式是正确的。&#xA;Istio-sidecar-injector 的工作原理是基于 Kubernetes 的 Admission Controller 机制。在创建 Pod 时，Kubernetes 会将 Pod 的创建请求提交给 Admission Controller 进行校验，如果校验通过，则将 Pod 创建成功。Istio-sidecar-injector 就是一个自定义的 Admission Controller，它在接收到 Pod 的创建请求时，会将 Istio 的 Envoy 代理容器注入到 Pod 中，然后将修改后的 Pod 创建请求提交给 Kubernetes 进行创建。</description>
     </item>
     <item>
       <title>如何在同一个k8s cluster中安装多个istio版本</title>
-      <link>http://localhost:53654/istio/how-to-install-multi-istio-control-plane/</link>
+      <link>http://localhost:1313/istio/how-to-install-multi-istio-control-plane/</link>
       <pubDate>Thu, 20 Jun 2024 16:23:23 +0800</pubDate>
-      <guid>http://localhost:53654/istio/how-to-install-multi-istio-control-plane/</guid>
+      <guid>http://localhost:1313/istio/how-to-install-multi-istio-control-plane/</guid>
       <description>准备工作 首先我们创建两个NameSpaceistio-canary &amp;amp; istio-prod,分别用于部署istio的canary版本和prod版本，然后我们给这两个NameSpace打上标签，用于后续的istio的版本选择。&#xA;➜ ~ k create ns istio-canary ➜ ~ k create ns istio-prod ➜ ~ k label ns istio-canary istio-tag=istio-canary ➜ ~ k label ns istio-prod istio-tag=istio-prod 接下来我们将要安装istio的版本，这里我们选择了1.19.3和1.18.5两个版本，分别用于canary和prod的版本。&#xA;➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.19.3 sh - ➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.18.5 sh - 首先给两个版本的istioctl设置alias，方便后续的操作。&#xA;➜ ~ istioctl1.9=&amp;#39;~/istio-1.19.3/bin/istioctl&amp;#39; ➜ ~ istioctl1.8=&amp;#39;~/istio-1.18.5/bin/istioctl&amp;#39; 开始安装istio 我们使用下面的命令来在istio-canary的NameSpace中安装istio 1.19.3版本&#xA;➜ ~ istioctl1.9 install -y -f - &amp;lt;&amp;lt;EOF apiVersion: install.istio.io/v1alpha1 kind: IstioOperator metadata: namespace: istio-canary name: istio-1-19-3 spec: profile: default revision: 1-19-3 tag: 1.</description>
     </item>
     <item>
       <title>在多个istio版本的k8s环境中构建应用</title>
-      <link>http://localhost:53654/istio/build-app-under-multi-istio/</link>
+      <link>http://localhost:1313/istio/build-app-under-multi-istio/</link>
       <pubDate>Thu, 20 Jun 2024 16:20:52 +0800</pubDate>
-      <guid>http://localhost:53654/istio/build-app-under-multi-istio/</guid>
+      <guid>http://localhost:1313/istio/build-app-under-multi-istio/</guid>
       <description>本教程主要基于Istio官方文档中的 Bookinfo Application，在多个istio版本的k8s环境中构建应用。&#xA;前提条件 请先参考上一篇文章Kubernetes集群中的Istio环境管理:控制平面的多实例部署实践配置好相应的istio环境， 接下来请将对应的bookinfo.yaml 文件下载到本地。&#xA;开始安装bookInfo应用 通过下面的命令来在l7-traffic-alpha namespace中安装bookInfo应用&#xA;➜ ~ k apply -f book-info.yaml -n l7-traffic-alpha # service/details created # serviceaccount/bookinfo-details created # deployment.apps/details-v1 created # service/ratings created # serviceaccount/bookinfo-ratings created # deployment.apps/ratings-v1 created # service/reviews created # serviceaccount/bookinfo-reviews created # deployment.apps/reviews-v1 created # deployment.apps/reviews-v2 created # deployment.apps/reviews-v3 created # service/productpage created # serviceaccount/bookinfo-productpage created # deployment.apps/productpage-v1 created 通过下面命令来查看对应的svc和pod是否已经创建成功,我们可以发现对应的svc已经创建成功&#xA;➜ ~ k get svc -n l7-traffic-alpha NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE details ClusterIP 100.</description>
     </item>
     <item>
       <title>深入了解 Go 的 init 函数</title>
-      <link>http://localhost:53654/golang/init-function-introduction/</link>
+      <link>http://localhost:1313/golang/init-function-introduction/</link>
       <pubDate>Wed, 19 Jun 2024 17:21:25 +0800</pubDate>
-      <guid>http://localhost:53654/golang/init-function-introduction/</guid>
+      <guid>http://localhost:1313/golang/init-function-introduction/</guid>
       <description>The Go init Function 的中文翻译版本。&#xA;当使用 Go 创建应用程序时，有的时候您需要能够在程序启动时初始化某些资源。例如涉及创建数据库的连接，或从本地存储的配置文件加载配置。&#xA;在本教程中，我们将研究如何使用这个 init() 函数来实现初始化，我们还将看看为什么这不一定是实例化组件的最佳方法。&#xA;替代方案（Alternative Approaches ） 现在，使用 init 函数的典型用例可能类似于“我想实例化与数据库的连接”。但是这实际上可能是 Go 应用程序中设计不佳的副作用。&#xA;实例化数据库连接之类的更好方法可能是使用New函数，该函数返回指向包含数据库连接对象的结构的指针。&#xA;func New() (*Database, error) { conn, err := sql.Open(&amp;#34;postgres&amp;#34;, &amp;#34;connectionURI&amp;#34;) if err != nil { return &amp;amp;Database{}, err } return &amp;amp;Database{ Connection: conn, }, nil } 使用这种方法，您可以将数据库传递给系统中可能需要调用数据库的任何其他组件。&#xA;它还使您可以在启动期间如何更好地处理故障，而不是简单地终止您的应用程序。&#xA;总的来说，我会尽量避免使用 init 函数，并使用上面概述的方法来实例化数据库连接，构建Go 应用程序。&#xA;init 函数（The init Function） 在 Go 中，init() 函数非常强大。同时与其他一些语言相比，在 Go 程序中更容易使用。这些 init() 函数可以在 package 块中使用，并且无论该包被导入多少次，init() 函数只会被调用一次。&#xA;现在你需要知道的是，init() 函数只会被调用一次。当我们想要建立数据库连接，或向各种服务注册中心注册，或执行您通常只想执行一次的任何数量的其他任务，它会是十分有效的。</description>
     </item>
     <item>
       <title>开始使用 Golang 插件</title>
-      <link>http://localhost:53654/golang/getting-started-with-golang-plugins/</link>
+      <link>http://localhost:1313/golang/getting-started-with-golang-plugins/</link>
       <pubDate>Wed, 19 Jun 2024 17:15:30 +0800</pubDate>
-      <guid>http://localhost:53654/golang/getting-started-with-golang-plugins/</guid>
+      <guid>http://localhost:1313/golang/getting-started-with-golang-plugins/</guid>
       <description>本文是 Getting started with Go plugin package的中文翻译版本，内容有删减&#xA;介绍 在这篇文章中，我们将介绍如何在Golang中使用plugin。我们将编写一个名为driver的程序，它会加载两个插件并执行它们中共有的某个函数。这个driver程序会向第一个插件传递一个整数，第一个插件会对它进行处理。第一个插件的结果会传递给第二个插件，最后driver程序将打印出结果。&#xA;配置 首先我们创建一个名为golang-plugin-demo的目录，然后进入该目录，然后创建名为types的文件夹 📁：&#xA;$ mkdir golang-plugin-demo $ cd $_ 编写一个共享的包 $ mkdir types $ cd types/ 接下来创建type.go文件，内容如下：&#xA;package types type InData struct { V int } type OutData struct { V int } 编写插件： 返回上一级目录，并创建一个名为plugin1的目录：&#xA;$ mkdir plugin1 $ cd plugin1 然后创建一个名为plugin.go的文件，内容如下：&#xA;package main import &amp;#34;../types&amp;#34; var Input types.InData var Output types.OutData var Name string func init() { Name = &amp;#34;plugin1&amp;#34; } func process() types.</description>
     </item>
     <item>
       <title>LeakProf：Golang 的轻量级在线 Goroutine 泄漏检测工具</title>
-      <link>http://localhost:53654/golang/leakprof-featherlight/</link>
+      <link>http://localhost:1313/golang/leakprof-featherlight/</link>
       <pubDate>Wed, 19 Jun 2024 17:14:21 +0800</pubDate>
-      <guid>http://localhost:53654/golang/leakprof-featherlight/</guid>
+      <guid>http://localhost:1313/golang/leakprof-featherlight/</guid>
       <description>本文是LeakProf: Featherlight In-Production Goroutine Leak Detection的中文翻译版本，内容有删减&#xA;Go 是一种在微服务开发中广受欢迎的编程语言，其主要特点之一是对并发性的一流支持。鉴于其不断增长的受欢迎程度，Uber采用了该语言：Go monorepo 作为开发平台的核心，其中包含了Uber的重要业务逻辑、支持库或基础设施的关键组件的大部分代码库。&#xA;Go的并发模型建立在轻量级线程——goroutines上。任何以&amp;quot;go&amp;quot;关键字为前缀的函数调用都会异步启动该函数。由于在Go代码库中使用goroutines的语法开销和资源需求较低，因此它们被广泛使用，程序通常可以同时涉及数十个、数百个或数千个goroutine。&#xA;两个或多个goroutine可以通过在通道上进行消息传递来相互通信，这是受到Hoare的Communicating Sequential Processes的启发而形成的一种编程范式。虽然传统的共享内存通信仍然是一种选择，但Go开发团队鼓励用户更倾向于使用channels，并主张在使用时可以更好地避免数据竞争。你可以通过encourages了解更多信息，此外Uber还发布了一篇关于Go中数据竞争模式的博文。&#xA;Goroutine 泄露 goroutine泄漏是goroutines高并发的一个副作用。channels语义的一个关键组成部分是&amp;quot;阻塞&amp;quot;，即channels操作会使得goroutine的执行暂停，直到达成目标（即找到通信伙伴）。更具体地说，对于无缓冲channels，发送方在接收方到达通道之前一直阻塞，反之亦然。一个goroutine可能永远被阻塞在尝试发送或接收通道的过程中，这种情况被称为&amp;quot;goroutine泄漏&amp;quot;。当有过多的goroutine泄漏时，后果可能是严重的。泄漏的goroutine会消耗资源，例如未被释放或回收的内存。请注意，一旦缓冲区已满，有缓冲channels也可能导致goroutine泄漏。&#xA;程序错误（例如，复杂的控制流、早期返回、超时等）可能会导致goroutine之间的通信不匹配，其中一个或多个goroutine可能会被阻塞，此时不能通过创建其他goroutine会来解除阻塞。Goroutine泄漏会阻止垃圾回收器回收相关的channels、goroutine堆栈和永久阻塞的goroutine的所有可访问对象。在长时间运行的服务中，随着时间的推移，小的泄漏会加剧这个问题。&#xA;Go的发行版本在编译或运行时都没有提供直接的解决方案来检测goroutine泄漏。如何检测goroutine泄漏是非常复杂的，因为它们可能依赖于多个goroutine之间的复杂交互，并且只在某些罕见的运行时会触发。一些提出的静态分析技术[1, 2, 3]容易出现不精确的情况，可能出现误报的问题。&#xA;其他提案，例如goleak，主要思路是在测试过程中采用动态分析，然后揭示出多个阻塞错误，但其有效性取决于对代码路径和线程调度的单元测试覆盖。在大规模的项目中进行详尽的单元测试覆盖是不可行的；例如，某些在生产环境中更改代码路径的配置可能并未被单元测试覆盖到。&#xA;因此，目前对于检测goroutine泄漏没有一种完美的解决方案。开发人员需要综合考虑静态和动态分析方法，并努力在测试过程中覆盖尽可能多的代码路径，以最大程度地减少goroutine泄漏的风险。&#xA;检测goroutine泄漏是复杂的，特别是在使用大量库、在运行时涉及数千个goroutine并使用大量通道的复杂生产代码中。在生产代码中检测这些泄漏的工具需要满足以下要求：&#xA;它不应引入高额的开销，因为它将在生产负载中使用。高开销会影响SLAs并消耗更多的计算资源。&#xA;它应具有较低的误报率；虚假的泄漏报告会浪费开发人员的时间。&#xA;一个实用、轻量级的解决方案：生产环境中的Goroutine泄漏 我们采取实际方法来检测在生产环境中长时间运行的程序中的Goroutine泄漏，以满足前面提到的标准。我们的前提和关键观察如下：：&#xA;如果一个程序存在大量的Goroutine泄漏，它最终会通过大量被阻塞在某些通道操作上的Goroutine数量变得可见。&#xA;只有很少的源代码位置（涉及通道操作）导致了大部分的Goroutine泄漏。&#xA;虽然不理想，罕见的Goroutine泄漏产生的开销较低，可以忽略不计。&#xA;第一点通过观察到有泄漏的程序中Goroutine数量的激增得到了证实。第二点简单地说明并非所有的通道操作都会导致泄漏，只有导致泄漏的代码被反复执行，才可能暴露这种泄漏。由于任何泄漏的Goroutine会持续存在于服务的声明周期中，反复遇到泄漏最终会导致大量积压的阻塞Goroutine。这对于由许多不同执行循环中的并发操作引起的泄漏尤其成立。最后，第三点是实际考虑因素。如果导致泄漏的操作很少遇到，它对内存积聚的影响可能不会很严重。基于这些实用的观察结果，我们设计了_LeakProf_，它是一个可靠的泄漏指示器，几乎不会产生误报，并且运行时开销最小化。&#xA;LeakProf的实现 Figure 1: LeakProf architecture&#xA;LeakProf定期对当前正在运行的goroutine进行调用栈分析（通过pprof获得）。检查特定配置的调用栈可以指示一个goroutine是否在特定操作（如通道发送、通道接收和select）上被阻塞。这些阻塞函数在Go运行时中是相对容易识别的。通过统计在按照通道操作的源位置汇总阻塞的goroutine，如果在单个位置上有大量的被阻塞goroutine，且超过了可配置的阈值，LeakProf会将其视为潜在的goroutine泄漏。&#xA;我们的方法既不完全准确，也不完备。分别存在着两类错误，即假阴性（即未必能找出所有的泄漏）和假阳性（即报告可能不代表真实的泄漏）。假阴性出现在程序在运行时没有出现泄漏场景，或者泄漏数量未超过可配置的阈值时。相反，假阳性会导致虚假的报告，当大量的goroutine由于程序意图的语义而被有意识地阻塞，而不是由于泄漏导致的时候（例如，具有高延迟的心跳操作）。为了改进对潜在假阳性的过滤，我们正在持续开发基于静态分析的轻量级启发式方法。例如，报告一个可疑的select语句涉及分析其AST以确定其中一个case分支是否涉及等待已知的非阻塞操作（例如，涉及Go标准库提供的定时器或计时器）；如果满足此条件，则不会报告该泄漏，无论有多少阻塞的goroutine，因为它肯定是假阳性。还可以配置已知假阳性的列表。不过，尽管如此，这种方法在实践中非常有效，可以检测到对生产服务产生重大影响的非平凡泄漏，如下所示。&#xA;在Uber部署时，LeakProf利用性能分析信息来收集被阻塞的goroutine信息，并自动通知服务所有者进行可疑并发操作的检查。只有当被阻塞的goroutine数量超过给定的阈值，并且它们是Uber代码库的一部分时，这些操作被视为可疑。这种方法的有效性得到了快速验证，它迅速发现了10个关键的泄漏goroutine，并且仅有1个假阳性。修复其中2个缺陷分别导致了服务峰值内存的2.5倍和5倍的减少，服务所有者自愿将容器内存需求减少了25%。&#xA;Figure 2: Memory footprint example&#xA;泄漏代码模式 在生产环境中对Goroutine泄漏的分析揭示了以下常见的泄漏代码模式。&#xA;过早函数返回 这种泄漏模式在几个goroutine预期进行通信时发生，但是某些代码路径过早地返回而没有参与通道通信，导致另一方永远等待。这种情况发生在通信双方没有考虑彼此可能的所有执行路径时。&#xA;Example 通道c（第2行）被子goroutine（第3行）用于发送错误消息（第5行或第8行）。父线程上的相应接收操作（第18行）之前有几个if语句，可能在第18行等待从通道接收之前就执行return操作（第13行和第15行）。如果父goroutine执行这些return语句中的任何一个，子goroutine将永远阻塞，无论它执行哪个发送操作。&#xA;防止goroutine泄漏的一种可能解决方案是在创建通道时使用缓冲大小为1。这允许子goroutine的发送者在通信操作上解除阻塞，而不受父接收goroutine行为的影响。&#xA;超时泄露 虽然这个bug可以被看作是过早函数返回模式的特例，但由于其普遍性，它值得独立列出。这种泄漏经常出现在将无缓冲通道与timers或contexts，以及select语句相结合的情况下。定时器或上下文通常用于短路(short-circuit)父goroutine的执行并提前终止。然而，如果子goroutine没有考虑到这种情况，可能会导致泄漏。&#xA;Example 通道done（第3行）与子goroutine（第4行）一起使用。当子goroutine发送消息（第6行）时，它会阻塞，直到另一个goroutine（可能是父goroutine）从done通道读取。同时，父goroutine在第8行的select语句处等待，直到与子goroutine同步（第9行），或者当ctx超时（第11行）时。在上下文超时的情况下，父goroutine通过第11行的case返回；结果是，当子goroutine发送时，没有等待的接收者。因此，子goroutine会发生泄漏，因为没有其他goroutine会从done接收。&#xA;同样，通过将done的容量增加为1，可以避免这种泄漏。&#xA;广播泄露 这种类型的泄漏发生在并发系统被构建为在同一个通道上有多个发送者和单个接收者之间的通信时。此外，如果单个接收者在通道上只执行一次接收操作，除了一个发送者外，其他所有发送者都将永远在通道上阻塞&#xA;Example 通道dataChan（第2行）被作为参数传递给第4行的for循环中创建的goroutine。每个子goroutine都试图向dataChan发送一个结果，但父goroutine只从dataChan接收一次，然后退出其当前函数的作用域，此时它失去了对dataChan的引用。由于dataChan是无缓冲的，任何未与父goroutine同步的子goroutine都将永远阻塞。&#xA;解决方案是将dataChan的缓冲区增加到items的长度。这保留了只有第一个结果发送给dataChan会被父线程接收的特性，同时允许其余的子goroutine解除阻塞并终止。&#xA;这个问题的更一般形式是当有N个发送者和M个接收者，其中N &amp;gt; M，并且每个接收者只执行一次接收操作时。&#xA;通道迭代错误使用 这种泄漏模式可能发生在使用range结构与通道时。理解这种泄漏需要对关闭操作 和range与通道的工作原理有一定的了解。泄漏是在对通道进行迭代时发生的，但是通道从未被关闭。这会导致for循环对通道的迭代无限期地阻塞，因为除非通道关闭，否则循环不会终止；for循环在从通道接收所有项目后会被阻塞。&#xA;Example 为了简洁起见，我们将借用在&amp;quot;Communication contention&amp;quot;（通信竞争）中引入的生产者-消费者问题。在第3行分配了一个名为queueJobs的通道。生产者是在for循环（第3行）中生成的goroutine，在其中每个生产者发送一条消息（第5行）。消费者（第8行）通过遍历queueJobs来读取消息。只要存在未消费的消息，第9行的循环将执行一次迭代。预期的结果是，一旦生产者不再发送消息，消费者将退出循环并终止。然而，由于通道上没有执行close操作，range在没有更多消息发送时将阻塞，从而导致泄漏。</description>
     </item>
     <item>
       <title>Golang 内存泄漏问题详解</title>
-      <link>http://localhost:53654/golang/golang-memory-leaks/</link>
+      <link>http://localhost:1313/golang/golang-memory-leaks/</link>
       <pubDate>Wed, 19 Jun 2024 17:12:30 +0800</pubDate>
-      <guid>http://localhost:53654/golang/golang-memory-leaks/</guid>
+      <guid>http://localhost:1313/golang/golang-memory-leaks/</guid>
       <description>本文是 Golang-Memory-Leaks 的中文翻译版本，内容仅供学习参考，如有侵权请联系删除。&#xA;其他优秀的 ppof 性能分析文章👍👍👍，请参考 golang pprof 实战 和 你不知道的 Go 之 pprof：&#xA;最近,我在生产环境中遇到了内存泄漏。我发现某个服务在负载内存在稳步上升，直到进程触发内存溢出异常。经过深入调查，我找到了内存泄漏的源头，以及为什么会发生这种情况。为了诊断问题，我使用了Golang的分析工具pprof。在本文中，我将解释什么是pprof，并展示我如何诊断内存泄漏。&#xA;背景 我们的客户端通过一个代理服务使用我们的系统,我们为其提供访问权限。内存泄漏发生在这个代理服务中。&#xA;内存泄漏 在收到客户端关于断开连接的投诉后，我开始寻找问题的根源。 我首先做的是检查公司提供的Grafana监控系统，查看代理服务的内存和CPU使用情况。我查看并且比较了3种不同情况下的指标:&#xA;服务在重启后处于空闲状态 服务处于负载状态 服务在负载状态下，现在处于空闲状态 所有重叠的线都表示服务处于空闲状态，只有绿色的线表示服务正在接收流量。&#xA;从上图中可以看出几个问题&#xA;当服务处于空闲状态且没有流量时，其内存保持在较低水平 当流量停止命中单个机器时，该机器的内存使用率下降，但仍高于其他实例。 在开始性能分析之前，我列出了一些我想排除的事情:&#xA;我正在使用Golang版本1.12.5，所以我想确保潜在的泄漏不是来自运行时(即使运行时也有问题)。可以在github页面上的open issues on the github page得到很好的回答。 尝试使用激进的垃圾回收debug.SetGCPercent(10) 手动尝试debug.FreeOSMemory()，运行时主要关注性能，在内存进行垃圾回收之后，为了性能考虑，并不会立即将其释放回操作系统 尝试在staging环境中使用小负载测试重现泄漏，以确认我的怀疑。 在完成上面的检查事项并且发现泄漏仍然存在且可以重现之后，我开始使用pprof对服务进行性能分析。&#xA;Golang 性能工具 - pprof 性能分析类型 你可以收集以下几种性能指标&#xA;goroutine - 当前所有goroutine的堆栈跟踪 heap - 所有堆分配的采样 threadcreate - 创建新的操作系统线程的堆栈跟踪 block - 导致在同步原语上阻塞的堆栈跟踪 mutex - 互斥锁的持有者的堆栈跟踪 profile - cpu 性能分析 trace - 允许在一定时间范围内收集所有分析数据 性能分析示例 为了开始性能分析，我导入了pprof并启动了一个HTTP服务器。&#xA;请注意，如果您已经有一个HTTP服务器在运行，那么只需要import pprof就足够了。我已经有一个TCP服务器在运行，所以我添加了另一个goroutine来监听一个单独的端口用于pprof。</description>
     </item>
     <item>
       <title>Golang 中的 Table Driven 单元测试</title>
-      <link>http://localhost:53654/golang/table-driven-unit-tests/</link>
+      <link>http://localhost:1313/golang/table-driven-unit-tests/</link>
       <pubDate>Wed, 19 Jun 2024 17:11:05 +0800</pubDate>
-      <guid>http://localhost:53654/golang/table-driven-unit-tests/</guid>
+      <guid>http://localhost:1313/golang/table-driven-unit-tests/</guid>
       <description>本文是 Prefer table driven tests的中文翻译版本，内容有删减&#xA;我是编写测试代码的狂热粉丝，特别喜欢unit testing和TDD。时下在Go项目中比较流行的是表格驱动测试，本文将会讨论如何编写针对Go的表格驱动测试&#xA;假设我们有一个函数用于分割字符串：&#xA;// Split slices s into all substrings separated by sep and // returns a slice of the substrings between those separators. func Split(s, sep string) []string { var result []string i := strings.Index(s, sep) for i &amp;gt; -1 { result = append(result, s[:i]) s = s[i+len(sep):] i = strings.Index(s, sep) } return append(result, s) } 单元测试 在Go中，单元测试就是普通的Go函数（有一些规则），所以我们可以在同一个目录下编写一个单元测试文件，包名为strings。&#xA;package split import ( &amp;#34;reflect&amp;#34; &amp;#34;testing&amp;#34; ) func TestSplit(t *testing.</description>
     </item>
     <item>
       <title>在 Golang 中进行 Fuzz 测试</title>
-      <link>http://localhost:53654/golang/go-fuzz-testing/</link>
+      <link>http://localhost:1313/golang/go-fuzz-testing/</link>
       <pubDate>Wed, 19 Jun 2024 17:10:05 +0800</pubDate>
-      <guid>http://localhost:53654/golang/go-fuzz-testing/</guid>
+      <guid>http://localhost:1313/golang/go-fuzz-testing/</guid>
       <description>本文是 Tutorial: Getting started with fuzzing的中文翻译版本，内容有删减&#xA;本教程介绍了在Go中进行模糊测试的基础知识。使用模糊测试，会使用随机数据来运行测试，以查找漏洞或导致崩溃的输入。通过模糊测试可以发现的一些漏洞示例包括SQL注入、缓冲区溢出、拒绝服务和跨站点脚本攻击。&#xA;在本教程中，您将为一个简单函数编写一个模糊测试，运行go命令，并调试和修复代码中的问题。&#xA;在本教程中涉及到的术语可以参考Go Fuzzing术语表&#xA;准备工作（Prerequisites） 您必须安装了Go 1.18及以上版本. 请参考 Installing Go来学习如何安装. 代码编辑器. 任何你有的文本编辑器都可以. 命令行. Go在Linux和Mac上使用任何终端都可以，也可以在Windows的PowerShell或cmd上使用. 支持模糊测试的环境. Go模糊测试仅在AMD64和ARM64架构上支持覆盖率插装. 创建文件夹 创建一个文件夹来存放你的代码&#xA;打开命令行并切换到你的主目录&#xA;Linux 或者 Mac上:&#xA;$ cd Windows 上:&#xA;C:\&amp;gt; cd %HOMEPATH% 本文的剩余部分将显示$作为提示符。您使用的命令也可以在Windows上使用。&#xA;在命令提示符下，创建一个名为fuzz的代码目录。&#xA;$ mkdir fuzz $ cd fuzz 创建一个模块来保存你的代码&#xA;运行go mod init命令，给它你的新代码的模块路径。&#xA;$ go mod init example/fuzz go: creating new go.mod: module example/fuzz Note: 对于生产代码，您将指定一个更符合自己需求的模块路径。更多信息，请参见Managing dependencies.&#xA;接下来，您将添加一些简单的代码来反转一个字符串，我们将在后面进行模糊测试。&#xA;添加测试代码 在这一步中，您将添加一个函数来反转一个字符串。&#xA;编写代码 用你的文本编辑器，在fuzz目录下创建一个名为main.go的文件。&#xA;在main.go的顶部，粘贴以下包声明。&#xA;package main 一个独立的程序（而不是一个库）总是在包main中。</description>
     </item>
     <item>
       <title>Golang 中条件变量 sync.Cond 的正确使用</title>
-      <link>http://localhost:53654/golang/go-sync-cond/</link>
+      <link>http://localhost:1313/golang/go-sync-cond/</link>
       <pubDate>Wed, 19 Jun 2024 17:08:50 +0800</pubDate>
-      <guid>http://localhost:53654/golang/go-sync-cond/</guid>
+      <guid>http://localhost:1313/golang/go-sync-cond/</guid>
       <description>本文是 How to properly use the conditional variable sync.Cond in Golang的中文翻译版本，内容有删减&#xA;Golang sync包中的Cond实现了一个条件变量，可以用在多个Reader等待一个共享资源ready的场景中（如果只有一个读一个写，此时锁或者channel就可以搞定）。&#xA;Cond pool的点在于：多个goroutine等待，1个goroutine发生事件通知。&#xA;每一个Cond都关联了一个Lock(*sync.Mutex or *sync.RWMutex)，在修改条件或者调用Wait方法时必须加锁，保护条件。&#xA;type Cond struct { // L is held while observing or changing the condition L Locker // contains filtered or unexported fields } 创建一个新的Cond条件变量。&#xA;func NewCond(l Locker) *Cond Broadcast 会唤醒所有等待的goroutine。&#xA;同时，Broadcast也可以不加锁调用。&#xA;func (c *Cond) Broadcast() Signal只会唤醒一个等待的goroutine。&#xA;func (c *Cond) Signal() Signal可以不加锁调用，但是如果不加锁调用，那么Signal必须在Wait之前调用，否则会panic。&#xA;Wait() 会自动释放 c.L 并挂起调用者的goroutine，Wait() 返回时会对 c.L 上锁。&#xA;Wait() 不会主动return，除非它被Signal或者Broadcast唤醒。&#xA;由于 C.</description>
     </item>
     <item>
       <title>升级 Golang 模块依赖的步骤</title>
-      <link>http://localhost:53654/golang/how-to-upgrade-golang-dependencies/</link>
+      <link>http://localhost:1313/golang/how-to-upgrade-golang-dependencies/</link>
       <pubDate>Wed, 19 Jun 2024 17:07:32 +0800</pubDate>
-      <guid>http://localhost:53654/golang/how-to-upgrade-golang-dependencies/</guid>
+      <guid>http://localhost:1313/golang/how-to-upgrade-golang-dependencies/</guid>
       <description>本文是 How To Upgrade Golang Dependencies的中文翻译版本，内容有删减&#xA;无论您是否使用Go modules，使用go get命令升级Go依赖项都是一个简单的任务。以下是升级Go依赖项的几个示例。&#xA;如何把依赖升级到最新的版本 下面的命令将更新您的go.mod和go.sum文件（针对 example.com/pkg）&#xA;go get example.com/pkg 如何将依赖项及其所有子依赖项升级到最新版本 如果您需要将依赖项及其所有子依赖项升级到最新版本（针对 example.com/pkg）&#xA;go get -u example.com/pkg 如何查看可用的依赖项升级 为了查看所有直接和间接依赖项的可用次要和补丁升级&#xA;go list -u -m all 如何一次性升级所有依赖项 为了一次性升级所有依赖项，运行以下命令&#xA;这将升级所有依赖的最新的或次要的版本&#xA;go get -u ./... 下面这个命令会测试依赖项的升级发现是否有问题&#xA;go get -t -u ./... 如何使用Go modules升级到特定版本 使用上面描述的相同机制，我们可以使用go get命令升级到特定的依赖项&#xA;get foo@v1.6.2 或者指定一个git提交哈希值&#xA;go get foo@e3702bed2 或者您可以在Module Queries中进一步探索定义的语义&#xA;测试升级后的依赖项 为了确保您的包在升级后正常工作，您可能需要运行以下命令来测试它们是否正常工作&#xA;go test all 如果您想了解有关Go modules的更多信息，请访问官方文档网站https://github.com/golang/go/wiki/Modules#how-to-upgrade-and-downgrade-dependencies</description>
     </item>
     <item>
       <title>多版本 Go 管理策略</title>
-      <link>http://localhost:53654/golang/managing-multiple-go-versions-with-go/</link>
+      <link>http://localhost:1313/golang/managing-multiple-go-versions-with-go/</link>
       <pubDate>Wed, 19 Jun 2024 17:06:22 +0800</pubDate>
-      <guid>http://localhost:53654/golang/managing-multiple-go-versions-with-go/</guid>
+      <guid>http://localhost:1313/golang/managing-multiple-go-versions-with-go/</guid>
       <description>本文是 [Managing Multiple Go Versions with Go] (https://lakefs.io/blog/managing-multiple-go-versions-with-go/)的中文翻译版本，内容有删减&#xA;作为 Go 编程语言的用户，我发现在一个项目中启用运行多个版本非常有用。如果你已经尝试过或考虑过这个功能，那太好了！在本文中，我将介绍启用多个 Go 版本的时间和方法。最后，我们将讨论为什么这种方法如此强大。&#xA;什么时候需要多版本的Go (When Do We Need Multiple Go Versions?) 默认情况下，安装 Go 只意味着你可以运行一个 go 命令来构建和测试你的项目。这对于入门很简单，但也可能有局限性。&#xA;更灵活的设置是通过 go1.17 或 go1.18 命令启用在同一环境中运行多个版本。另一种替代方法是设置终端的 PATH 环境变量以指向特定的 Go 版本的 SDK。&#xA;以下是我发现可能会有有多个go版本的几种情况：&#xA;项目需求不同 —— 在多个项目之间切换时，通常需要为每个项目使用不同的 Go 版本。 创建特定的测试环境 —— 在测试向后兼容性或确保修复漏洞的成功时，重要的是控制运行时版本。 保持最前沿 —— 当测试最新 Go 发布中仅可用的新功能或包的行为时 必备条件(Prerequisites) 本指南假定您已经知道如何使用 Go 构建和运行程序。具体来说，这意味着您已经安装了 Go 和 Git，并且它们在您的路径中可用。&#xA;Go – https://golang.org/doc/install Git – https://git-scm.com/ Modules – Using Go Modules 如何使用多个 Go 版本(How to Work With Multiple Go Versions) 我们可以使用 go install 命令来下载并安装单个 Go 版本。</description>
     </item>
     <item>
       <title>理解 Golang 中的值传递与引用传递</title>
-      <link>http://localhost:53654/golang/golang-pass-by-value-vs-pass-by-reference/</link>
+      <link>http://localhost:1313/golang/golang-pass-by-value-vs-pass-by-reference/</link>
       <pubDate>Wed, 19 Jun 2024 17:04:45 +0800</pubDate>
-      <guid>http://localhost:53654/golang/golang-pass-by-value-vs-pass-by-reference/</guid>
+      <guid>http://localhost:1313/golang/golang-pass-by-value-vs-pass-by-reference/</guid>
       <description>本文是Golang Pass by value vs Pass by reference的中文翻译版本，内容有删减&#xA;值传递和引用传递是使用指针类型时需要尤其注意的点（特别是在Java, C#, C/C++和Go等语言中）&#xA;当使创建方法/函数包含参数时，该参数可以选择使用普通数据类型或指针来进行传递。这将使传递给方法的参数有所不同：&#xA;按值传递 会将变量的值传递到方法中，或者可以说是将原始变量将值“复制”到另一个内存位置并将新创建的值传递到方法中。因此，在方法中变量发生的任何改变都不会影响原始变量值。 按引用传递 将传递变量的内存位置而不是值。换句话说，它将变量的“容器”传递给方法，因此，方法中变量的任何改变都会影响原始变量。 简而言之,按值传递将复制值，按引用传递将传递内存位置。&#xA;下图是清晰得解释了按值传递和按引用传递的区别&#xA;![][img-1]source: www.penjee.com&#xA;在Go语言中，我们可以处理指针，因此我们必须了解按值传递和按引用传递在 Go 中的工作原理，本文将它分为 3 个部分：“基本”、“引用”、“函数”。&#xA;源代码地址: https://github.com/david-yappeter/go-passbyvalue-passbyreference&#xA;基本数据类型(Basic Data Type） basicAndArray&#xA;package main import &amp;#34;fmt&amp;#34; func main() { a, b := 0, 0 // Initialize Value fmt.Printf(&amp;#34;## INIT\n&amp;#34;) fmt.Printf(&amp;#34;Memory Location a: %p, b: %p\n&amp;#34;, &amp;amp;a, &amp;amp;b) fmt.Printf(&amp;#34;Value a: %d, b: %d\n&amp;#34;, a, b) // 0 0 // Passing By Value a(int) Add(a) // Golang will copy value of &amp;#39;a&amp;#39; and insert it into argument // Passing By Reference b(int), &amp;amp;b(*int) =&amp;gt; with &amp;#39;&amp;amp;&amp;#39; we can get the memory location of &amp;#39;b&amp;#39; AddPtr(&amp;amp;b) // Pass Memory Location of &amp;#39;b&amp;#39; into argument fmt.</description>
     </item>
     <item>
       <title>Golang 错误处理的最佳实践</title>
-      <link>http://localhost:53654/golang/error-handle/</link>
+      <link>http://localhost:1313/golang/error-handle/</link>
       <pubDate>Wed, 19 Jun 2024 17:03:55 +0800</pubDate>
-      <guid>http://localhost:53654/golang/error-handle/</guid>
+      <guid>http://localhost:1313/golang/error-handle/</guid>
       <description>本文是 Effective Error Handling in Golang的中文翻译版本，内容有删减。&#xA;其他优秀的Golang error handle 文章：&#xA;一套优雅的 Go 错误问题解决方案 Go 中的 Errors 处理与其他主流编程语言（如 Java、JavaScript 或 Python）略有不同。Go 的内置 Errors 不包含堆栈跟踪，也不支持传统的 try/catch 方法来处理。相反，Go 中的 Errors 只是函数返回的值，它们可以像处理任何其他数据类型一样被处理, 它为 Go 带来了令人惊讶的轻量级和简单的设计。&#xA;在本文中，我将从 Go 中处理错误的基础知识开始讲解，同时还有在代码中可以遵循的一些简单策略，以确保您的程序是健壮的和易于调试的。&#xA;Error类型 (The Error Type) Go 中的错误类型是通过以下接口实现的：&#xA;type error interface { Error() string } 所以，Go 中的错误是实现了 Error()的任何方法，该方法返回一个字符串类型的错误消息。就是这么简单！&#xA;构建Errors (Constructing Errors) Errors 可以使用 Go 的内置 errors 或 fmt 包进行构造。例如，以下函数使用 errors 包返回一个带有静态错误消息的 error：&#xA;package main import &amp;#34;errors&amp;#34; func DoSomething() error { return errors.</description>
     </item>
     <item>
       <title>Go 1.18 版本新特性概览</title>
-      <link>http://localhost:53654/golang/go-version-118-release-new/</link>
+      <link>http://localhost:1313/golang/go-version-118-release-new/</link>
       <pubDate>Wed, 19 Jun 2024 17:02:21 +0800</pubDate>
-      <guid>http://localhost:53654/golang/go-version-118-release-new/</guid>
+      <guid>http://localhost:1313/golang/go-version-118-release-new/</guid>
       <description>本文由 www.makeuseof.com的中文翻译版本，内容有删减。关于 工作区，泛型和模糊测试更详细的说明，请参考 Go 1.18 的那些事 —— 工作区、模糊测试、泛型&#xA;自 2009 年首次发布以来，Go 编程语言已经进步了很多。Go 1.18 是一个备受期待的版本，因为它支持泛型和许多其他重要更新。&#xA;Go 于 2022 年 3 月发布了 1.18 版。以下是最重大变化的简要介绍。&#xA;对泛型的支持 (Support for Generics) 泛型编程允许您编写在编写函数时，可以用更灵活的类型来定义输入和返回值。&#xA;在支持泛型之前，您需要显式声明参数类型和返回类型。 最简单的泛型形式允许您指定无类型参数：&#xA;func PrintAnything[T any](thing T) { fmt.Println(thing) } 但是泛型其实功能更加强大，你可以声明任何类型的参数。例如，您可以使用 constraints 包来编写一个函数，该函数可以操作任何可以排序的值。包括 int、float 和 string等。这里是一个示例：&#xA;import &amp;#34;golang.org/x/exp/constraints&amp;#34; func Max[T constraints.Ordered](input []T) (max T) { for _, v := range input { if v &amp;gt; max { max = v } } return max } 请注意这个函数使用了泛型和constraints.</description>
     </item>
     <item>
       <title>掌握 Golang 的 sync.Map 并发安全容器</title>
-      <link>http://localhost:53654/golang/go-sync-map/</link>
+      <link>http://localhost:1313/golang/go-sync-map/</link>
       <pubDate>Wed, 19 Jun 2024 17:00:35 +0800</pubDate>
-      <guid>http://localhost:53654/golang/go-sync-map/</guid>
+      <guid>http://localhost:1313/golang/go-sync-map/</guid>
       <description>The new kid in town — Go’s sync.Map 的中文翻译版本，内容有删减。&#xA;本文是一个使用在 sync.Map 包中内置 map 的例子，&#xA;下面代码中的 RegularIntMap 采用了由 RWMutex构成的内置map&#xA;package RegularIntMap type RegularIntMap struct { sync.RWMutex internal map[int]int } func NewRegularIntMap() *RegularIntMap { return &amp;amp;RegularIntMap{ internal: make(map[int]int), } } func (rm *RegularIntMap) Load(key int) (value int, ok bool) { rm.RLock() result, ok := rm.internal[key] rm.RUnlock() return result, ok } func (rm *RegularIntMap) Delete(key int) { rm.Lock() delete(rm.internal, key) rm.Unlock() } func (rm *RegularIntMap) Store(key, value int) { rm.</description>
     </item>
     <item>
       <title>go.mod 文件解析：直接与间接依赖</title>
-      <link>http://localhost:53654/golang/direct-indirect-dependency-module-go/</link>
+      <link>http://localhost:1313/golang/direct-indirect-dependency-module-go/</link>
       <pubDate>Wed, 19 Jun 2024 16:58:53 +0800</pubDate>
-      <guid>http://localhost:53654/golang/direct-indirect-dependency-module-go/</guid>
+      <guid>http://localhost:1313/golang/direct-indirect-dependency-module-go/</guid>
       <description>Direct vs Indirect Dependencies in go.mod file in Go 的中文翻译版本。&#xA;Module 是 Go的依赖工具。根据定义，Module是一组以 go.mod 为根目录的相关包的集合。 go.mod 文件定义了&#xA;Module 导入路径。 用于成功构建项目的依赖项要求。它不仅定义了模块的依赖，同时也确定了依赖的版本。 Module中的依赖可以是两种类型：&#xA;Direct 在项目文件中被直接引用的直接依赖。 Indirect 是module的直接依赖的二次依赖。 在go.mod文件中被声明，但是没有被文件直接引用的依赖也被视为indirect依赖。 go.mod 文件理论上只记录了direct dependency。然而在下面的情况，它也会记录indirect dependency&#xA;不在go.mod文件中出现的direct dependency，或者direct dependency项目中不包含go.mod文件。那么这个依赖将被添加到go.mod文件中，并且使用//indirect作为后缀 没有被任何文件引用的依赖。 go.sum 将记录同时direct和indirect dependencies的校验和&#xA;接下来，我们来看一个direct dependency的例子。&#xA;git mod init learn 创建一个文件 learn.go&#xA;package main import ( &amp;#34;github.com/pborman/uuid&amp;#34; ) func main() { _ = uuid.NewRandom() } 请注意，我们在learn.go中用以下方式指定了依赖&#xA;&amp;#34;github.com/pborman/uuid&amp;#34; 所以 github.com/pborman/uuid 是一个我们的learn 项目的direct dependency，因为它是直接引用到learn.go中的。 现在让我们运行以下命令&#xA;go mod tidy 此命令将下载源文件中所需的所有依赖项。 运行此命令后，让我们再次检查 go.</description>
     </item>
     <item>
       <title>Go init 函数使用介绍</title>
-      <link>http://localhost:53654/golang/the-golang-init-func/</link>
+      <link>http://localhost:1313/golang/the-golang-init-func/</link>
       <pubDate>Wed, 19 Jun 2024 16:44:28 +0800</pubDate>
-      <guid>http://localhost:53654/golang/the-golang-init-func/</guid>
+      <guid>http://localhost:1313/golang/the-golang-init-func/</guid>
       <description>The Go init Function 的中文翻译版本。&#xA;当使用 Go 创建应用程序时，有的时候您需要能够在程序启动时初始化某些资源。例如涉及创建数据库的连接，或从本地存储的配置文件加载配置。&#xA;在本教程中，我们将研究如何使用这个 init() 函数来实现初始化，我们还将看看为什么这不一定是实例化组件的最佳方法。&#xA;替代方案（Alternative Approaches ） 现在，使用 init 函数的典型用例可能类似于“我想实例化与数据库的连接”。但是这实际上可能是 Go 应用程序中设计不佳的副作用。&#xA;实例化数据库连接之类的更好方法可能是使用New函数，该函数返回指向包含数据库连接对象的结构的指针。&#xA;func New() (*Database, error) { conn, err := sql.Open(&amp;#34;postgres&amp;#34;, &amp;#34;connectionURI&amp;#34;) if err != nil { return &amp;amp;Database{}, err } return &amp;amp;Database{ Connection: conn, }, nil } 使用这种方法，您可以将数据库传递给系统中可能需要调用数据库的任何其他组件。&#xA;它还使您可以在启动期间如何更好地处理故障，而不是简单地终止您的应用程序。&#xA;总的来说，我会尽量避免使用 init 函数，并使用上面概述的方法来实例化数据库连接，构建Go 应用程序。&#xA;init 函数（The init Function） 在 Go 中，init() 函数非常强大。同时与其他一些语言相比，在 Go 程序中更容易使用。这些 init() 函数可以在 package 块中使用，并且无论该包被导入多少次，init() 函数只会被调用一次。&#xA;现在你需要知道的是，init() 函数只会被调用一次。当我们想要建立数据库连接，或向各种服务注册中心注册，或执行您通常只想执行一次的任何数量的其他任务，它会是十分有效的。</description>
     </item>
     <item>
       <title>比较 Go 切片的三种高效方法</title>
-      <link>http://localhost:53654/golang/compare-slice/</link>
+      <link>http://localhost:1313/golang/compare-slice/</link>
       <pubDate>Wed, 19 Jun 2024 16:40:44 +0800</pubDate>
-      <guid>http://localhost:53654/golang/compare-slice/</guid>
+      <guid>http://localhost:1313/golang/compare-slice/</guid>
       <description>3 ways to compare slices (arrays)的中文翻译版本，添加了benchMark 测试的结果&#xA;基本案例(Basic case） 在大多数情况下，你需要自己实现比较两个 slices 的代码&#xA;// Equal tells whether a and b contain the same elements. // A nil argument is equivalent to an empty slice. func Equal(a, b []int) bool { if len(a) != len(b) { return false } for i, v := range a { if v != b[i] { return false } } return true } 对于 arrays来说，你可以使用 == 或者!</description>
     </item>
     <item>
       <title>Cobra 命令行工具使用指南</title>
-      <link>http://localhost:53654/golang/cobra-user-guide/</link>
+      <link>http://localhost:1313/golang/cobra-user-guide/</link>
       <pubDate>Wed, 19 Jun 2024 16:36:24 +0800</pubDate>
-      <guid>http://localhost:53654/golang/cobra-user-guide/</guid>
+      <guid>http://localhost:1313/golang/cobra-user-guide/</guid>
       <description>本文是cobra的官方readme的中文翻译版本&#xA;用户指南 当你想要用cobra来构建自己的应用时，你可以按照下面的结构来组织你的cobra应用：&#xA;▾ appName/ ▾ cmd/ add.go your.go commands.go here.go main.go 在一个cobra应用中，通常main.go文件非常简单，它只有一个目的：初始化cobra。&#xA;package main import ( &amp;#34;{pathToYourApp}/cmd&amp;#34; ) func main() { cmd.Execute() } 使用Cobra Generator Cobra-CLI 是一个独立的程序，它将创建您的应用程序并添加您想要的任何命令。 这是将 Cobra 集成到您的应用程序的最简单方法。&#xA;关于使用Cobra generator的细节，可以参考The Cobra-CLI Generator README&#xA;使用Cobra库 要实现 Cobra，您需要创建一个空的 main.go 文件和一个 rootCmd 文件。 您可以根据需要选择性地提供其他命令。&#xA;创建rootCmd Cobra 不需要任何特殊的构造函数。只需创建命令即可。&#xA;您可以把下面的内容放在 app/cmd/root.go 中。&#xA;var rootCmd = &amp;amp;cobra.Command{ Use: &amp;#34;hugo&amp;#34;, Short: &amp;#34;Hugo is a very fast static site generator&amp;#34;, Long: `A Fast and Flexible Static Site Generator built with love by spf13 and friends in Go.</description>
     </item>
     <item>
       <title>如何在 Kubernetes 中有效使用 Secret、ConfigMap 和 Lease：详解及示例</title>
-      <link>http://localhost:53654/k8s/k8s-secret-configmap-lease/</link>
+      <link>http://localhost:1313/k8s/k8s-secret-configmap-lease/</link>
       <pubDate>Tue, 18 Jun 2024 10:22:03 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8s-secret-configmap-lease/</guid>
+      <guid>http://localhost:1313/k8s/k8s-secret-configmap-lease/</guid>
       <description>简介 在 Kubernetes (k8s) 中，Secret、ConfigMap 和 Lease 是三种关键资源对象，它们分别用于处理敏感信息、配置数据和分布式系统中的 leader 选举。本文将详细介绍这三种对象，包括它们的使用场景、优缺点以及示例。&#xA;Secret 推荐使用场景 存储和管理敏感信息，例如密码、OAuth 令牌、SSH 密钥等。 注入到容器中的环境变量或挂载到文件系统，以便应用程序安全地访问敏感数据。 优势 安全性：避免在配置文件中以明文形式存储敏感信息。 灵活性：支持将 Secret 以多种方式提供给 Pod，例如环境变量或卷。 加密存储：Kubernetes 支持配置加密存储 Secret 对象。 劣势 配置复杂性：需要适当配置 RBAC 以确保 Secret 的安全访问。 管理难度：在大规模集群中管理大量 Secret 可能较为复杂。 示例 创建一个 Secret 对象：&#xA;apiVersion: v1 kind: Secret metadata: name: mysecret type: Opaque data: # Base64 编码的 &amp;#39;admin&amp;#39; username: YWRtaW4= # Base64 编码的 &amp;#39;1f2d1e2e67df&amp;#39; password: MWYyZDFlMmU2N2Rm 在 Pod 中使用 Secret：&#xA;apiVersion: v1 kind: Pod metadata: name: mypod spec: containers: - name: mycontainer image: myimage env: - name: USERNAME valueFrom: secretKeyRef: name: mysecret key: username - name: PASSWORD valueFrom: secretKeyRef: name: mysecret key: password 使用 Golang 访问 Secret：</description>
     </item>
     <item>
       <title>全面解析Bare Metal Kubernetes:必知的关键点</title>
-      <link>http://localhost:53654/k8s/bare-metal-kubernetes/</link>
+      <link>http://localhost:1313/k8s/bare-metal-kubernetes/</link>
       <pubDate>Tue, 18 Jun 2024 10:20:22 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/bare-metal-kubernetes/</guid>
+      <guid>http://localhost:1313/k8s/bare-metal-kubernetes/</guid>
       <description>本文是 Introducing Bare Metal Kubernetes: what you need to know 的中文翻译版本，内容有删减&#xA;Bare Metal Kubernetes意味着直接在物理服务器上部署Kubernetes集群及其容器，而不是在由管理器层管理的传统虚拟机VMs内部进行部署。&#xA;Bare metal Kubernetes可以用于边缘计算部署，以避免在小型硬件上运行虚拟机层所带来的开销，或者用于数据中心以降低成本，提高应用工作负载性能，并避免虚拟机许可的成本。 正如我们将讨论的，历史上在Bare metal上部署Kubernetes一直存在挑战。 Spectro Cloud的研究发现，仅有20%的企业级Kubernetes的使用者使用Bare metal。 但是借助Cluster API和Canonical MaaS等工具，现在对Bare metal K8s集群进行配置要简单，可扩展和高效得多。 因此，我们看到越来越多的企业运营团队开始在他们的Kubernetes部署中使用裸金属。 继续阅读以获取有关裸金属Kubernetes的所有信息，包括其工作原理，与虚拟机的比较，以及如何开始自己的裸金属部署。&#xA;Kubernetes是什么? 在深入了解bare-metal Kubernetes之前，让我们通过 what Kubernetes does简单的看一下Kubernetes的功能&#xA;Kubernetes是一个开源的容器编排引擎，它目前是使用最广的，超过其他所有替代产品。来自云原生计算基金会（CNCF）的研究发现，96%的受访者正在考虑或使用Kubernetes。&#xA;Kubernetes是一个容器编排引擎 Kubernetes 的主要任务是调度和部署容器化应用程序，这是云原生模型的关键要素之一。与 VM 相比，容器是轻量级的，因为它们不包含操作系统，并且它们是可移植的，因为它们包含所有应用程序的依赖项。&#xA;您无需严格使用 Kubernetes 就可以运行容器，因为您可以使用容器运行时手动将容器部署在服务器的操作系统上。但是，除非您只有少数容器要处理，否则这种方法并不实用。如果您想扩展，则需要一个编排引擎。&#xA;Scaling with clusters and worker nodes Kubernetes 的作用就在于此。它通过 Kubernetes API 将容器部署到由单个“master node”控制平面管理的“worker node”集群中的“pod”上，并根据需要进行扩展。&#xA;Kubernetes 非常强大，这要归功于其可扩展的架构。为了实现高可用性和负载平衡，Kubernetes 会根据需要启动和关闭尽可能多的worker nodes。它会根据策略和用户需求将应用程序分布在它们之上。&#xA;例如，如果节点出现故障或遇到其他问题，Kubernetes 可以workload移植到其他node，从而防止停机。&#xA;Bare metalKubernetes 的不同之处在于? Kubernetes 和容器是在虚拟机成为部署应用程序的事实环境中出现的。自然而然，大多数企业一直在 VM 上部署容器和 Kubernetes，而 VM 又位于硬件上的管理程序层和主机操作系统之上（让我们不要深入探讨bare-metal管理程序的概念……）。</description>
     </item>
     <item>
       <title>深入了解Kubernetes控制器对象存储（object stores）和索引器（indexers）</title>
-      <link>http://localhost:53654/k8s/object-stores-and-indexers/</link>
+      <link>http://localhost:1313/k8s/object-stores-and-indexers/</link>
       <pubDate>Tue, 18 Jun 2024 10:14:37 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/object-stores-and-indexers/</guid>
+      <guid>http://localhost:1313/k8s/object-stores-and-indexers/</guid>
       <description>本文是Understanding Kubernetes controllers part II – object stores and indexers的中文翻译版本，内容有删减&#xA;基本上，我们已经学会了如何使用 Kubernetes Go client来检索 Kubernetes 资源的信息，因此我们可以在我们的controller中简单地执行这个操作。然而，这有点低效。假设，例如，你正在使用多个工作线程，就像我们所做的那样。那么你可能会一遍又一遍地检索相同的信息，对 API 服务器造成很大负载。为了避免这种情况，可以使用一种特殊的 Kubernetes Informers 类型，称为index informers，它们构建一个线程安全的对象存储作为缓存。当集群的状态发生变化时，Informer 不仅会调用我们controller的处理函数，还会执行必要的更新以保持缓存的最新状态。由于缓存具有处理索引的额外能力，因此被称为 Indexer。因此，在今天的文章末尾，以下图片将呈现出来。&#xA;在本文的其余部分，我们将更详细地讨论索引器及其与 Informer 的交互，而在下一篇文章中，我们将学习如何创建和使用 Informer，并深入了解它们的内部运作。&#xA;Watches and resource versions 在我们讨论 Informers 和 Indexers 之前，我们必须了解客户端可以使用的基本机制，以跟踪集群状态。为了实现这一点，Kubernetes API 提供了一种称为 watch 的机制。最好通过一个例子来解释这个概念。&#xA;在继续之前，请确保你有一个运行中的 Kubernetes 集群。我们将使用 curl 直接与 API 进行交互。为了避免必须在请求中添加令牌或证书，我们将使用 kubectl 代理机制。因此，请在另一个单独的终端中运行：&#xA;$ kubectl proxy 此时你应该看到一个消息，表示该代理正在本地主机的某个端口上监听（通常是8001）。发送到该端口的任何请求将被转发到 Kubernetes API 服务器。为了访问我们的集群，让我们首先启动一个单独的 HTTPD。&#xA;$ kubectl run alpine --image=httpd:alpine 然后我们使用CURL来获取默认命名空间中正在运行的 pod 列表。&#xA;$ curl localhost:8001/api/v1/namespaces/default/pods { &amp;#34;kind&amp;#34;: &amp;#34;PodList&amp;#34;, &amp;#34;apiVersion&amp;#34;: &amp;#34;v1&amp;#34;, &amp;#34;metadata&amp;#34;: { &amp;#34;selfLink&amp;#34;: &amp;#34;/api/v1/namespaces/default/pods&amp;#34;, &amp;#34;resourceVersion&amp;#34;: &amp;#34;6834&amp;#34; }, &amp;#34;items&amp;#34;: [ { &amp;#34;metadata&amp;#34;: { &amp;#34;name&amp;#34;: &amp;#34;alpine-56cf65bbfc-tzqqx&amp;#34;, &amp;#34;generateName&amp;#34;: &amp;#34;alpine-56cf65bbfc-&amp;#34;, &amp;#34;namespace&amp;#34;: &amp;#34;default&amp;#34;, &amp;#34;selfLink&amp;#34;: &amp;#34;/api/v1/namespaces/default/pods/alpine-56cf65bbfc-tzqqx&amp;#34;, &amp;#34;uid&amp;#34;: &amp;#34;584ddf85-5f8d-11e9-80c0-080027696a3f&amp;#34;, &amp;#34;resourceVersion&amp;#34;: &amp;#34;6671&amp;#34;, --- REDACTED --- 正如预期的那样，你将获得一个 JSON 编码的对象类型 PodList。有趣的部分是元数据中的数据。你会看到有一个字段 resourceVersion。本质上，资源版本是一个随时间增加的数字，它唯一地标识集群的某个状态。</description>
     </item>
     <item>
       <title>Client-go 中的label selector 引起的 CPU Throttling问题</title>
-      <link>http://localhost:53654/k8s/oom-killed-by-client-go-label-select/</link>
+      <link>http://localhost:1313/k8s/oom-killed-by-client-go-label-select/</link>
       <pubDate>Tue, 18 Jun 2024 10:06:09 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/oom-killed-by-client-go-label-select/</guid>
+      <guid>http://localhost:1313/k8s/oom-killed-by-client-go-label-select/</guid>
       <description>前序 Kubernetes是目前最流行的容器编排工具之一，提供了丰富的功能，用于管理和部署容器应用程序。在Kubernetes中，使用client-go来与Kubernetes API进行交互。client-go提供了简单易用的API，帮助用户轻松操作Kubernetes集群。然而，在使用client-go时，我们也需要注意性能方面的问题。具体来说，client-go中的cache ListAll() 函数可能会触发CPU密集型操作。本文记录了我们如何排查和解决了tlb-service-contrller的CPU Throttling问题，旨在为同行提供思考和借鉴的经验。&#xA;最近，我作为eBay内部Cloud网络团队的值班人员， 日常工作是处理团队维护的各种 Kubernetes的控制器（controller的）和服务的健康状态的实时警报。当出现故障、性能问题或安全问题时，立即响应并采取必要的措施来解决问题。在最近的值班中，我接到关于公司内部 tlb-service-controller 的告警电话，快速查看后发现问题是 CPU Throttling 导致 tlb-service-controller 重启。以下是对问题的排查过程和解决方案的记录。在这篇文章中，我将分享我处理这一技术挑战的经验和所得的教训，以便给同行提供有益的思考和指导。&#xA;CPU Throttling 问题排查 收到告警电话，扩容CPU 10--&amp;gt;20--&amp;gt;40 CPU 扩容的过程 当我接到告警电话☎️时，发现当前 tlb-service-controller 的 CPU 限制设置为 10。最初认为是由于 controller 需要协调的对象太多，导致其无法正常工作。为了暂时解决问题，我将 CPU 限制从 10 增加到 20。然而，即使增加到 20，依然存在CPU Throttling的情况，于是我将 CPU 再次增加到 40。这样 tlb-service-controller 的 CPU 使用率稳定下来，上下游用户暂时不受影响。接下来，我将查找导致当前问题的原因 上图是在Prometheus上查看的当前tlb-service-controller在CPU扩容后的CPU和内存分布图。我们可以得出结论，CPU使用率在短短的10分钟内迅速上升至约33，这表明，CPU使用率可能出现了异常。需要进一步调查才能确定原因。&#xA;pprof 排查CPU 使用率罪魁祸首 pprof 是一款 Golang 性能剖析工具，可用于分析应用程序的 CPU 和内存占用率等性能问题。pprof 可以在应用程序运行时收集性能数据，然后使用可视化工具进行简单的分析和展示。下面是使用 pprof 对当前 tlb-service-controller 的 CPU 使用率采样生成的分析图。 从上面的图中，我们可以看到，主要的罪魁祸首是lockAllocationForPods()和client-go中cache的ListAll()函数。通过查看源代码，我们发现该函数通过client-go提供的标签选择器功能，在每个pod上创建一个标签选择器（labelSelector），找到与之匹配的allocation（读者可以忽略&amp;quot;allocation&amp;quot;的具体含义，它是与IP绑定的资源，每个pod应该对应一个IP）&#xA;func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) error { if pods == nil { return nil } for _, pod := range pods { // Check if allocation already exists for this pod labelSelector := labels.</description>
     </item>
     <item>
       <title>简化Helm Charts部署：使用tpl函数引用Values</title>
-      <link>http://localhost:53654/k8s/using-the-helm-tpl-function/</link>
+      <link>http://localhost:1313/k8s/using-the-helm-tpl-function/</link>
       <pubDate>Tue, 18 Jun 2024 09:49:53 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/using-the-helm-tpl-function/</guid>
+      <guid>http://localhost:1313/k8s/using-the-helm-tpl-function/</guid>
       <description>摘要 本文将指导您如何在Helm Charts中使用tpl函数来引用values.yaml文件中的值，避免重复并简化配置。&#xA;使用tpl函数引用Values 在Kubernetes部署中，Helm Charts提供了一种强大的方式来管理应用程序配置。但是，当配置变得复杂时，如何避免在values.yaml文件中重复相同的值呢？本文将介绍一种方法，通过使用Helm的tpl函数来实现这一点。&#xA;environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env: - name: ENVIRONMENT value: &amp;#34;{{ .Values.environment }}&amp;#34; 这种方法不仅减少了重复，而且使您的配置更加灵活和易于维护。&#xA;Tpl函数的工作原理 Tpl函数允许您在模板中使用字符串作为模板。这意味着您可以在Deployment资源模板中这样使用它：&#xA;spec: containers: - name: main image: {{ tpl .Values.image . }} env: {{- tpl (toYaml .Values.env) . | nindent 12 }} 当您运行helm install时，Helm模板引擎将使用values文件中的设置替换相应的值。&#xA;注意事项 在使用tpl函数时，请注意安全性。例如，如果用户提供了以下values文件：&#xA;environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env: - name: PODS value: &amp;#39;{{ lookup &amp;#34;v1&amp;#34; &amp;#34;Pod&amp;#34; &amp;#34;&amp;#34; &amp;#34;&amp;#34; }}&amp;#39; 这可能会暴露集群中的敏感信息。因此，请确保在集群中使用适当的RBAC策略来限制用户的操作。</description>
     </item>
     <item>
       <title>K8s Cloud Provider源码解析</title>
-      <link>http://localhost:53654/k8s/k8s-cloud-provider/</link>
+      <link>http://localhost:1313/k8s/k8s-cloud-provider/</link>
       <pubDate>Mon, 17 Jun 2024 16:59:46 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8s-cloud-provider/</guid>
+      <guid>http://localhost:1313/k8s/k8s-cloud-provider/</guid>
       <description>Cloud Provider 介绍 Kubernetes 的 Cloud Provider 机制是将 Kubernetes 与公有云、私有云等基础设施进行对接的关键组件。它主要具有以下功能:&#xA;节点管理:实现节点的生命周期管理,如实例监控、故障检测、节点驱逐等。&#xA;负载均衡:将 Kubernetes 的 Service 对象映射到云平台的负载均衡服务,如 AWS ELB、阿里云 SLB 等。&#xA;存储管理:通过 FlexVolume、CSI 接口与云存储服务集成,为 Pod 提供持久化存储。&#xA;路由管理:在底层网络中设置路由规则,确保 Pod 间的互联互通。&#xA;身份认证:结合云平台的 IAM 服务进行访问权限控制。&#xA;Kubernetes 的 Cloud Provider 接口使得不同的云平台能够实现自己的 Controller Manager 来集成这些功能。目前已有的Cloud Provider主要包括:&#xA;AWS Cloud Provider 阿里云 Cloud Provider vSphere Cloud Provider 启用 Cloud Provider 后,相关的控制组件会部署在 Kubernetes 集群中。&#xA;这种解耦设计降低了 Kubernetes 项目与具体云平台的耦合,允许云供应商进行定制化集成,也使得多云和混合云的管理变得更加复杂。关于 Cloud Provider更多的历史和背景介绍可以参考这篇来自k8s的sig-cloud-providercloud-provider-documentation&#xA;代码分析 本篇主要讨论的是最基础的kubernetes/cloud-provider,它是所有云供应商的基础,也是所有云供应商的实现的基础。&#xA;架构设计 整体的架构如下图所示: 目前它包含的Informers有:&#xA;NodeInformer ServiceInformer 其主要函数包括:&#xA;processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下图所示: 主要代码分析 NodeConditionPredicate func listWithPredicates(nodeLister corelisters.</description>
     </item>
     <item>
       <title>k8s 默认的调度器工作机制和策略</title>
-      <link>http://localhost:53654/k8s/k8s-schedule-road-path/</link>
+      <link>http://localhost:1313/k8s/k8s-schedule-road-path/</link>
       <pubDate>Sun, 16 Jun 2024 16:22:37 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8s-schedule-road-path/</guid>
+      <guid>http://localhost:1313/k8s/k8s-schedule-road-path/</guid>
       <description>参考文章: https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/kube-scheduler/&#xA;默认调度器 Kubernetes 调度队列 activeQueue 在 activeQ 里的 Pod,都是下一个调度周期需要调度的对象 当你在 Kubernetes 集群里新创建一个 Pod 的时候,调度器会将这个 Pod 入队到 activeQ 里面 unschedulableQueue 它存储那些由于某种原因而无法被调度的 Pod 当一个 unschedulableQ 里的 Pod 被更新之后,调度器会自动把这个 Pod 移动到 activeQ 里,从而给这些调度失败的 Pod “重新做人”的机会 k8s-scheduler control path Informer Path 启动一系列 Informer,用来监听(Watch)Etcd 中 Pod、Node、Service 等与调度相关的 API 对象的变化。比如,当一个待调度 Pod(即:它的 nodeName 字段是空的)被创建出来之后,调度器就会通过 Pod Informer 的 Handler,将这个待调度 Pod 添加进调度队列 Kubernetes 的调度队列是一个 PriorityQueue(优先级队列) Scheduling Path Scheduling Path 的主要逻辑,就是不断地从调度队列里出队一个 Pod。然后,调用 Predicates 算法进行“过滤”。这一步“过滤”得到的一组 Node,就是所有可以运行这个 Pod 的宿主机列表。&#xA;k8s-scheduler 调度过程 Predicate 从集群所有的节点中,根据调度算法挑选出所有可以运行该 Pod 的节点;</description>
     </item>
     <item>
       <title>k8s Affinity与 taint/toleration的区别</title>
-      <link>http://localhost:53654/k8s/diff-of-affinity-and-taint/</link>
+      <link>http://localhost:1313/k8s/diff-of-affinity-and-taint/</link>
       <pubDate>Sun, 16 Jun 2024 16:21:40 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/diff-of-affinity-and-taint/</guid>
+      <guid>http://localhost:1313/k8s/diff-of-affinity-and-taint/</guid>
       <description>k8s Affinity与 taint/toleration的区别解释 k8s taint toleration的介绍和使用 参考文章: https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/taint-and-toleration/&#xA;Kubernetes 中 Taint 和 Toleration 是配合使用来进行污点容忍的机制,可以用来避免 Pod 被调度到不合适的 Node 上。&#xA;Taint 的作用: Taint 应用于 Node 上,用于标记该 Node 不宜调度某些 Pod。添加 Taint 后,如果 Pod 没有对应 Toleration,则不会被调度到该 Node。&#xA;Taint 效果取决于其效果:&#xA;NoSchedule:表示不能将 Pod 调度到该 Node。 PreferNoSchedule:表示尽量避免将 Pod 调度到该 Node。 NoExecute:表示不能将 Pod 调度到该 Node,如果已在 Node 上运行也会驱逐。 Toleration 的作用: Toleration 设置在 Pod 上,用于容忍(Tolerate)某些 Taint。如果 Pod 可以容忍 Node 的 Taint,则可以调度到该 Node。&#xA;Toleration 指定三个参数:&#xA;key:Taint 的 key operator:TolerationOperator 操作符,如 &amp;ldquo;Equal&amp;rdquo;、&amp;ldquo;Exists&amp;rdquo; effect:Taint 效果,可选 NoSchedule、PreferNoSchedule 或 NoExecute Taint 和 Toleration 的使用:</description>
     </item>
     <item>
       <title>K8s informers的介绍</title>
-      <link>http://localhost:53654/k8s/k8s_informers/</link>
+      <link>http://localhost:1313/k8s/k8s_informers/</link>
       <pubDate>Sun, 16 Jun 2024 16:19:35 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8s_informers/</guid>
+      <guid>http://localhost:1313/k8s/k8s_informers/</guid>
       <description>本文是 An introduction to Go Kubernetes informers的中文翻译版本，内容有删减&#xA;这篇文章介绍了Kubernetes Go client library工具，它主要用于在内存中保持集群资源的实时快照。&#xA;在代码示例中，我们导入了需要的包：&#xA;import ( metav1 &amp;#34;k8s.io/apimachinery/pkg/apis/meta/v1&amp;#34; appsv1 &amp;#34;k8s.io/api/apps/v1&amp;#34; corev1 &amp;#34;k8s.io/api/core/v1&amp;#34; ) 动机 如果您的Go程序需要获取有关Kubernetes资源（例如服务、副本集、Pod等）的信息，您可以使用官方的Kubernetes Go client实例与Kubernetes APIServer进行交互：&#xA;// gets the information of a given pod in the default namespace pod, err := client.CoreV1().Pods(&amp;#34;default&amp;#34;). Get(context.Background(), &amp;#34;pod-name&amp;#34;, v1.GetOptions{}) // gets the information of all the currently existing pods in all the // namespaces pods, err := client.CoreV1().Pods(corev1.NamespaceAll). List(context.Background(), v1.ListOptions{}) 然而，您可能希望最小化连接数来拉取数据。并减少获取资源的延迟，因此您可以使用Watch接口来监听Kubernetes资源的更改事件，依次保证内存是最新的资源：&#xA;// ignoring returned error on purpose watcher, _ := client.</description>
     </item>
     <item>
       <title>用k8sgpt-localai解锁Kubernetes的超能力</title>
-      <link>http://localhost:53654/k8s/k8sgpt-operater/</link>
+      <link>http://localhost:1313/k8s/k8sgpt-operater/</link>
       <pubDate>Sun, 16 Jun 2024 16:14:52 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8sgpt-operater/</guid>
+      <guid>http://localhost:1313/k8s/k8sgpt-operater/</guid>
       <description>本文是 k8sgpt-localai-unlock-kubernetes-superpowers-for-free的中文翻译版本，内容有删减&#xA;正如我们所知，大型语言模型（LLMs）正在疯狂地流行，而这种热潮并非没有道理。每天都有大量基于LLM的文本生成项目涌现出来——事实上，如果我在写这篇博客的时间里，又发布了另一个令人惊喜的新工具，我也不会感到惊讶 :)&#xA;对于那些不相信的人，我可以说这种热潮是有道理的，因为这些项目不仅仅是噱头。它们正在释放出真正的价值，远远超出了仅仅使用ChatGPT来发布博客文章的范畴😉。例如，开发者们通过Warp AI可以直接在终端中提高他们的生产力，在集成开发环境中使用IntelliCode、GitHub的Copilot、CodeGPT（还是开源的！），还可能有暂时没有遇到的其他更多的工具。此外，这项技术的应用案例远不止代码生成。正在出现基于LLM的聊天和Slack机器人，它们可以在组织的内部文档语料库上进行训练。特别是来自Nomic AI的GPT4All是一个在开源聊天领域值得关注的项目。&#xA;然而，本博客的重点是另一个用例：一个在Kubernetes集群内运行的基于AI的SRE（SRE）听起来如何？这就是K8sGPT和k8sgpt-operator的用武之地。&#xA;这是REANDME的摘录：&#xA;k8sgpt 是一个用于扫描你的 Kubernetes 集群、以诊断和处理问题的工具(英文) k8sgpt 将SRE经验编码到其分析器中，并帮助提取最相关的信息，以利用人工智能进行处理。 听起来很棒，对吧？我也这么觉得！如果你想尽快开始并运行，或者如果你想要访问最强大的商业化模型，你可以使用Helm安装一个K8sGPT服务器（不需要K8sGPT operator），并利用K8sGPT的默认人工智能后端：OpenAI。&#xA;但如果我告诉你，免费的本地集群内部分析也是一种简单的选择，你会怎么想？&#xA;下面是配置的三个过程：&#xA;安装LocalAI服务器 安装K8sGPT operator 创建一个K8sGPT CRD启动SRE魔法！ 要开始使用，你只需要一个 Kubernetes 集群、Helm 和对模型的访问权限。请查看 LocalAI README 的README，了解模型兼容性的简要概述和开始查找的位置。GPT4All是另一个不错的资源&#xA;好的&amp;hellip;既然你已经有了一个模型，我们开始吧！&#xA;首先，添加go-skynet helm repo：&#xA;helm repo add go-skynet https://go-skynet.github.io/helm-charts/ 创建一个values.yaml文件，用于启动LocalAI chart，并根据需要进行自定义：&#xA;cat &amp;lt;&amp;lt;EOF &amp;gt; values.yaml deployment: image: quay.io/go-skynet/local-ai:latest env: threads: 14 contextSize: 512 modelsPath: &amp;#34;/models&amp;#34; # Optionally create a PVC, mount the PV to the LocalAI Deployment, # and download a model to prepopulate the models directory modelsVolume: enabled: true url: &amp;#34;https://gpt4all.</description>
     </item>
     <item>
       <title>使用client-go在Kubernetes中进行leader election</title>
-      <link>http://localhost:53654/k8s/leader-election-in-kubernetes-using-client-go/</link>
+      <link>http://localhost:1313/k8s/leader-election-in-kubernetes-using-client-go/</link>
       <pubDate>Sun, 16 Jun 2024 16:13:34 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/leader-election-in-kubernetes-using-client-go/</guid>
+      <guid>http://localhost:1313/k8s/leader-election-in-kubernetes-using-client-go/</guid>
       <description>本文是 leader-election-in-kubernetes-using-client-go的中文翻译版本，内容有删减&#xA;如果您想了解 Kubernetes 中leader election的工作原理，那么希望本文能对您有所帮助。在本文中，我们将讨论高可用系统中leader election的概念，并探讨kubernetes/client-go库，以了解其在 Kubernetes 控制器中的应用。&#xA;近年来，“高可用性”一词因可靠系统和基础设施需求的增加而变得流行起来。在分布式系统中，高可用性通常涉及最大化运行时间和系统容错。高可用性中通常采用的一种做法是使用冗余来避免单点故障。为冗余做好系统和服务的准备工作可能只需要在负载均衡器后面部署更多的副本。虽然这样的配置对许多应用程序来说可能有效，但有些用例需要在副本之间进行仔细的协调才能使系统正确运行。&#xA;一个很好的例子是当一个 Kubernetes 控制器被部署为多个实例时。为了防止任何意外的行为，leader election过程必须确保在副本之间选出一个leader，并且该leader是唯一主动协调集群的实例。其他实例应该保持不活动，但随时准备接管leader实例的工作，以防其失败。&#xA;在 Kubernetes 中，leader election的过程很简单。它始于创建一个锁对象，leader会定期更新当前时间戳，以通知其他副本其领导权。这个锁对象可以是一个Lease，ConfigMap或者Endpoint，它还保存了当前leader的身份。如果leader在给定的时间间隔内未能更新时间戳，则认为它已经崩溃，此时非活动副本会竞争更新锁，以获取领导权。成功获取锁的pod将成为新的leader。&#xA;在我们开始写代码之前，我们来看一下这个过程是如何工作的。&#xA;首先，我们需要一个本地的Kubernetes集群。我将使用 KinD，但是您可以随意选择一个本地的k8s发行版。&#xA;$ kind create cluster Creating cluster &amp;#34;kind&amp;#34; ... ✓ Ensuring node image (kindest/node:v1.21.1) 🖼 ✓ Preparing nodes 📦 ✓ Writing configuration 📜 ✓ Starting control-plane 🕹️ ✓ Installing CNI 🔌 ✓ Installing StorageClass 💾 Set kubectl context to &amp;#34;kind-kind&amp;#34; You can now use your cluster with:kubectl cluster-info --context kind-kindNot sure what to do next?</description>
     </item>
     <item>
       <title>从应用开发者的角度来学习K8S</title>
-      <link>http://localhost:53654/k8s/learning-k8s-by-running-app/</link>
+      <link>http://localhost:1313/k8s/learning-k8s-by-running-app/</link>
       <pubDate>Sun, 16 Jun 2024 16:11:42 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/learning-k8s-by-running-app/</guid>
+      <guid>http://localhost:1313/k8s/learning-k8s-by-running-app/</guid>
       <description>背景 Kubernetes（简称K8S）是一种开源的容器编排系统，用于自动化管理、部署和扩展容器化应用程序。K8S是云原生架构的核心组件之一，它可以帮助开发人员更轻松地构建和管理云原生应用程序。K8s还提供了许多高级功能，例如负载均衡、服务发现、自动伸缩、存储管理等，这些功能可以帮助开发人员更轻松地构建可靠的云原生应用程序。&#xA;虽然K8S是一个强大的容器编排系统，但它仍然存在一些缺点，包括以下几个方面：&#xA;学习曲线较陡峭：Kubernetes是一个非常复杂的系统，它需要掌握大量的概念和技术，包括容器、Pod、服务发现、负载均衡、存储、网络等。因此，对于初学者来说，学习曲线可能比较陡峭。 部署和管理复杂度较高：虽然Kubernetes提供了许多工具来简化部署和管理，但这些工具仍然需要较高的技术水平来使用。此外，由于Kubernetes是一个分布式系统，因此在规划、部署和管理方面都需要进行复杂的决策和操作。 资源占用较高：Kubernetes需要运行在一个较为庞大的基础设施上，因此它需要占用相对较高的资源，包括CPU、内存、存储等。此外，Kubernetes还需要运行多个组件和代理，这些组件和代理也会占用一定的资源。 容易出现故障：由于Kubernetes是一个复杂的分布式系统，因此它容易出现故障和问题。这些故障可能涉及各个方面，包括网络、存储、节点故障等。此外，由于Kubernetes的架构复杂，排查问题也可能需要较长的时间和技术支持。 不适合小规模应用：由于Kubernetes需要占用较高的资源和运行多个组件，因此它对于小规模应用来说可能过于复杂和冗余。对于一些简单的应用，使用Kubernetes可能并不划算 如果你是一个不了解 K8S的开发人员，那么本文将从具体的使用的角度来帮助你学习和理解K8S。在学习 Kubernetes 之前，先了解一些基础概念&#xA;无状态应用是指应用本身不依赖于任何状态信息。也就是说，无状态应用不会维护任何与用户或请求相关的信息，它仅仅根据输入的请求进行计算和处理，并将结果返回给客户端。无状态应用通常使用负载均衡器将请求分配到多个服务器上进行处理，从而实现高可用性和可扩展性。常见的无状态应用包括 Web 服务、RESTful API、静态网站等。&#xA;相对于无状态应用，有状态应用依赖于一定的状态信息来完成任务。有状态应用在处理请求时需要使用上下文信息，包括用户信息、会话状态、数据库连接状态等等。有状态应用通常需要使用持久化存储来保存状态信息，比如数据库、缓存、文件系统等。有状态应用不适合使用负载均衡器进行请求分发，因为请求需要在同一个服务器上处理，否则会出现状态不一致的问题。常见的有状态应用包括在线游戏、聊天应用、电子商务应用等。&#xA;需要注意的是，有状态应用和无状态应用并不是互相排斥的关系，而是根据应用的需求和特点来选择最合适的架构模式。有些应用可能既有无状态部分，也有有状态部分，需要使用混合的架构模式来实现。&#xA;Load Balancing 负载均衡（Load Balancing）是一种在计算机网络中分配工作负载的技术，其主要目的是提高应用程序的可用性、性能和可伸缩性。当网络流量过大时，负载均衡可以通过将负载分配到多个服务器上来减轻单个服务器的压力，并确保所有服务器能够合理地处理请求。&#xA;负载均衡在现代应用程序和网络中起着至关重要的作用，特别是在高流量、高负载的情况下。它可以确保应用程序的可用性和可靠性，并提高用户体验。负载均衡技术在云计算和分布式系统中也得到广泛的应用，成为了构建高可用性、高性能和高可扩展性系统的重要基础。&#xA;客户端/服务端负载均衡 客户端负载均衡&#xA;图片来源（https://laptrinhx.com/go-microservices-part-7-service-discovery-and-load-balancing-2345614758/）&#xA;客户端负载均衡（Client-side Load Balancing）是一种在分布式系统中常用的负载均衡技术，它可以将请求从客户端分发到多个服务器，以提高系统的性能、可伸缩性和可用性。客户端负载均衡通常是通过在客户端应用程序中实现的，而不是在服务器端实现的。&#xA;在客户端负载均衡中，客户端应用程序会维护一个服务器列表，并根据负载均衡算法选择一个服务器来发送请求。负载均衡算法可以根据服务器的负载情况、网络延迟等因素来选择服务器，以实现最优的负载均衡效果。客户端应用程序还可以定期从服务发现中心获取服务器列表，并使用心跳检测等机制来监测服务器的可用性。常见的客户端负载均衡实现有 Spring Cloud LoadBalancer , consul, nacos 和istio&#xA;服务端负载均衡&#xA;图片来源（https://laptrinhx.com/go-microservices-part-7-service-discovery-and-load-balancing-2345614758/）&#xA;服务端负载均衡（Server-side Load Balancing）是指通过在服务端引入负载均衡器（Load Balancer），将客户端请求分发到多个后端服务实例中，从而实现服务的高可用和高性能。通常，负载均衡器会根据不同的负载均衡算法（例如轮询、随机等）将客户端请求分配到后端的服务实例上。&#xA;服务端负载均衡器通常位于服务端的网络边缘，作为客户端和后端服务实例之间的中间层。它可以同时处理大量的客户端请求，并将请求转发到多个后端服务实例上，从而提高系统的处理能力和可靠性。同时，负载均衡器还可以实现一些高级功能，如故障检测、动态配置、流量控制等。常见的硬件负载均衡的厂家有 F5 BIG-IP，Citrix NetScaler，Barracuda Load Balancer 和 A10 Networks Thunder&#xA;服务端和客户端负载均衡对比&#xA;服务端负载均衡和客户端负载均衡各有优缺点：&#xA;负载均衡器的位置：服务端负载均衡器位于服务端，而客户端负载均衡器位于客户端。 负载均衡器的数量：服务端负载均衡器通常是单个或少数几个，而客户端负载均衡器可以有多个，每个客户端都可以有自己的负载均衡器。 服务实例列表的维护：服务端负载均衡器负责维护服务实例列表，而客户端负载均衡器需要从服务端获取服务实例列表或者自己维护服务实例列表。 网络通信量：服务端负载均衡器需要将请求从客户端转发到服务实例，这可能会增加网络通信量。而客户端负载均衡器通常只需要在本地选择一个服务实例来处理请求，因此可以减少网络通信量。 系统可用性：客户端负载均衡器无法动态地响应服务端的变化，一旦服务实例状态发生变化，客户端负载均衡器可能会选择到不可用的服务实例。而服务端负载均衡器可以及时响应服务实例的变化，从而提高系统的可用性。 性能瓶颈：服务端负载均衡器可能成为性能瓶颈，而客户端负载均衡器通常可以在本地快速选择一个服务实例来处理请求，从而减少性能瓶颈的风险。 综上所述，服务端负载均衡和客户端负载均衡各有优缺点，需要根据具体业务场景和需求选择合适的负载均衡方式。服务端负载均衡适合服务实例数量较大、集中管理的场景，而客户端负载均衡适合服务实例数量较小、分散的场景。&#xA;L4/L7 负载均衡 图片来源（《计算机网络第七版》谢希仁） 计算机网络体系结构&#xA;OSI 七层模型和数据&#xA;图片来源（https://icyfenix.cn/architect-perspective/general-architecture/diversion-system/load-balancing.html）&#xA;四层负载均衡</description>
     </item>
     <item>
       <title>Kubernetes headless Service介绍</title>
-      <link>http://localhost:53654/k8s/headless-svc/</link>
+      <link>http://localhost:1313/k8s/headless-svc/</link>
       <pubDate>Sun, 16 Jun 2024 16:09:57 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/headless-svc/</guid>
+      <guid>http://localhost:1313/k8s/headless-svc/</guid>
       <description>本文由 headless-services-in-kubernetes的中文翻译版本，内容有删减&#xA;Kubernetes headless Service是一个没有专用负载均衡器的service。这种类型的Service 通常用于有状态的应用程序。例如数据库，这些应用要求必须为每个实例维护一致的网络标识。如果客户端需要连接所有 Pod，则无法使用常规 Kubernetes的 ClusterIP Service来完成此操作。Service将无法将每个连接转发到随机选择的容器。&#xA;常规的Service是如何工作的？（How does Regular Service Object Works?） 接下来我们通过下面的yaml配置文件来创建一个常规的Kubernetes ClusterIP Service。&#xA;cat &amp;lt;&amp;lt;EOF | kubectl apply -f - --- apiVersion: apps/v1 kind: Deployment metadata: name: normal-nginx labels: app: normal-nginx # Deployment labels to match with replicaset labels and pods labels spec: replicas: 3 selector: matchLabels: app: normal-nginx # Replicaset to manage pods with labels template: metadata: labels: app: normal-nginx # Pods labels spec: containers: - name: nginx image: nginx --- apiVersion: v1 # v1 is the default API version.</description>
     </item>
     <item>
       <title>[译]K3s与K8s的区别是什么?</title>
-      <link>http://localhost:53654/k8s/k8s-vs-k3s/</link>
+      <link>http://localhost:1313/k8s/k8s-vs-k3s/</link>
       <pubDate>Sun, 16 Jun 2024 16:07:53 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8s-vs-k3s/</guid>
+      <guid>http://localhost:1313/k8s/k8s-vs-k3s/</guid>
       <description>本文是k3s vs k8s的中文翻译版本，内容有删减&#xA;什么是Kubernetes （What is Kubernetes）? 对于那些不熟悉Kubernetes来说，Kubernetes其实是一个“容器编排平台”。这实际上意味着拿走你的容器（现在每个程序员都听说过Docker，对吧？）并从一组机器中决定哪台机器来运行该容器。&#xA;它还处理诸如容器升级之类的事情，因此，如果您发布网站的新版本，它将逐渐启动具有新版本的容器，并逐渐杀死旧容器（参考Rolling Update ），整个发布过程通常在一两分钟内。&#xA;K8s 只是 Kubernetes 的缩写（“K”后跟 8 个字母“ubernete”，后跟“s”）。然而，通常当人们谈论 Kubernetes 或 K8s 时，他们谈论的其实是 Google 设计的一个高度可用且极具可扩展性的平台。&#xA;例如，这是一个YouTube上关于利用Kubernetes 进行集群处理零停机更新，同时仍每秒执行 1000 万个请求的视频。&#xA;尽管你可以用 Minikube在本地开发者机器上运行 Kubernetes，但如果你要在生产环境中运行它，你必须看看以下关于“最佳实践”的建议：&#xA;将你的主节点与其他节点分开: 主节点运行k8s控制平面，其他节点运行你的k8s工作负载,千万不要把它们混为一体 在单独的集群上运行 etcd（存储Kubernetes 状态的数据库），以确保它可以处理负载 理想情况下，应该配置与底层节点独立的Ingress节点，以便它们在底层节点繁忙时仍可以轻松处理传入流量 通过上面的原则，我们可以推断出一个的节点配置方案是：3个K8s主节点；3个etcd；2个Ingress和其他的节点。&#xA;别误解，如果您正在运行产线环境的工作负载，这是非常理智的建议。没有什么比在周五晚上尝试调试过载的下产线环境集群更糟糕的了！&#xA;k3s和k8s的区别（ What is k3s and how is it different from k8s?） K3s 被设计成了一个小于 40MB 的单个二进制文件，它完全复用了了 Kubernetes API。为了实现这一目标，K3s设计者删除了许多不需要成为核心并容易被附加组件替换的驱动程序。&#xA;K3s 是 CNCF（云原生计算基金会）认证的 Kubernetes 产品。这意味着你的 YAML即可以在常规的Kubernetes上运行，同时也可以 k3s 集群上运行。&#xA;由于K3s对资源要求低，甚至可以在 512MB 以上的 RAM 计算机上运行集群。这意味着我们可以允许 Pod 在主节点和其他节点上运行。</description>
     </item>
     <item>
       <title>在K8s controller-runtime和client-go中实现速率限制</title>
-      <link>http://localhost:53654/k8s/controller-runtime-client-go-rate-limiting/</link>
+      <link>http://localhost:1313/k8s/controller-runtime-client-go-rate-limiting/</link>
       <pubDate>Sun, 16 Jun 2024 16:02:23 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/controller-runtime-client-go-rate-limiting/</guid>
+      <guid>http://localhost:1313/k8s/controller-runtime-client-go-rate-limiting/</guid>
       <description>这是旨在澄清、易懂和完整的版本：&#xA;本文章是 controller-runtime 和 client-go 中的速率限制 的中文翻译。内容有所删减。&#xA;如果您曾经编写过 Kubernetes 控制器，您可能熟悉 controller-runtime，或者至少了解 client-go。 controller-runtime 是用于构建控制器的框架，允许用户设置多个控制器，并由控制器管理器进行管理。在幕后，controller-runtime 使用 client-go 与 Kubernetes API 服务器 进行通信，以监视资源变化并将其传递给相关的控制器。它处理了许多与控制器相关的方面，包括缓存、队列等。其中一个组件是速率限制。&#xA;速率限制是什么？ 自从计算机网络问世以来，限流（Rate Limiting）就一直存在于软件中，在此之前也存在于许多其他人类流程中。当讨论限流时，您可能会发现与您日常执行任务、公司和社区组织模式有许多相似之处。&#xA;在实现任何两方之间的有效通信时，限流是必要的。软件通过在不同的执行过程之间传递消息进行通信，无论是通过操作系统、专用硬件设备、网络还是三者的组合。在客户端-服务器模型中，客户端通常会请求服务器代表其执行工作。服务器执行这些工作需要时间，这意味着如果有许多客户端同时请求服务器执行工作，而服务器容量不足以处理这些请求，服务器就需要做出选择。&#xA;服务器可以选择：&#xA;丢弃没有响应的请求。 等待请求的响应，直到可以完全执行工作。 响应请求，指示当前无法执行工作，但客户端应在未来的某个时间再次请求执行工作。 将工作添加到队列中，并响应请求，告知客户端在完成工作时会通知客户端。 如果客户端和服务器彼此非常了解（即它们对彼此的通信模式非常熟悉），那么上述任何一种方法都可以作为有效的通信模型。想象一下您与生活中其他人的关系。您可能会认识那些以各种方式进行沟通的人，但如果通信方式是彼此了解的，您可能能够与所有这些人有效地合作。&#xA;不幸的是，与人类一样，软件也可能不可靠。例如，服务器可能会表示将在未来的某个时间响应请求，要求客户端在该时间再次请求执行工作，但客户端与服务器之间的连接可能被阻塞，导致请求被丢弃。同样地，客户端可能会收到回复，表示工作在未来的某个时间才能执行，但它可能会继续请求立即执行工作。因为这些原因以及其他许多原因（我们今天不会讨论的），服务器端和客户端的限流对于构建可扩展、可靠的系统至关重要。&#xA;由于 controller-runtime 和 client-go 是构建 Kubernetes 控制器的框架，而控制器是 Kubernetes API 服务器的客户端，所以今天我们将重点关注客户端的限流。&#xA;控制器是什么？ 如果您对 controller-runtime 已经非常了解，可以跳过这一部分。 controller-runtime 主要通过执行一个由 controller abstraction 实现并传递给框架的 reconciliation loop）向使用者提供控制器抽象。以下是一个简单的 Reconciler 示例，可传递给 controller-runtime 控制器：&#xA;type Reconciler struct {} func (r *Reconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) { fmt.</description>
     </item>
     <item>
       <title>Istio上游连接重置502错误分析与排查指南</title>
-      <link>http://localhost:53654/istio/istio-upstream-error/</link>
+      <link>http://localhost:1313/istio/istio-upstream-error/</link>
       <pubDate>Fri, 14 Jun 2024 17:47:42 +0800</pubDate>
-      <guid>http://localhost:53654/istio/istio-upstream-error/</guid>
+      <guid>http://localhost:1313/istio/istio-upstream-error/</guid>
       <description>本文是How to debug Istio Upstream Reset 502 UPE (old 503 UC)的中文翻译版本，内容有删减&#xA;Istio 是一个复杂的系统。对于应用程序来说，它的主要组件是 sidecar 容器 Istio-Proxy，它代理 Pod 中所有容器的流量。而这可能会导致一些问题。&#xA;问题重现🐛 在一个拥有超过 40 个不同微服务的大型系统中，QA工程师在单个端点上发现了一个bug。这该端点是 POST 端点，它返回分块（chunked）数据。&#xA;然后我们发现 Istio 返回了 502 错误，Istio日志中还有一个额外的标志：upstream_reset_before_response_started。然而应用程序日志证实了结果是正确的。&#xA;在旧版本的 Istio 中，它会返回 503 错误，带有 UC 标志。&#xA;问题分析⛏️ 让我们看看 curl 的响应，以及 Istio-proxy 的日志：&#xA;kubectl exec -it curl-0 -- curl http://http-chunked:8080/wrong -v &amp;lt; HTTP/1.1 502 Bad Gateway &amp;lt; content-length: 87 &amp;lt; content-type: text/plain &amp;lt; date: Sun, 24 Apr 2022 12:28:28 GMT &amp;lt; server: istio-envoy &amp;lt; x-envoy-decorator-operation: http-chunked.</description>
     </item>
     <item>
       <title>如何解决 `Failed to initialize NVML: Unknown Error` 问题</title>
-      <link>http://localhost:53654/gpu/nvml-error/</link>
+      <link>http://localhost:1313/gpu/nvml-error/</link>
       <pubDate>Fri, 14 Jun 2024 17:42:52 +0800</pubDate>
-      <guid>http://localhost:53654/gpu/nvml-error/</guid>
+      <guid>http://localhost:1313/gpu/nvml-error/</guid>
       <description>本文是NOTICE: Containers losing access to GPUs with error: &amp;ldquo;Failed to initialize NVML: Unknown Error&amp;rdquo;的中文翻译版本，内容有删减，亲测该方法有效。&#xA;如何解决 Failed to initialize NVML: Unknown Error 问题 概述 在某些特定的情况下，我们发现k8s容器可能会突然从最初连接到的GPU上分离。我们已经确定了这个问题的根本原因，并确定了可能发生这种情况的受影响环境。在本文档的末尾提供了受影响环境的解决方法，直到发布适当的修复为止。&#xA;问题总结 我们发现当使用container来管理GPU工作负载时，用户container可能会突然失去对GPU的访问权限。这种情况发生在使用systemd来管理容器的cgroups时，当触发重新加载任何包含对NVIDIA GPU的引用的Unit文件时（例如，通过执行systemctl daemon-reload）。&#xA;当你的container失去对GPU的访问权限时，你可能会看到类似于以下错误消息：&#xA;Failed to initialize NVML: Unknown Error 一旦发生上述 ⬆️，就需要手动删除受影响的container，然后重新启动它们。&#xA;当container重新启动（手动或自动，取决于是否使用容器编排平台），它将重新获得对GPU的访问权限。&#xA;此问题的根源在于，最近版本的runc要求在/dev/char下面为注入到容器中的任何设备节点提供符号链接。不幸的是，NVIDIA设备并没有这些符号链接，NVIDIA GPU驱动也没有（当前）提供自动创建这些链接的方法&#xA;受影响的环境 如果你使用runc并在高级容器运行时（CRI）启用systemd cgroup管理的环境，那么你可能会受到这个问题的影响&#xA;如果你没有使用systemd来管理cgroup，那么它就不会受到这个问题的影响。 下面是可能会受影响的的环境的详尽列表:&#xA;使用containerd/runc的Docker环境 特定条件 启用了systemd的cgroup驱动程序（例如，在/etc/docker/daemon.json中设置了参数&amp;quot;exec-opts&amp;quot;: [&amp;quot;native.cgroupdriver=systemd&amp;quot;]） 使用了更新的Docker版本，其中systemd cgroup管理被默认设置的（即，在Ubuntu 22.04上）。 Note如果你要检查Docker是否使用systemd cgroup管理，运行以下命令（下面的输出表示启用了systemd cgroup驱动程序）&#xA;$ docker info ... Cgroup Driver: systemd Cgroup Version: 1 使用containerd/runc的Kubernetes环境 特定条件 在containerd配置文件（通常位于：/etc/containerd/config.toml）中设置SystemdCgroup = true，如下所示： [plugins.</description>
     </item>
     <item>
       <title>OCI runtime create failed: expected cgroupsPath</title>
-      <link>http://localhost:53654/k8s/oci-error/</link>
+      <link>http://localhost:1313/k8s/oci-error/</link>
       <pubDate>Fri, 14 Jun 2024 16:58:03 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/oci-error/</guid>
+      <guid>http://localhost:1313/k8s/oci-error/</guid>
       <description>本文是针对作者遇到的OCI runtime create failed: expected cgroupsPath to be of format \&amp;quot;slice:prefix:name\&amp;quot; for systemd cgroups, got \&amp;quot;/kubepods/burstable/...&amp;quot;的问题总结&#xA;问题总结 问题描述 在特定的k8s node上不能通过containerd启动pod,pod的状态一直是ContainerCreating,通过kubectl describe pod查看pod的状态,发现如下错误:&#xA;OCI runtime create failed: runc create failed: expected cgroupsPath to be of format &amp;#34;slice:prefix:name&amp;#34; for systemd cgroups k8s集群信息 k8s版本: v1.26.13 containerd版本: 1.6.24 Linnux kernel版本: 6.6.20-amd64 Linux发行版: Garden Linux 1443.0 kubeProxyVersion: v1.26.13 kubeletVersion: v1.26.13 问题分析 此问题是因为kubelet配置为使用cgroupfs cgroup驱动程序，而containerd配置为使用sytemd cgroup驱动程序。&#xA;解决方法 为了解决上面的问题，可以从以下两种方式中选择一种：&#xA;让containerd使用cgroupfs驱动程序，需要从/etc/containerd/config.toml中删除SystemdCgroup = true行。 让kubelet使用systemd驱动程序，需要将KubeletConfiguration中的cgroupDriver设置为&amp;quot;systemd&amp;quot;。 扩展阅读 查看Kubelet配置 Kubelet的配置文件通常位于/var/lib/kubelet/位置，可以通过查看该文件来确认Kubelet的cgroup驱动程序配置。关于其他CRIs的配置文件位置可以参考Container Runtimes。</description>
     </item>
     <item>
       <title></title>
-      <link>http://localhost:53654/intro-zh/</link>
+      <link>http://localhost:1313/intro-zh/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:53654/intro-zh/</guid>
-      <description>🎉 欢迎莅临我的技术探索空间! 🚀 在这里，我们深入探讨 Istio、GPU 技术、Golang、网络工程、软件开发生态以及 Kubernetes 的实践智慧。每一篇文章，无论是原创还是精心翻译，都旨在为您搭建一座桥梁，连接理论知识与实战技巧，拓宽您的技术视界。📚 结伴同行，在技术之旅上步步高升！&#xA;GPU：探索GPU的奥秘，从基础到高级应用 Kubernetes GPU 管理基础：Device Plugin 介绍与源码分析 Kubernetes GPU 管理基础 Kubernetes GPU 管理进阶：启用 Nvidia MPS 启用 Nvidia MPS 故障排查：解决 &amp;ldquo;Failed to initialize NVML: Unknown Error&amp;rdquo; 解决 Kubernetes GPU 管理错误 Kubernetes GPU 优化：最大化 GPU 利用率 Kubernetes GPU 优化 特定环境 GPU 管理：在 Rocky Linux 上安装 NVIDIA GPU Operator 在 Rocky Linux 上安装 NVIDIA GPU Operator Istio：深入理解微服务之间的流量管理 Kubernetes上的Istio控制面管理：多实例部署实战 多控制平面配置指南 多环境应用开发实战：Istio下的微服务构建策略 无缝对接多环境:基于Istio的微服务应用构建技巧 Istio流量异常处理：502错误根源分析与解决 Istio应用故障排查手册:上游连接重置502错误详解 Istio核心技术探秘：网络原理与Sidecar自动注入机制 深入理解Istio：网络原理与Sidecar的自动注入机制 Golang 资源大全：从基础到高级特性 探索 Golang 的世界，这里有你需要的所有资源，从基础语法到高级特性，一网打尽！</description>
+      <guid>http://localhost:1313/intro-zh/</guid>
+      <description>English | 简体中文&#xA;🎉 欢迎莅临我的技术探索空间! 🚀 在这里，我们深入探讨 Istio、GPU 技术、Golang、网络工程、软件开发生态以及 Kubernetes 的实践智慧。每一篇文章，无论是原创还是精心翻译，都旨在为您搭建一座桥梁，连接理论知识与实战技巧，拓宽您的技术视界。📚 结伴同行，在技术之旅上步步高升！&#xA;GPU：探索GPU的奥秘，从基础到高级应用 Kubernetes GPU 管理基础：Device Plugin 介绍与源码分析 Kubernetes GPU 管理基础 Kubernetes GPU 管理进阶：启用 Nvidia MPS 启用 Nvidia MPS 故障排查：解决 &amp;ldquo;Failed to initialize NVML: Unknown Error&amp;rdquo; 解决 Kubernetes GPU 管理错误 Kubernetes GPU 优化：最大化 GPU 利用率 Kubernetes GPU 优化 特定环境 GPU 管理：在 Rocky Linux 上安装 NVIDIA GPU Operator 在 Rocky Linux 上安装 NVIDIA GPU Operator Istio：深入理解微服务之间的流量管理 Kubernetes上的Istio控制面管理：多实例部署实战 多控制平面配置指南 多环境应用开发实战：Istio下的微服务构建策略 无缝对接多环境:基于Istio的微服务应用构建技巧 Istio流量异常处理：502错误根源分析与解决 Istio应用故障排查手册:上游连接重置502错误详解 Istio核心技术探秘：网络原理与Sidecar自动注入机制 深入理解Istio：网络原理与Sidecar的自动注入机制 Golang 资源大全：从基础到高级特性 探索 Golang 的世界，这里有你需要的所有资源，从基础语法到高级特性，一网打尽！</description>
     </item>
   </channel>
 </rss>

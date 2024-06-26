@@ -1,123 +1,123 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>K8s on Tim Wang的技术博客</title>
-    <link>http://localhost:53654/k8s/</link>
-    <description>Recent content in K8s on Tim Wang的技术博客</description>
+    <title>K8s on Tim Wang Tech Blog</title>
+    <link>http://localhost:1313/k8s/</link>
+    <description>Recent content in K8s on Tim Wang Tech Blog</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
     <lastBuildDate>Tue, 18 Jun 2024 10:22:03 +0800</lastBuildDate>
-    <atom:link href="http://localhost:53654/k8s/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/k8s/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>如何在 Kubernetes 中有效使用 Secret、ConfigMap 和 Lease：详解及示例</title>
-      <link>http://localhost:53654/k8s/k8s-secret-configmap-lease/</link>
+      <link>http://localhost:1313/k8s/k8s-secret-configmap-lease/</link>
       <pubDate>Tue, 18 Jun 2024 10:22:03 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8s-secret-configmap-lease/</guid>
+      <guid>http://localhost:1313/k8s/k8s-secret-configmap-lease/</guid>
       <description>简介 在 Kubernetes (k8s) 中，Secret、ConfigMap 和 Lease 是三种关键资源对象，它们分别用于处理敏感信息、配置数据和分布式系统中的 leader 选举。本文将详细介绍这三种对象，包括它们的使用场景、优缺点以及示例。&#xA;Secret 推荐使用场景 存储和管理敏感信息，例如密码、OAuth 令牌、SSH 密钥等。 注入到容器中的环境变量或挂载到文件系统，以便应用程序安全地访问敏感数据。 优势 安全性：避免在配置文件中以明文形式存储敏感信息。 灵活性：支持将 Secret 以多种方式提供给 Pod，例如环境变量或卷。 加密存储：Kubernetes 支持配置加密存储 Secret 对象。 劣势 配置复杂性：需要适当配置 RBAC 以确保 Secret 的安全访问。 管理难度：在大规模集群中管理大量 Secret 可能较为复杂。 示例 创建一个 Secret 对象：&#xA;apiVersion: v1 kind: Secret metadata: name: mysecret type: Opaque data: # Base64 编码的 &amp;#39;admin&amp;#39; username: YWRtaW4= # Base64 编码的 &amp;#39;1f2d1e2e67df&amp;#39; password: MWYyZDFlMmU2N2Rm 在 Pod 中使用 Secret：&#xA;apiVersion: v1 kind: Pod metadata: name: mypod spec: containers: - name: mycontainer image: myimage env: - name: USERNAME valueFrom: secretKeyRef: name: mysecret key: username - name: PASSWORD valueFrom: secretKeyRef: name: mysecret key: password 使用 Golang 访问 Secret：</description>
     </item>
     <item>
       <title>全面解析Bare Metal Kubernetes:必知的关键点</title>
-      <link>http://localhost:53654/k8s/bare-metal-kubernetes/</link>
+      <link>http://localhost:1313/k8s/bare-metal-kubernetes/</link>
       <pubDate>Tue, 18 Jun 2024 10:20:22 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/bare-metal-kubernetes/</guid>
+      <guid>http://localhost:1313/k8s/bare-metal-kubernetes/</guid>
       <description>本文是 Introducing Bare Metal Kubernetes: what you need to know 的中文翻译版本，内容有删减&#xA;Bare Metal Kubernetes意味着直接在物理服务器上部署Kubernetes集群及其容器，而不是在由管理器层管理的传统虚拟机VMs内部进行部署。&#xA;Bare metal Kubernetes可以用于边缘计算部署，以避免在小型硬件上运行虚拟机层所带来的开销，或者用于数据中心以降低成本，提高应用工作负载性能，并避免虚拟机许可的成本。 正如我们将讨论的，历史上在Bare metal上部署Kubernetes一直存在挑战。 Spectro Cloud的研究发现，仅有20%的企业级Kubernetes的使用者使用Bare metal。 但是借助Cluster API和Canonical MaaS等工具，现在对Bare metal K8s集群进行配置要简单，可扩展和高效得多。 因此，我们看到越来越多的企业运营团队开始在他们的Kubernetes部署中使用裸金属。 继续阅读以获取有关裸金属Kubernetes的所有信息，包括其工作原理，与虚拟机的比较，以及如何开始自己的裸金属部署。&#xA;Kubernetes是什么? 在深入了解bare-metal Kubernetes之前，让我们通过 what Kubernetes does简单的看一下Kubernetes的功能&#xA;Kubernetes是一个开源的容器编排引擎，它目前是使用最广的，超过其他所有替代产品。来自云原生计算基金会（CNCF）的研究发现，96%的受访者正在考虑或使用Kubernetes。&#xA;Kubernetes是一个容器编排引擎 Kubernetes 的主要任务是调度和部署容器化应用程序，这是云原生模型的关键要素之一。与 VM 相比，容器是轻量级的，因为它们不包含操作系统，并且它们是可移植的，因为它们包含所有应用程序的依赖项。&#xA;您无需严格使用 Kubernetes 就可以运行容器，因为您可以使用容器运行时手动将容器部署在服务器的操作系统上。但是，除非您只有少数容器要处理，否则这种方法并不实用。如果您想扩展，则需要一个编排引擎。&#xA;Scaling with clusters and worker nodes Kubernetes 的作用就在于此。它通过 Kubernetes API 将容器部署到由单个“master node”控制平面管理的“worker node”集群中的“pod”上，并根据需要进行扩展。&#xA;Kubernetes 非常强大，这要归功于其可扩展的架构。为了实现高可用性和负载平衡，Kubernetes 会根据需要启动和关闭尽可能多的worker nodes。它会根据策略和用户需求将应用程序分布在它们之上。&#xA;例如，如果节点出现故障或遇到其他问题，Kubernetes 可以workload移植到其他node，从而防止停机。&#xA;Bare metalKubernetes 的不同之处在于? Kubernetes 和容器是在虚拟机成为部署应用程序的事实环境中出现的。自然而然，大多数企业一直在 VM 上部署容器和 Kubernetes，而 VM 又位于硬件上的管理程序层和主机操作系统之上（让我们不要深入探讨bare-metal管理程序的概念……）。</description>
     </item>
     <item>
       <title>深入了解Kubernetes控制器对象存储（object stores）和索引器（indexers）</title>
-      <link>http://localhost:53654/k8s/object-stores-and-indexers/</link>
+      <link>http://localhost:1313/k8s/object-stores-and-indexers/</link>
       <pubDate>Tue, 18 Jun 2024 10:14:37 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/object-stores-and-indexers/</guid>
+      <guid>http://localhost:1313/k8s/object-stores-and-indexers/</guid>
       <description>本文是Understanding Kubernetes controllers part II – object stores and indexers的中文翻译版本，内容有删减&#xA;基本上，我们已经学会了如何使用 Kubernetes Go client来检索 Kubernetes 资源的信息，因此我们可以在我们的controller中简单地执行这个操作。然而，这有点低效。假设，例如，你正在使用多个工作线程，就像我们所做的那样。那么你可能会一遍又一遍地检索相同的信息，对 API 服务器造成很大负载。为了避免这种情况，可以使用一种特殊的 Kubernetes Informers 类型，称为index informers，它们构建一个线程安全的对象存储作为缓存。当集群的状态发生变化时，Informer 不仅会调用我们controller的处理函数，还会执行必要的更新以保持缓存的最新状态。由于缓存具有处理索引的额外能力，因此被称为 Indexer。因此，在今天的文章末尾，以下图片将呈现出来。&#xA;在本文的其余部分，我们将更详细地讨论索引器及其与 Informer 的交互，而在下一篇文章中，我们将学习如何创建和使用 Informer，并深入了解它们的内部运作。&#xA;Watches and resource versions 在我们讨论 Informers 和 Indexers 之前，我们必须了解客户端可以使用的基本机制，以跟踪集群状态。为了实现这一点，Kubernetes API 提供了一种称为 watch 的机制。最好通过一个例子来解释这个概念。&#xA;在继续之前，请确保你有一个运行中的 Kubernetes 集群。我们将使用 curl 直接与 API 进行交互。为了避免必须在请求中添加令牌或证书，我们将使用 kubectl 代理机制。因此，请在另一个单独的终端中运行：&#xA;$ kubectl proxy 此时你应该看到一个消息，表示该代理正在本地主机的某个端口上监听（通常是8001）。发送到该端口的任何请求将被转发到 Kubernetes API 服务器。为了访问我们的集群，让我们首先启动一个单独的 HTTPD。&#xA;$ kubectl run alpine --image=httpd:alpine 然后我们使用CURL来获取默认命名空间中正在运行的 pod 列表。&#xA;$ curl localhost:8001/api/v1/namespaces/default/pods { &amp;#34;kind&amp;#34;: &amp;#34;PodList&amp;#34;, &amp;#34;apiVersion&amp;#34;: &amp;#34;v1&amp;#34;, &amp;#34;metadata&amp;#34;: { &amp;#34;selfLink&amp;#34;: &amp;#34;/api/v1/namespaces/default/pods&amp;#34;, &amp;#34;resourceVersion&amp;#34;: &amp;#34;6834&amp;#34; }, &amp;#34;items&amp;#34;: [ { &amp;#34;metadata&amp;#34;: { &amp;#34;name&amp;#34;: &amp;#34;alpine-56cf65bbfc-tzqqx&amp;#34;, &amp;#34;generateName&amp;#34;: &amp;#34;alpine-56cf65bbfc-&amp;#34;, &amp;#34;namespace&amp;#34;: &amp;#34;default&amp;#34;, &amp;#34;selfLink&amp;#34;: &amp;#34;/api/v1/namespaces/default/pods/alpine-56cf65bbfc-tzqqx&amp;#34;, &amp;#34;uid&amp;#34;: &amp;#34;584ddf85-5f8d-11e9-80c0-080027696a3f&amp;#34;, &amp;#34;resourceVersion&amp;#34;: &amp;#34;6671&amp;#34;, --- REDACTED --- 正如预期的那样，你将获得一个 JSON 编码的对象类型 PodList。有趣的部分是元数据中的数据。你会看到有一个字段 resourceVersion。本质上，资源版本是一个随时间增加的数字，它唯一地标识集群的某个状态。</description>
     </item>
     <item>
       <title>Client-go 中的label selector 引起的 CPU Throttling问题</title>
-      <link>http://localhost:53654/k8s/oom-killed-by-client-go-label-select/</link>
+      <link>http://localhost:1313/k8s/oom-killed-by-client-go-label-select/</link>
       <pubDate>Tue, 18 Jun 2024 10:06:09 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/oom-killed-by-client-go-label-select/</guid>
+      <guid>http://localhost:1313/k8s/oom-killed-by-client-go-label-select/</guid>
       <description>前序 Kubernetes是目前最流行的容器编排工具之一，提供了丰富的功能，用于管理和部署容器应用程序。在Kubernetes中，使用client-go来与Kubernetes API进行交互。client-go提供了简单易用的API，帮助用户轻松操作Kubernetes集群。然而，在使用client-go时，我们也需要注意性能方面的问题。具体来说，client-go中的cache ListAll() 函数可能会触发CPU密集型操作。本文记录了我们如何排查和解决了tlb-service-contrller的CPU Throttling问题，旨在为同行提供思考和借鉴的经验。&#xA;最近，我作为eBay内部Cloud网络团队的值班人员， 日常工作是处理团队维护的各种 Kubernetes的控制器（controller的）和服务的健康状态的实时警报。当出现故障、性能问题或安全问题时，立即响应并采取必要的措施来解决问题。在最近的值班中，我接到关于公司内部 tlb-service-controller 的告警电话，快速查看后发现问题是 CPU Throttling 导致 tlb-service-controller 重启。以下是对问题的排查过程和解决方案的记录。在这篇文章中，我将分享我处理这一技术挑战的经验和所得的教训，以便给同行提供有益的思考和指导。&#xA;CPU Throttling 问题排查 收到告警电话，扩容CPU 10--&amp;gt;20--&amp;gt;40 CPU 扩容的过程 当我接到告警电话☎️时，发现当前 tlb-service-controller 的 CPU 限制设置为 10。最初认为是由于 controller 需要协调的对象太多，导致其无法正常工作。为了暂时解决问题，我将 CPU 限制从 10 增加到 20。然而，即使增加到 20，依然存在CPU Throttling的情况，于是我将 CPU 再次增加到 40。这样 tlb-service-controller 的 CPU 使用率稳定下来，上下游用户暂时不受影响。接下来，我将查找导致当前问题的原因 上图是在Prometheus上查看的当前tlb-service-controller在CPU扩容后的CPU和内存分布图。我们可以得出结论，CPU使用率在短短的10分钟内迅速上升至约33，这表明，CPU使用率可能出现了异常。需要进一步调查才能确定原因。&#xA;pprof 排查CPU 使用率罪魁祸首 pprof 是一款 Golang 性能剖析工具，可用于分析应用程序的 CPU 和内存占用率等性能问题。pprof 可以在应用程序运行时收集性能数据，然后使用可视化工具进行简单的分析和展示。下面是使用 pprof 对当前 tlb-service-controller 的 CPU 使用率采样生成的分析图。 从上面的图中，我们可以看到，主要的罪魁祸首是lockAllocationForPods()和client-go中cache的ListAll()函数。通过查看源代码，我们发现该函数通过client-go提供的标签选择器功能，在每个pod上创建一个标签选择器（labelSelector），找到与之匹配的allocation（读者可以忽略&amp;quot;allocation&amp;quot;的具体含义，它是与IP绑定的资源，每个pod应该对应一个IP）&#xA;func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) error { if pods == nil { return nil } for _, pod := range pods { // Check if allocation already exists for this pod labelSelector := labels.</description>
     </item>
     <item>
       <title>简化Helm Charts部署：使用tpl函数引用Values</title>
-      <link>http://localhost:53654/k8s/using-the-helm-tpl-function/</link>
+      <link>http://localhost:1313/k8s/using-the-helm-tpl-function/</link>
       <pubDate>Tue, 18 Jun 2024 09:49:53 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/using-the-helm-tpl-function/</guid>
+      <guid>http://localhost:1313/k8s/using-the-helm-tpl-function/</guid>
       <description>摘要 本文将指导您如何在Helm Charts中使用tpl函数来引用values.yaml文件中的值，避免重复并简化配置。&#xA;使用tpl函数引用Values 在Kubernetes部署中，Helm Charts提供了一种强大的方式来管理应用程序配置。但是，当配置变得复杂时，如何避免在values.yaml文件中重复相同的值呢？本文将介绍一种方法，通过使用Helm的tpl函数来实现这一点。&#xA;environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env: - name: ENVIRONMENT value: &amp;#34;{{ .Values.environment }}&amp;#34; 这种方法不仅减少了重复，而且使您的配置更加灵活和易于维护。&#xA;Tpl函数的工作原理 Tpl函数允许您在模板中使用字符串作为模板。这意味着您可以在Deployment资源模板中这样使用它：&#xA;spec: containers: - name: main image: {{ tpl .Values.image . }} env: {{- tpl (toYaml .Values.env) . | nindent 12 }} 当您运行helm install时，Helm模板引擎将使用values文件中的设置替换相应的值。&#xA;注意事项 在使用tpl函数时，请注意安全性。例如，如果用户提供了以下values文件：&#xA;environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env: - name: PODS value: &amp;#39;{{ lookup &amp;#34;v1&amp;#34; &amp;#34;Pod&amp;#34; &amp;#34;&amp;#34; &amp;#34;&amp;#34; }}&amp;#39; 这可能会暴露集群中的敏感信息。因此，请确保在集群中使用适当的RBAC策略来限制用户的操作。</description>
     </item>
     <item>
       <title>K8s Cloud Provider源码解析</title>
-      <link>http://localhost:53654/k8s/k8s-cloud-provider/</link>
+      <link>http://localhost:1313/k8s/k8s-cloud-provider/</link>
       <pubDate>Mon, 17 Jun 2024 16:59:46 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8s-cloud-provider/</guid>
+      <guid>http://localhost:1313/k8s/k8s-cloud-provider/</guid>
       <description>Cloud Provider 介绍 Kubernetes 的 Cloud Provider 机制是将 Kubernetes 与公有云、私有云等基础设施进行对接的关键组件。它主要具有以下功能:&#xA;节点管理:实现节点的生命周期管理,如实例监控、故障检测、节点驱逐等。&#xA;负载均衡:将 Kubernetes 的 Service 对象映射到云平台的负载均衡服务,如 AWS ELB、阿里云 SLB 等。&#xA;存储管理:通过 FlexVolume、CSI 接口与云存储服务集成,为 Pod 提供持久化存储。&#xA;路由管理:在底层网络中设置路由规则,确保 Pod 间的互联互通。&#xA;身份认证:结合云平台的 IAM 服务进行访问权限控制。&#xA;Kubernetes 的 Cloud Provider 接口使得不同的云平台能够实现自己的 Controller Manager 来集成这些功能。目前已有的Cloud Provider主要包括:&#xA;AWS Cloud Provider 阿里云 Cloud Provider vSphere Cloud Provider 启用 Cloud Provider 后,相关的控制组件会部署在 Kubernetes 集群中。&#xA;这种解耦设计降低了 Kubernetes 项目与具体云平台的耦合,允许云供应商进行定制化集成,也使得多云和混合云的管理变得更加复杂。关于 Cloud Provider更多的历史和背景介绍可以参考这篇来自k8s的sig-cloud-providercloud-provider-documentation&#xA;代码分析 本篇主要讨论的是最基础的kubernetes/cloud-provider,它是所有云供应商的基础,也是所有云供应商的实现的基础。&#xA;架构设计 整体的架构如下图所示: 目前它包含的Informers有:&#xA;NodeInformer ServiceInformer 其主要函数包括:&#xA;processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下图所示: 主要代码分析 NodeConditionPredicate func listWithPredicates(nodeLister corelisters.</description>
     </item>
     <item>
       <title>k8s 默认的调度器工作机制和策略</title>
-      <link>http://localhost:53654/k8s/k8s-schedule-road-path/</link>
+      <link>http://localhost:1313/k8s/k8s-schedule-road-path/</link>
       <pubDate>Sun, 16 Jun 2024 16:22:37 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8s-schedule-road-path/</guid>
+      <guid>http://localhost:1313/k8s/k8s-schedule-road-path/</guid>
       <description>参考文章: https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/kube-scheduler/&#xA;默认调度器 Kubernetes 调度队列 activeQueue 在 activeQ 里的 Pod,都是下一个调度周期需要调度的对象 当你在 Kubernetes 集群里新创建一个 Pod 的时候,调度器会将这个 Pod 入队到 activeQ 里面 unschedulableQueue 它存储那些由于某种原因而无法被调度的 Pod 当一个 unschedulableQ 里的 Pod 被更新之后,调度器会自动把这个 Pod 移动到 activeQ 里,从而给这些调度失败的 Pod “重新做人”的机会 k8s-scheduler control path Informer Path 启动一系列 Informer,用来监听(Watch)Etcd 中 Pod、Node、Service 等与调度相关的 API 对象的变化。比如,当一个待调度 Pod(即:它的 nodeName 字段是空的)被创建出来之后,调度器就会通过 Pod Informer 的 Handler,将这个待调度 Pod 添加进调度队列 Kubernetes 的调度队列是一个 PriorityQueue(优先级队列) Scheduling Path Scheduling Path 的主要逻辑,就是不断地从调度队列里出队一个 Pod。然后,调用 Predicates 算法进行“过滤”。这一步“过滤”得到的一组 Node,就是所有可以运行这个 Pod 的宿主机列表。&#xA;k8s-scheduler 调度过程 Predicate 从集群所有的节点中,根据调度算法挑选出所有可以运行该 Pod 的节点;</description>
     </item>
     <item>
       <title>k8s Affinity与 taint/toleration的区别</title>
-      <link>http://localhost:53654/k8s/diff-of-affinity-and-taint/</link>
+      <link>http://localhost:1313/k8s/diff-of-affinity-and-taint/</link>
       <pubDate>Sun, 16 Jun 2024 16:21:40 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/diff-of-affinity-and-taint/</guid>
+      <guid>http://localhost:1313/k8s/diff-of-affinity-and-taint/</guid>
       <description>k8s Affinity与 taint/toleration的区别解释 k8s taint toleration的介绍和使用 参考文章: https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/taint-and-toleration/&#xA;Kubernetes 中 Taint 和 Toleration 是配合使用来进行污点容忍的机制,可以用来避免 Pod 被调度到不合适的 Node 上。&#xA;Taint 的作用: Taint 应用于 Node 上,用于标记该 Node 不宜调度某些 Pod。添加 Taint 后,如果 Pod 没有对应 Toleration,则不会被调度到该 Node。&#xA;Taint 效果取决于其效果:&#xA;NoSchedule:表示不能将 Pod 调度到该 Node。 PreferNoSchedule:表示尽量避免将 Pod 调度到该 Node。 NoExecute:表示不能将 Pod 调度到该 Node,如果已在 Node 上运行也会驱逐。 Toleration 的作用: Toleration 设置在 Pod 上,用于容忍(Tolerate)某些 Taint。如果 Pod 可以容忍 Node 的 Taint,则可以调度到该 Node。&#xA;Toleration 指定三个参数:&#xA;key:Taint 的 key operator:TolerationOperator 操作符,如 &amp;ldquo;Equal&amp;rdquo;、&amp;ldquo;Exists&amp;rdquo; effect:Taint 效果,可选 NoSchedule、PreferNoSchedule 或 NoExecute Taint 和 Toleration 的使用:</description>
     </item>
     <item>
       <title>K8s informers的介绍</title>
-      <link>http://localhost:53654/k8s/k8s_informers/</link>
+      <link>http://localhost:1313/k8s/k8s_informers/</link>
       <pubDate>Sun, 16 Jun 2024 16:19:35 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8s_informers/</guid>
+      <guid>http://localhost:1313/k8s/k8s_informers/</guid>
       <description>本文是 An introduction to Go Kubernetes informers的中文翻译版本，内容有删减&#xA;这篇文章介绍了Kubernetes Go client library工具，它主要用于在内存中保持集群资源的实时快照。&#xA;在代码示例中，我们导入了需要的包：&#xA;import ( metav1 &amp;#34;k8s.io/apimachinery/pkg/apis/meta/v1&amp;#34; appsv1 &amp;#34;k8s.io/api/apps/v1&amp;#34; corev1 &amp;#34;k8s.io/api/core/v1&amp;#34; ) 动机 如果您的Go程序需要获取有关Kubernetes资源（例如服务、副本集、Pod等）的信息，您可以使用官方的Kubernetes Go client实例与Kubernetes APIServer进行交互：&#xA;// gets the information of a given pod in the default namespace pod, err := client.CoreV1().Pods(&amp;#34;default&amp;#34;). Get(context.Background(), &amp;#34;pod-name&amp;#34;, v1.GetOptions{}) // gets the information of all the currently existing pods in all the // namespaces pods, err := client.CoreV1().Pods(corev1.NamespaceAll). List(context.Background(), v1.ListOptions{}) 然而，您可能希望最小化连接数来拉取数据。并减少获取资源的延迟，因此您可以使用Watch接口来监听Kubernetes资源的更改事件，依次保证内存是最新的资源：&#xA;// ignoring returned error on purpose watcher, _ := client.</description>
     </item>
     <item>
       <title>用k8sgpt-localai解锁Kubernetes的超能力</title>
-      <link>http://localhost:53654/k8s/k8sgpt-operater/</link>
+      <link>http://localhost:1313/k8s/k8sgpt-operater/</link>
       <pubDate>Sun, 16 Jun 2024 16:14:52 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8sgpt-operater/</guid>
+      <guid>http://localhost:1313/k8s/k8sgpt-operater/</guid>
       <description>本文是 k8sgpt-localai-unlock-kubernetes-superpowers-for-free的中文翻译版本，内容有删减&#xA;正如我们所知，大型语言模型（LLMs）正在疯狂地流行，而这种热潮并非没有道理。每天都有大量基于LLM的文本生成项目涌现出来——事实上，如果我在写这篇博客的时间里，又发布了另一个令人惊喜的新工具，我也不会感到惊讶 :)&#xA;对于那些不相信的人，我可以说这种热潮是有道理的，因为这些项目不仅仅是噱头。它们正在释放出真正的价值，远远超出了仅仅使用ChatGPT来发布博客文章的范畴😉。例如，开发者们通过Warp AI可以直接在终端中提高他们的生产力，在集成开发环境中使用IntelliCode、GitHub的Copilot、CodeGPT（还是开源的！），还可能有暂时没有遇到的其他更多的工具。此外，这项技术的应用案例远不止代码生成。正在出现基于LLM的聊天和Slack机器人，它们可以在组织的内部文档语料库上进行训练。特别是来自Nomic AI的GPT4All是一个在开源聊天领域值得关注的项目。&#xA;然而，本博客的重点是另一个用例：一个在Kubernetes集群内运行的基于AI的SRE（SRE）听起来如何？这就是K8sGPT和k8sgpt-operator的用武之地。&#xA;这是REANDME的摘录：&#xA;k8sgpt 是一个用于扫描你的 Kubernetes 集群、以诊断和处理问题的工具(英文) k8sgpt 将SRE经验编码到其分析器中，并帮助提取最相关的信息，以利用人工智能进行处理。 听起来很棒，对吧？我也这么觉得！如果你想尽快开始并运行，或者如果你想要访问最强大的商业化模型，你可以使用Helm安装一个K8sGPT服务器（不需要K8sGPT operator），并利用K8sGPT的默认人工智能后端：OpenAI。&#xA;但如果我告诉你，免费的本地集群内部分析也是一种简单的选择，你会怎么想？&#xA;下面是配置的三个过程：&#xA;安装LocalAI服务器 安装K8sGPT operator 创建一个K8sGPT CRD启动SRE魔法！ 要开始使用，你只需要一个 Kubernetes 集群、Helm 和对模型的访问权限。请查看 LocalAI README 的README，了解模型兼容性的简要概述和开始查找的位置。GPT4All是另一个不错的资源&#xA;好的&amp;hellip;既然你已经有了一个模型，我们开始吧！&#xA;首先，添加go-skynet helm repo：&#xA;helm repo add go-skynet https://go-skynet.github.io/helm-charts/ 创建一个values.yaml文件，用于启动LocalAI chart，并根据需要进行自定义：&#xA;cat &amp;lt;&amp;lt;EOF &amp;gt; values.yaml deployment: image: quay.io/go-skynet/local-ai:latest env: threads: 14 contextSize: 512 modelsPath: &amp;#34;/models&amp;#34; # Optionally create a PVC, mount the PV to the LocalAI Deployment, # and download a model to prepopulate the models directory modelsVolume: enabled: true url: &amp;#34;https://gpt4all.</description>
     </item>
     <item>
       <title>使用client-go在Kubernetes中进行leader election</title>
-      <link>http://localhost:53654/k8s/leader-election-in-kubernetes-using-client-go/</link>
+      <link>http://localhost:1313/k8s/leader-election-in-kubernetes-using-client-go/</link>
       <pubDate>Sun, 16 Jun 2024 16:13:34 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/leader-election-in-kubernetes-using-client-go/</guid>
+      <guid>http://localhost:1313/k8s/leader-election-in-kubernetes-using-client-go/</guid>
       <description>本文是 leader-election-in-kubernetes-using-client-go的中文翻译版本，内容有删减&#xA;如果您想了解 Kubernetes 中leader election的工作原理，那么希望本文能对您有所帮助。在本文中，我们将讨论高可用系统中leader election的概念，并探讨kubernetes/client-go库，以了解其在 Kubernetes 控制器中的应用。&#xA;近年来，“高可用性”一词因可靠系统和基础设施需求的增加而变得流行起来。在分布式系统中，高可用性通常涉及最大化运行时间和系统容错。高可用性中通常采用的一种做法是使用冗余来避免单点故障。为冗余做好系统和服务的准备工作可能只需要在负载均衡器后面部署更多的副本。虽然这样的配置对许多应用程序来说可能有效，但有些用例需要在副本之间进行仔细的协调才能使系统正确运行。&#xA;一个很好的例子是当一个 Kubernetes 控制器被部署为多个实例时。为了防止任何意外的行为，leader election过程必须确保在副本之间选出一个leader，并且该leader是唯一主动协调集群的实例。其他实例应该保持不活动，但随时准备接管leader实例的工作，以防其失败。&#xA;在 Kubernetes 中，leader election的过程很简单。它始于创建一个锁对象，leader会定期更新当前时间戳，以通知其他副本其领导权。这个锁对象可以是一个Lease，ConfigMap或者Endpoint，它还保存了当前leader的身份。如果leader在给定的时间间隔内未能更新时间戳，则认为它已经崩溃，此时非活动副本会竞争更新锁，以获取领导权。成功获取锁的pod将成为新的leader。&#xA;在我们开始写代码之前，我们来看一下这个过程是如何工作的。&#xA;首先，我们需要一个本地的Kubernetes集群。我将使用 KinD，但是您可以随意选择一个本地的k8s发行版。&#xA;$ kind create cluster Creating cluster &amp;#34;kind&amp;#34; ... ✓ Ensuring node image (kindest/node:v1.21.1) 🖼 ✓ Preparing nodes 📦 ✓ Writing configuration 📜 ✓ Starting control-plane 🕹️ ✓ Installing CNI 🔌 ✓ Installing StorageClass 💾 Set kubectl context to &amp;#34;kind-kind&amp;#34; You can now use your cluster with:kubectl cluster-info --context kind-kindNot sure what to do next?</description>
     </item>
     <item>
       <title>从应用开发者的角度来学习K8S</title>
-      <link>http://localhost:53654/k8s/learning-k8s-by-running-app/</link>
+      <link>http://localhost:1313/k8s/learning-k8s-by-running-app/</link>
       <pubDate>Sun, 16 Jun 2024 16:11:42 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/learning-k8s-by-running-app/</guid>
+      <guid>http://localhost:1313/k8s/learning-k8s-by-running-app/</guid>
       <description>背景 Kubernetes（简称K8S）是一种开源的容器编排系统，用于自动化管理、部署和扩展容器化应用程序。K8S是云原生架构的核心组件之一，它可以帮助开发人员更轻松地构建和管理云原生应用程序。K8s还提供了许多高级功能，例如负载均衡、服务发现、自动伸缩、存储管理等，这些功能可以帮助开发人员更轻松地构建可靠的云原生应用程序。&#xA;虽然K8S是一个强大的容器编排系统，但它仍然存在一些缺点，包括以下几个方面：&#xA;学习曲线较陡峭：Kubernetes是一个非常复杂的系统，它需要掌握大量的概念和技术，包括容器、Pod、服务发现、负载均衡、存储、网络等。因此，对于初学者来说，学习曲线可能比较陡峭。 部署和管理复杂度较高：虽然Kubernetes提供了许多工具来简化部署和管理，但这些工具仍然需要较高的技术水平来使用。此外，由于Kubernetes是一个分布式系统，因此在规划、部署和管理方面都需要进行复杂的决策和操作。 资源占用较高：Kubernetes需要运行在一个较为庞大的基础设施上，因此它需要占用相对较高的资源，包括CPU、内存、存储等。此外，Kubernetes还需要运行多个组件和代理，这些组件和代理也会占用一定的资源。 容易出现故障：由于Kubernetes是一个复杂的分布式系统，因此它容易出现故障和问题。这些故障可能涉及各个方面，包括网络、存储、节点故障等。此外，由于Kubernetes的架构复杂，排查问题也可能需要较长的时间和技术支持。 不适合小规模应用：由于Kubernetes需要占用较高的资源和运行多个组件，因此它对于小规模应用来说可能过于复杂和冗余。对于一些简单的应用，使用Kubernetes可能并不划算 如果你是一个不了解 K8S的开发人员，那么本文将从具体的使用的角度来帮助你学习和理解K8S。在学习 Kubernetes 之前，先了解一些基础概念&#xA;无状态应用是指应用本身不依赖于任何状态信息。也就是说，无状态应用不会维护任何与用户或请求相关的信息，它仅仅根据输入的请求进行计算和处理，并将结果返回给客户端。无状态应用通常使用负载均衡器将请求分配到多个服务器上进行处理，从而实现高可用性和可扩展性。常见的无状态应用包括 Web 服务、RESTful API、静态网站等。&#xA;相对于无状态应用，有状态应用依赖于一定的状态信息来完成任务。有状态应用在处理请求时需要使用上下文信息，包括用户信息、会话状态、数据库连接状态等等。有状态应用通常需要使用持久化存储来保存状态信息，比如数据库、缓存、文件系统等。有状态应用不适合使用负载均衡器进行请求分发，因为请求需要在同一个服务器上处理，否则会出现状态不一致的问题。常见的有状态应用包括在线游戏、聊天应用、电子商务应用等。&#xA;需要注意的是，有状态应用和无状态应用并不是互相排斥的关系，而是根据应用的需求和特点来选择最合适的架构模式。有些应用可能既有无状态部分，也有有状态部分，需要使用混合的架构模式来实现。&#xA;Load Balancing 负载均衡（Load Balancing）是一种在计算机网络中分配工作负载的技术，其主要目的是提高应用程序的可用性、性能和可伸缩性。当网络流量过大时，负载均衡可以通过将负载分配到多个服务器上来减轻单个服务器的压力，并确保所有服务器能够合理地处理请求。&#xA;负载均衡在现代应用程序和网络中起着至关重要的作用，特别是在高流量、高负载的情况下。它可以确保应用程序的可用性和可靠性，并提高用户体验。负载均衡技术在云计算和分布式系统中也得到广泛的应用，成为了构建高可用性、高性能和高可扩展性系统的重要基础。&#xA;客户端/服务端负载均衡 客户端负载均衡&#xA;图片来源（https://laptrinhx.com/go-microservices-part-7-service-discovery-and-load-balancing-2345614758/）&#xA;客户端负载均衡（Client-side Load Balancing）是一种在分布式系统中常用的负载均衡技术，它可以将请求从客户端分发到多个服务器，以提高系统的性能、可伸缩性和可用性。客户端负载均衡通常是通过在客户端应用程序中实现的，而不是在服务器端实现的。&#xA;在客户端负载均衡中，客户端应用程序会维护一个服务器列表，并根据负载均衡算法选择一个服务器来发送请求。负载均衡算法可以根据服务器的负载情况、网络延迟等因素来选择服务器，以实现最优的负载均衡效果。客户端应用程序还可以定期从服务发现中心获取服务器列表，并使用心跳检测等机制来监测服务器的可用性。常见的客户端负载均衡实现有 Spring Cloud LoadBalancer , consul, nacos 和istio&#xA;服务端负载均衡&#xA;图片来源（https://laptrinhx.com/go-microservices-part-7-service-discovery-and-load-balancing-2345614758/）&#xA;服务端负载均衡（Server-side Load Balancing）是指通过在服务端引入负载均衡器（Load Balancer），将客户端请求分发到多个后端服务实例中，从而实现服务的高可用和高性能。通常，负载均衡器会根据不同的负载均衡算法（例如轮询、随机等）将客户端请求分配到后端的服务实例上。&#xA;服务端负载均衡器通常位于服务端的网络边缘，作为客户端和后端服务实例之间的中间层。它可以同时处理大量的客户端请求，并将请求转发到多个后端服务实例上，从而提高系统的处理能力和可靠性。同时，负载均衡器还可以实现一些高级功能，如故障检测、动态配置、流量控制等。常见的硬件负载均衡的厂家有 F5 BIG-IP，Citrix NetScaler，Barracuda Load Balancer 和 A10 Networks Thunder&#xA;服务端和客户端负载均衡对比&#xA;服务端负载均衡和客户端负载均衡各有优缺点：&#xA;负载均衡器的位置：服务端负载均衡器位于服务端，而客户端负载均衡器位于客户端。 负载均衡器的数量：服务端负载均衡器通常是单个或少数几个，而客户端负载均衡器可以有多个，每个客户端都可以有自己的负载均衡器。 服务实例列表的维护：服务端负载均衡器负责维护服务实例列表，而客户端负载均衡器需要从服务端获取服务实例列表或者自己维护服务实例列表。 网络通信量：服务端负载均衡器需要将请求从客户端转发到服务实例，这可能会增加网络通信量。而客户端负载均衡器通常只需要在本地选择一个服务实例来处理请求，因此可以减少网络通信量。 系统可用性：客户端负载均衡器无法动态地响应服务端的变化，一旦服务实例状态发生变化，客户端负载均衡器可能会选择到不可用的服务实例。而服务端负载均衡器可以及时响应服务实例的变化，从而提高系统的可用性。 性能瓶颈：服务端负载均衡器可能成为性能瓶颈，而客户端负载均衡器通常可以在本地快速选择一个服务实例来处理请求，从而减少性能瓶颈的风险。 综上所述，服务端负载均衡和客户端负载均衡各有优缺点，需要根据具体业务场景和需求选择合适的负载均衡方式。服务端负载均衡适合服务实例数量较大、集中管理的场景，而客户端负载均衡适合服务实例数量较小、分散的场景。&#xA;L4/L7 负载均衡 图片来源（《计算机网络第七版》谢希仁） 计算机网络体系结构&#xA;OSI 七层模型和数据&#xA;图片来源（https://icyfenix.cn/architect-perspective/general-architecture/diversion-system/load-balancing.html）&#xA;四层负载均衡</description>
     </item>
     <item>
       <title>Kubernetes headless Service介绍</title>
-      <link>http://localhost:53654/k8s/headless-svc/</link>
+      <link>http://localhost:1313/k8s/headless-svc/</link>
       <pubDate>Sun, 16 Jun 2024 16:09:57 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/headless-svc/</guid>
+      <guid>http://localhost:1313/k8s/headless-svc/</guid>
       <description>本文由 headless-services-in-kubernetes的中文翻译版本，内容有删减&#xA;Kubernetes headless Service是一个没有专用负载均衡器的service。这种类型的Service 通常用于有状态的应用程序。例如数据库，这些应用要求必须为每个实例维护一致的网络标识。如果客户端需要连接所有 Pod，则无法使用常规 Kubernetes的 ClusterIP Service来完成此操作。Service将无法将每个连接转发到随机选择的容器。&#xA;常规的Service是如何工作的？（How does Regular Service Object Works?） 接下来我们通过下面的yaml配置文件来创建一个常规的Kubernetes ClusterIP Service。&#xA;cat &amp;lt;&amp;lt;EOF | kubectl apply -f - --- apiVersion: apps/v1 kind: Deployment metadata: name: normal-nginx labels: app: normal-nginx # Deployment labels to match with replicaset labels and pods labels spec: replicas: 3 selector: matchLabels: app: normal-nginx # Replicaset to manage pods with labels template: metadata: labels: app: normal-nginx # Pods labels spec: containers: - name: nginx image: nginx --- apiVersion: v1 # v1 is the default API version.</description>
     </item>
     <item>
       <title>[译]K3s与K8s的区别是什么?</title>
-      <link>http://localhost:53654/k8s/k8s-vs-k3s/</link>
+      <link>http://localhost:1313/k8s/k8s-vs-k3s/</link>
       <pubDate>Sun, 16 Jun 2024 16:07:53 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/k8s-vs-k3s/</guid>
+      <guid>http://localhost:1313/k8s/k8s-vs-k3s/</guid>
       <description>本文是k3s vs k8s的中文翻译版本，内容有删减&#xA;什么是Kubernetes （What is Kubernetes）? 对于那些不熟悉Kubernetes来说，Kubernetes其实是一个“容器编排平台”。这实际上意味着拿走你的容器（现在每个程序员都听说过Docker，对吧？）并从一组机器中决定哪台机器来运行该容器。&#xA;它还处理诸如容器升级之类的事情，因此，如果您发布网站的新版本，它将逐渐启动具有新版本的容器，并逐渐杀死旧容器（参考Rolling Update ），整个发布过程通常在一两分钟内。&#xA;K8s 只是 Kubernetes 的缩写（“K”后跟 8 个字母“ubernete”，后跟“s”）。然而，通常当人们谈论 Kubernetes 或 K8s 时，他们谈论的其实是 Google 设计的一个高度可用且极具可扩展性的平台。&#xA;例如，这是一个YouTube上关于利用Kubernetes 进行集群处理零停机更新，同时仍每秒执行 1000 万个请求的视频。&#xA;尽管你可以用 Minikube在本地开发者机器上运行 Kubernetes，但如果你要在生产环境中运行它，你必须看看以下关于“最佳实践”的建议：&#xA;将你的主节点与其他节点分开: 主节点运行k8s控制平面，其他节点运行你的k8s工作负载,千万不要把它们混为一体 在单独的集群上运行 etcd（存储Kubernetes 状态的数据库），以确保它可以处理负载 理想情况下，应该配置与底层节点独立的Ingress节点，以便它们在底层节点繁忙时仍可以轻松处理传入流量 通过上面的原则，我们可以推断出一个的节点配置方案是：3个K8s主节点；3个etcd；2个Ingress和其他的节点。&#xA;别误解，如果您正在运行产线环境的工作负载，这是非常理智的建议。没有什么比在周五晚上尝试调试过载的下产线环境集群更糟糕的了！&#xA;k3s和k8s的区别（ What is k3s and how is it different from k8s?） K3s 被设计成了一个小于 40MB 的单个二进制文件，它完全复用了了 Kubernetes API。为了实现这一目标，K3s设计者删除了许多不需要成为核心并容易被附加组件替换的驱动程序。&#xA;K3s 是 CNCF（云原生计算基金会）认证的 Kubernetes 产品。这意味着你的 YAML即可以在常规的Kubernetes上运行，同时也可以 k3s 集群上运行。&#xA;由于K3s对资源要求低，甚至可以在 512MB 以上的 RAM 计算机上运行集群。这意味着我们可以允许 Pod 在主节点和其他节点上运行。</description>
     </item>
     <item>
       <title>在K8s controller-runtime和client-go中实现速率限制</title>
-      <link>http://localhost:53654/k8s/controller-runtime-client-go-rate-limiting/</link>
+      <link>http://localhost:1313/k8s/controller-runtime-client-go-rate-limiting/</link>
       <pubDate>Sun, 16 Jun 2024 16:02:23 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/controller-runtime-client-go-rate-limiting/</guid>
+      <guid>http://localhost:1313/k8s/controller-runtime-client-go-rate-limiting/</guid>
       <description>这是旨在澄清、易懂和完整的版本：&#xA;本文章是 controller-runtime 和 client-go 中的速率限制 的中文翻译。内容有所删减。&#xA;如果您曾经编写过 Kubernetes 控制器，您可能熟悉 controller-runtime，或者至少了解 client-go。 controller-runtime 是用于构建控制器的框架，允许用户设置多个控制器，并由控制器管理器进行管理。在幕后，controller-runtime 使用 client-go 与 Kubernetes API 服务器 进行通信，以监视资源变化并将其传递给相关的控制器。它处理了许多与控制器相关的方面，包括缓存、队列等。其中一个组件是速率限制。&#xA;速率限制是什么？ 自从计算机网络问世以来，限流（Rate Limiting）就一直存在于软件中，在此之前也存在于许多其他人类流程中。当讨论限流时，您可能会发现与您日常执行任务、公司和社区组织模式有许多相似之处。&#xA;在实现任何两方之间的有效通信时，限流是必要的。软件通过在不同的执行过程之间传递消息进行通信，无论是通过操作系统、专用硬件设备、网络还是三者的组合。在客户端-服务器模型中，客户端通常会请求服务器代表其执行工作。服务器执行这些工作需要时间，这意味着如果有许多客户端同时请求服务器执行工作，而服务器容量不足以处理这些请求，服务器就需要做出选择。&#xA;服务器可以选择：&#xA;丢弃没有响应的请求。 等待请求的响应，直到可以完全执行工作。 响应请求，指示当前无法执行工作，但客户端应在未来的某个时间再次请求执行工作。 将工作添加到队列中，并响应请求，告知客户端在完成工作时会通知客户端。 如果客户端和服务器彼此非常了解（即它们对彼此的通信模式非常熟悉），那么上述任何一种方法都可以作为有效的通信模型。想象一下您与生活中其他人的关系。您可能会认识那些以各种方式进行沟通的人，但如果通信方式是彼此了解的，您可能能够与所有这些人有效地合作。&#xA;不幸的是，与人类一样，软件也可能不可靠。例如，服务器可能会表示将在未来的某个时间响应请求，要求客户端在该时间再次请求执行工作，但客户端与服务器之间的连接可能被阻塞，导致请求被丢弃。同样地，客户端可能会收到回复，表示工作在未来的某个时间才能执行，但它可能会继续请求立即执行工作。因为这些原因以及其他许多原因（我们今天不会讨论的），服务器端和客户端的限流对于构建可扩展、可靠的系统至关重要。&#xA;由于 controller-runtime 和 client-go 是构建 Kubernetes 控制器的框架，而控制器是 Kubernetes API 服务器的客户端，所以今天我们将重点关注客户端的限流。&#xA;控制器是什么？ 如果您对 controller-runtime 已经非常了解，可以跳过这一部分。 controller-runtime 主要通过执行一个由 controller abstraction 实现并传递给框架的 reconciliation loop）向使用者提供控制器抽象。以下是一个简单的 Reconciler 示例，可传递给 controller-runtime 控制器：&#xA;type Reconciler struct {} func (r *Reconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) { fmt.</description>
     </item>
     <item>
       <title>OCI runtime create failed: expected cgroupsPath</title>
-      <link>http://localhost:53654/k8s/oci-error/</link>
+      <link>http://localhost:1313/k8s/oci-error/</link>
       <pubDate>Fri, 14 Jun 2024 16:58:03 +0800</pubDate>
-      <guid>http://localhost:53654/k8s/oci-error/</guid>
+      <guid>http://localhost:1313/k8s/oci-error/</guid>
       <description>本文是针对作者遇到的OCI runtime create failed: expected cgroupsPath to be of format \&amp;quot;slice:prefix:name\&amp;quot; for systemd cgroups, got \&amp;quot;/kubepods/burstable/...&amp;quot;的问题总结&#xA;问题总结 问题描述 在特定的k8s node上不能通过containerd启动pod,pod的状态一直是ContainerCreating,通过kubectl describe pod查看pod的状态,发现如下错误:&#xA;OCI runtime create failed: runc create failed: expected cgroupsPath to be of format &amp;#34;slice:prefix:name&amp;#34; for systemd cgroups k8s集群信息 k8s版本: v1.26.13 containerd版本: 1.6.24 Linnux kernel版本: 6.6.20-amd64 Linux发行版: Garden Linux 1443.0 kubeProxyVersion: v1.26.13 kubeletVersion: v1.26.13 问题分析 此问题是因为kubelet配置为使用cgroupfs cgroup驱动程序，而containerd配置为使用sytemd cgroup驱动程序。&#xA;解决方法 为了解决上面的问题，可以从以下两种方式中选择一种：&#xA;让containerd使用cgroupfs驱动程序，需要从/etc/containerd/config.toml中删除SystemdCgroup = true行。 让kubelet使用systemd驱动程序，需要将KubeletConfiguration中的cgroupDriver设置为&amp;quot;systemd&amp;quot;。 扩展阅读 查看Kubelet配置 Kubelet的配置文件通常位于/var/lib/kubelet/位置，可以通过查看该文件来确认Kubelet的cgroup驱动程序配置。关于其他CRIs的配置文件位置可以参考Container Runtimes。</description>
     </item>
   </channel>

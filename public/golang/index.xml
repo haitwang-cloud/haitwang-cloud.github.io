@@ -1,130 +1,130 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Golangs on Tim Wang的技术博客</title>
-    <link>http://localhost:53654/golang/</link>
-    <description>Recent content in Golangs on Tim Wang的技术博客</description>
+    <title>Golangs on Tim Wang Tech Blog</title>
+    <link>http://localhost:1313/golang/</link>
+    <description>Recent content in Golangs on Tim Wang Tech Blog</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
     <lastBuildDate>Wed, 19 Jun 2024 17:21:25 +0800</lastBuildDate>
-    <atom:link href="http://localhost:53654/golang/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/golang/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>深入了解 Go 的 init 函数</title>
-      <link>http://localhost:53654/golang/init-function-introduction/</link>
+      <link>http://localhost:1313/golang/init-function-introduction/</link>
       <pubDate>Wed, 19 Jun 2024 17:21:25 +0800</pubDate>
-      <guid>http://localhost:53654/golang/init-function-introduction/</guid>
+      <guid>http://localhost:1313/golang/init-function-introduction/</guid>
       <description>The Go init Function 的中文翻译版本。&#xA;当使用 Go 创建应用程序时，有的时候您需要能够在程序启动时初始化某些资源。例如涉及创建数据库的连接，或从本地存储的配置文件加载配置。&#xA;在本教程中，我们将研究如何使用这个 init() 函数来实现初始化，我们还将看看为什么这不一定是实例化组件的最佳方法。&#xA;替代方案（Alternative Approaches ） 现在，使用 init 函数的典型用例可能类似于“我想实例化与数据库的连接”。但是这实际上可能是 Go 应用程序中设计不佳的副作用。&#xA;实例化数据库连接之类的更好方法可能是使用New函数，该函数返回指向包含数据库连接对象的结构的指针。&#xA;func New() (*Database, error) { conn, err := sql.Open(&amp;#34;postgres&amp;#34;, &amp;#34;connectionURI&amp;#34;) if err != nil { return &amp;amp;Database{}, err } return &amp;amp;Database{ Connection: conn, }, nil } 使用这种方法，您可以将数据库传递给系统中可能需要调用数据库的任何其他组件。&#xA;它还使您可以在启动期间如何更好地处理故障，而不是简单地终止您的应用程序。&#xA;总的来说，我会尽量避免使用 init 函数，并使用上面概述的方法来实例化数据库连接，构建Go 应用程序。&#xA;init 函数（The init Function） 在 Go 中，init() 函数非常强大。同时与其他一些语言相比，在 Go 程序中更容易使用。这些 init() 函数可以在 package 块中使用，并且无论该包被导入多少次，init() 函数只会被调用一次。&#xA;现在你需要知道的是，init() 函数只会被调用一次。当我们想要建立数据库连接，或向各种服务注册中心注册，或执行您通常只想执行一次的任何数量的其他任务，它会是十分有效的。</description>
     </item>
     <item>
       <title>开始使用 Golang 插件</title>
-      <link>http://localhost:53654/golang/getting-started-with-golang-plugins/</link>
+      <link>http://localhost:1313/golang/getting-started-with-golang-plugins/</link>
       <pubDate>Wed, 19 Jun 2024 17:15:30 +0800</pubDate>
-      <guid>http://localhost:53654/golang/getting-started-with-golang-plugins/</guid>
+      <guid>http://localhost:1313/golang/getting-started-with-golang-plugins/</guid>
       <description>本文是 Getting started with Go plugin package的中文翻译版本，内容有删减&#xA;介绍 在这篇文章中，我们将介绍如何在Golang中使用plugin。我们将编写一个名为driver的程序，它会加载两个插件并执行它们中共有的某个函数。这个driver程序会向第一个插件传递一个整数，第一个插件会对它进行处理。第一个插件的结果会传递给第二个插件，最后driver程序将打印出结果。&#xA;配置 首先我们创建一个名为golang-plugin-demo的目录，然后进入该目录，然后创建名为types的文件夹 📁：&#xA;$ mkdir golang-plugin-demo $ cd $_ 编写一个共享的包 $ mkdir types $ cd types/ 接下来创建type.go文件，内容如下：&#xA;package types type InData struct { V int } type OutData struct { V int } 编写插件： 返回上一级目录，并创建一个名为plugin1的目录：&#xA;$ mkdir plugin1 $ cd plugin1 然后创建一个名为plugin.go的文件，内容如下：&#xA;package main import &amp;#34;../types&amp;#34; var Input types.InData var Output types.OutData var Name string func init() { Name = &amp;#34;plugin1&amp;#34; } func process() types.</description>
     </item>
     <item>
       <title>LeakProf：Golang 的轻量级在线 Goroutine 泄漏检测工具</title>
-      <link>http://localhost:53654/golang/leakprof-featherlight/</link>
+      <link>http://localhost:1313/golang/leakprof-featherlight/</link>
       <pubDate>Wed, 19 Jun 2024 17:14:21 +0800</pubDate>
-      <guid>http://localhost:53654/golang/leakprof-featherlight/</guid>
+      <guid>http://localhost:1313/golang/leakprof-featherlight/</guid>
       <description>本文是LeakProf: Featherlight In-Production Goroutine Leak Detection的中文翻译版本，内容有删减&#xA;Go 是一种在微服务开发中广受欢迎的编程语言，其主要特点之一是对并发性的一流支持。鉴于其不断增长的受欢迎程度，Uber采用了该语言：Go monorepo 作为开发平台的核心，其中包含了Uber的重要业务逻辑、支持库或基础设施的关键组件的大部分代码库。&#xA;Go的并发模型建立在轻量级线程——goroutines上。任何以&amp;quot;go&amp;quot;关键字为前缀的函数调用都会异步启动该函数。由于在Go代码库中使用goroutines的语法开销和资源需求较低，因此它们被广泛使用，程序通常可以同时涉及数十个、数百个或数千个goroutine。&#xA;两个或多个goroutine可以通过在通道上进行消息传递来相互通信，这是受到Hoare的Communicating Sequential Processes的启发而形成的一种编程范式。虽然传统的共享内存通信仍然是一种选择，但Go开发团队鼓励用户更倾向于使用channels，并主张在使用时可以更好地避免数据竞争。你可以通过encourages了解更多信息，此外Uber还发布了一篇关于Go中数据竞争模式的博文。&#xA;Goroutine 泄露 goroutine泄漏是goroutines高并发的一个副作用。channels语义的一个关键组成部分是&amp;quot;阻塞&amp;quot;，即channels操作会使得goroutine的执行暂停，直到达成目标（即找到通信伙伴）。更具体地说，对于无缓冲channels，发送方在接收方到达通道之前一直阻塞，反之亦然。一个goroutine可能永远被阻塞在尝试发送或接收通道的过程中，这种情况被称为&amp;quot;goroutine泄漏&amp;quot;。当有过多的goroutine泄漏时，后果可能是严重的。泄漏的goroutine会消耗资源，例如未被释放或回收的内存。请注意，一旦缓冲区已满，有缓冲channels也可能导致goroutine泄漏。&#xA;程序错误（例如，复杂的控制流、早期返回、超时等）可能会导致goroutine之间的通信不匹配，其中一个或多个goroutine可能会被阻塞，此时不能通过创建其他goroutine会来解除阻塞。Goroutine泄漏会阻止垃圾回收器回收相关的channels、goroutine堆栈和永久阻塞的goroutine的所有可访问对象。在长时间运行的服务中，随着时间的推移，小的泄漏会加剧这个问题。&#xA;Go的发行版本在编译或运行时都没有提供直接的解决方案来检测goroutine泄漏。如何检测goroutine泄漏是非常复杂的，因为它们可能依赖于多个goroutine之间的复杂交互，并且只在某些罕见的运行时会触发。一些提出的静态分析技术[1, 2, 3]容易出现不精确的情况，可能出现误报的问题。&#xA;其他提案，例如goleak，主要思路是在测试过程中采用动态分析，然后揭示出多个阻塞错误，但其有效性取决于对代码路径和线程调度的单元测试覆盖。在大规模的项目中进行详尽的单元测试覆盖是不可行的；例如，某些在生产环境中更改代码路径的配置可能并未被单元测试覆盖到。&#xA;因此，目前对于检测goroutine泄漏没有一种完美的解决方案。开发人员需要综合考虑静态和动态分析方法，并努力在测试过程中覆盖尽可能多的代码路径，以最大程度地减少goroutine泄漏的风险。&#xA;检测goroutine泄漏是复杂的，特别是在使用大量库、在运行时涉及数千个goroutine并使用大量通道的复杂生产代码中。在生产代码中检测这些泄漏的工具需要满足以下要求：&#xA;它不应引入高额的开销，因为它将在生产负载中使用。高开销会影响SLAs并消耗更多的计算资源。&#xA;它应具有较低的误报率；虚假的泄漏报告会浪费开发人员的时间。&#xA;一个实用、轻量级的解决方案：生产环境中的Goroutine泄漏 我们采取实际方法来检测在生产环境中长时间运行的程序中的Goroutine泄漏，以满足前面提到的标准。我们的前提和关键观察如下：：&#xA;如果一个程序存在大量的Goroutine泄漏，它最终会通过大量被阻塞在某些通道操作上的Goroutine数量变得可见。&#xA;只有很少的源代码位置（涉及通道操作）导致了大部分的Goroutine泄漏。&#xA;虽然不理想，罕见的Goroutine泄漏产生的开销较低，可以忽略不计。&#xA;第一点通过观察到有泄漏的程序中Goroutine数量的激增得到了证实。第二点简单地说明并非所有的通道操作都会导致泄漏，只有导致泄漏的代码被反复执行，才可能暴露这种泄漏。由于任何泄漏的Goroutine会持续存在于服务的声明周期中，反复遇到泄漏最终会导致大量积压的阻塞Goroutine。这对于由许多不同执行循环中的并发操作引起的泄漏尤其成立。最后，第三点是实际考虑因素。如果导致泄漏的操作很少遇到，它对内存积聚的影响可能不会很严重。基于这些实用的观察结果，我们设计了_LeakProf_，它是一个可靠的泄漏指示器，几乎不会产生误报，并且运行时开销最小化。&#xA;LeakProf的实现 Figure 1: LeakProf architecture&#xA;LeakProf定期对当前正在运行的goroutine进行调用栈分析（通过pprof获得）。检查特定配置的调用栈可以指示一个goroutine是否在特定操作（如通道发送、通道接收和select）上被阻塞。这些阻塞函数在Go运行时中是相对容易识别的。通过统计在按照通道操作的源位置汇总阻塞的goroutine，如果在单个位置上有大量的被阻塞goroutine，且超过了可配置的阈值，LeakProf会将其视为潜在的goroutine泄漏。&#xA;我们的方法既不完全准确，也不完备。分别存在着两类错误，即假阴性（即未必能找出所有的泄漏）和假阳性（即报告可能不代表真实的泄漏）。假阴性出现在程序在运行时没有出现泄漏场景，或者泄漏数量未超过可配置的阈值时。相反，假阳性会导致虚假的报告，当大量的goroutine由于程序意图的语义而被有意识地阻塞，而不是由于泄漏导致的时候（例如，具有高延迟的心跳操作）。为了改进对潜在假阳性的过滤，我们正在持续开发基于静态分析的轻量级启发式方法。例如，报告一个可疑的select语句涉及分析其AST以确定其中一个case分支是否涉及等待已知的非阻塞操作（例如，涉及Go标准库提供的定时器或计时器）；如果满足此条件，则不会报告该泄漏，无论有多少阻塞的goroutine，因为它肯定是假阳性。还可以配置已知假阳性的列表。不过，尽管如此，这种方法在实践中非常有效，可以检测到对生产服务产生重大影响的非平凡泄漏，如下所示。&#xA;在Uber部署时，LeakProf利用性能分析信息来收集被阻塞的goroutine信息，并自动通知服务所有者进行可疑并发操作的检查。只有当被阻塞的goroutine数量超过给定的阈值，并且它们是Uber代码库的一部分时，这些操作被视为可疑。这种方法的有效性得到了快速验证，它迅速发现了10个关键的泄漏goroutine，并且仅有1个假阳性。修复其中2个缺陷分别导致了服务峰值内存的2.5倍和5倍的减少，服务所有者自愿将容器内存需求减少了25%。&#xA;Figure 2: Memory footprint example&#xA;泄漏代码模式 在生产环境中对Goroutine泄漏的分析揭示了以下常见的泄漏代码模式。&#xA;过早函数返回 这种泄漏模式在几个goroutine预期进行通信时发生，但是某些代码路径过早地返回而没有参与通道通信，导致另一方永远等待。这种情况发生在通信双方没有考虑彼此可能的所有执行路径时。&#xA;Example 通道c（第2行）被子goroutine（第3行）用于发送错误消息（第5行或第8行）。父线程上的相应接收操作（第18行）之前有几个if语句，可能在第18行等待从通道接收之前就执行return操作（第13行和第15行）。如果父goroutine执行这些return语句中的任何一个，子goroutine将永远阻塞，无论它执行哪个发送操作。&#xA;防止goroutine泄漏的一种可能解决方案是在创建通道时使用缓冲大小为1。这允许子goroutine的发送者在通信操作上解除阻塞，而不受父接收goroutine行为的影响。&#xA;超时泄露 虽然这个bug可以被看作是过早函数返回模式的特例，但由于其普遍性，它值得独立列出。这种泄漏经常出现在将无缓冲通道与timers或contexts，以及select语句相结合的情况下。定时器或上下文通常用于短路(short-circuit)父goroutine的执行并提前终止。然而，如果子goroutine没有考虑到这种情况，可能会导致泄漏。&#xA;Example 通道done（第3行）与子goroutine（第4行）一起使用。当子goroutine发送消息（第6行）时，它会阻塞，直到另一个goroutine（可能是父goroutine）从done通道读取。同时，父goroutine在第8行的select语句处等待，直到与子goroutine同步（第9行），或者当ctx超时（第11行）时。在上下文超时的情况下，父goroutine通过第11行的case返回；结果是，当子goroutine发送时，没有等待的接收者。因此，子goroutine会发生泄漏，因为没有其他goroutine会从done接收。&#xA;同样，通过将done的容量增加为1，可以避免这种泄漏。&#xA;广播泄露 这种类型的泄漏发生在并发系统被构建为在同一个通道上有多个发送者和单个接收者之间的通信时。此外，如果单个接收者在通道上只执行一次接收操作，除了一个发送者外，其他所有发送者都将永远在通道上阻塞&#xA;Example 通道dataChan（第2行）被作为参数传递给第4行的for循环中创建的goroutine。每个子goroutine都试图向dataChan发送一个结果，但父goroutine只从dataChan接收一次，然后退出其当前函数的作用域，此时它失去了对dataChan的引用。由于dataChan是无缓冲的，任何未与父goroutine同步的子goroutine都将永远阻塞。&#xA;解决方案是将dataChan的缓冲区增加到items的长度。这保留了只有第一个结果发送给dataChan会被父线程接收的特性，同时允许其余的子goroutine解除阻塞并终止。&#xA;这个问题的更一般形式是当有N个发送者和M个接收者，其中N &amp;gt; M，并且每个接收者只执行一次接收操作时。&#xA;通道迭代错误使用 这种泄漏模式可能发生在使用range结构与通道时。理解这种泄漏需要对关闭操作 和range与通道的工作原理有一定的了解。泄漏是在对通道进行迭代时发生的，但是通道从未被关闭。这会导致for循环对通道的迭代无限期地阻塞，因为除非通道关闭，否则循环不会终止；for循环在从通道接收所有项目后会被阻塞。&#xA;Example 为了简洁起见，我们将借用在&amp;quot;Communication contention&amp;quot;（通信竞争）中引入的生产者-消费者问题。在第3行分配了一个名为queueJobs的通道。生产者是在for循环（第3行）中生成的goroutine，在其中每个生产者发送一条消息（第5行）。消费者（第8行）通过遍历queueJobs来读取消息。只要存在未消费的消息，第9行的循环将执行一次迭代。预期的结果是，一旦生产者不再发送消息，消费者将退出循环并终止。然而，由于通道上没有执行close操作，range在没有更多消息发送时将阻塞，从而导致泄漏。</description>
     </item>
     <item>
       <title>Golang 内存泄漏问题详解</title>
-      <link>http://localhost:53654/golang/golang-memory-leaks/</link>
+      <link>http://localhost:1313/golang/golang-memory-leaks/</link>
       <pubDate>Wed, 19 Jun 2024 17:12:30 +0800</pubDate>
-      <guid>http://localhost:53654/golang/golang-memory-leaks/</guid>
+      <guid>http://localhost:1313/golang/golang-memory-leaks/</guid>
       <description>本文是 Golang-Memory-Leaks 的中文翻译版本，内容仅供学习参考，如有侵权请联系删除。&#xA;其他优秀的 ppof 性能分析文章👍👍👍，请参考 golang pprof 实战 和 你不知道的 Go 之 pprof：&#xA;最近,我在生产环境中遇到了内存泄漏。我发现某个服务在负载内存在稳步上升，直到进程触发内存溢出异常。经过深入调查，我找到了内存泄漏的源头，以及为什么会发生这种情况。为了诊断问题，我使用了Golang的分析工具pprof。在本文中，我将解释什么是pprof，并展示我如何诊断内存泄漏。&#xA;背景 我们的客户端通过一个代理服务使用我们的系统,我们为其提供访问权限。内存泄漏发生在这个代理服务中。&#xA;内存泄漏 在收到客户端关于断开连接的投诉后，我开始寻找问题的根源。 我首先做的是检查公司提供的Grafana监控系统，查看代理服务的内存和CPU使用情况。我查看并且比较了3种不同情况下的指标:&#xA;服务在重启后处于空闲状态 服务处于负载状态 服务在负载状态下，现在处于空闲状态 所有重叠的线都表示服务处于空闲状态，只有绿色的线表示服务正在接收流量。&#xA;从上图中可以看出几个问题&#xA;当服务处于空闲状态且没有流量时，其内存保持在较低水平 当流量停止命中单个机器时，该机器的内存使用率下降，但仍高于其他实例。 在开始性能分析之前，我列出了一些我想排除的事情:&#xA;我正在使用Golang版本1.12.5，所以我想确保潜在的泄漏不是来自运行时(即使运行时也有问题)。可以在github页面上的open issues on the github page得到很好的回答。 尝试使用激进的垃圾回收debug.SetGCPercent(10) 手动尝试debug.FreeOSMemory()，运行时主要关注性能，在内存进行垃圾回收之后，为了性能考虑，并不会立即将其释放回操作系统 尝试在staging环境中使用小负载测试重现泄漏，以确认我的怀疑。 在完成上面的检查事项并且发现泄漏仍然存在且可以重现之后，我开始使用pprof对服务进行性能分析。&#xA;Golang 性能工具 - pprof 性能分析类型 你可以收集以下几种性能指标&#xA;goroutine - 当前所有goroutine的堆栈跟踪 heap - 所有堆分配的采样 threadcreate - 创建新的操作系统线程的堆栈跟踪 block - 导致在同步原语上阻塞的堆栈跟踪 mutex - 互斥锁的持有者的堆栈跟踪 profile - cpu 性能分析 trace - 允许在一定时间范围内收集所有分析数据 性能分析示例 为了开始性能分析，我导入了pprof并启动了一个HTTP服务器。&#xA;请注意，如果您已经有一个HTTP服务器在运行，那么只需要import pprof就足够了。我已经有一个TCP服务器在运行，所以我添加了另一个goroutine来监听一个单独的端口用于pprof。</description>
     </item>
     <item>
       <title>Golang 中的 Table Driven 单元测试</title>
-      <link>http://localhost:53654/golang/table-driven-unit-tests/</link>
+      <link>http://localhost:1313/golang/table-driven-unit-tests/</link>
       <pubDate>Wed, 19 Jun 2024 17:11:05 +0800</pubDate>
-      <guid>http://localhost:53654/golang/table-driven-unit-tests/</guid>
+      <guid>http://localhost:1313/golang/table-driven-unit-tests/</guid>
       <description>本文是 Prefer table driven tests的中文翻译版本，内容有删减&#xA;我是编写测试代码的狂热粉丝，特别喜欢unit testing和TDD。时下在Go项目中比较流行的是表格驱动测试，本文将会讨论如何编写针对Go的表格驱动测试&#xA;假设我们有一个函数用于分割字符串：&#xA;// Split slices s into all substrings separated by sep and // returns a slice of the substrings between those separators. func Split(s, sep string) []string { var result []string i := strings.Index(s, sep) for i &amp;gt; -1 { result = append(result, s[:i]) s = s[i+len(sep):] i = strings.Index(s, sep) } return append(result, s) } 单元测试 在Go中，单元测试就是普通的Go函数（有一些规则），所以我们可以在同一个目录下编写一个单元测试文件，包名为strings。&#xA;package split import ( &amp;#34;reflect&amp;#34; &amp;#34;testing&amp;#34; ) func TestSplit(t *testing.</description>
     </item>
     <item>
       <title>在 Golang 中进行 Fuzz 测试</title>
-      <link>http://localhost:53654/golang/go-fuzz-testing/</link>
+      <link>http://localhost:1313/golang/go-fuzz-testing/</link>
       <pubDate>Wed, 19 Jun 2024 17:10:05 +0800</pubDate>
-      <guid>http://localhost:53654/golang/go-fuzz-testing/</guid>
+      <guid>http://localhost:1313/golang/go-fuzz-testing/</guid>
       <description>本文是 Tutorial: Getting started with fuzzing的中文翻译版本，内容有删减&#xA;本教程介绍了在Go中进行模糊测试的基础知识。使用模糊测试，会使用随机数据来运行测试，以查找漏洞或导致崩溃的输入。通过模糊测试可以发现的一些漏洞示例包括SQL注入、缓冲区溢出、拒绝服务和跨站点脚本攻击。&#xA;在本教程中，您将为一个简单函数编写一个模糊测试，运行go命令，并调试和修复代码中的问题。&#xA;在本教程中涉及到的术语可以参考Go Fuzzing术语表&#xA;准备工作（Prerequisites） 您必须安装了Go 1.18及以上版本. 请参考 Installing Go来学习如何安装. 代码编辑器. 任何你有的文本编辑器都可以. 命令行. Go在Linux和Mac上使用任何终端都可以，也可以在Windows的PowerShell或cmd上使用. 支持模糊测试的环境. Go模糊测试仅在AMD64和ARM64架构上支持覆盖率插装. 创建文件夹 创建一个文件夹来存放你的代码&#xA;打开命令行并切换到你的主目录&#xA;Linux 或者 Mac上:&#xA;$ cd Windows 上:&#xA;C:\&amp;gt; cd %HOMEPATH% 本文的剩余部分将显示$作为提示符。您使用的命令也可以在Windows上使用。&#xA;在命令提示符下，创建一个名为fuzz的代码目录。&#xA;$ mkdir fuzz $ cd fuzz 创建一个模块来保存你的代码&#xA;运行go mod init命令，给它你的新代码的模块路径。&#xA;$ go mod init example/fuzz go: creating new go.mod: module example/fuzz Note: 对于生产代码，您将指定一个更符合自己需求的模块路径。更多信息，请参见Managing dependencies.&#xA;接下来，您将添加一些简单的代码来反转一个字符串，我们将在后面进行模糊测试。&#xA;添加测试代码 在这一步中，您将添加一个函数来反转一个字符串。&#xA;编写代码 用你的文本编辑器，在fuzz目录下创建一个名为main.go的文件。&#xA;在main.go的顶部，粘贴以下包声明。&#xA;package main 一个独立的程序（而不是一个库）总是在包main中。</description>
     </item>
     <item>
       <title>Golang 中条件变量 sync.Cond 的正确使用</title>
-      <link>http://localhost:53654/golang/go-sync-cond/</link>
+      <link>http://localhost:1313/golang/go-sync-cond/</link>
       <pubDate>Wed, 19 Jun 2024 17:08:50 +0800</pubDate>
-      <guid>http://localhost:53654/golang/go-sync-cond/</guid>
+      <guid>http://localhost:1313/golang/go-sync-cond/</guid>
       <description>本文是 How to properly use the conditional variable sync.Cond in Golang的中文翻译版本，内容有删减&#xA;Golang sync包中的Cond实现了一个条件变量，可以用在多个Reader等待一个共享资源ready的场景中（如果只有一个读一个写，此时锁或者channel就可以搞定）。&#xA;Cond pool的点在于：多个goroutine等待，1个goroutine发生事件通知。&#xA;每一个Cond都关联了一个Lock(*sync.Mutex or *sync.RWMutex)，在修改条件或者调用Wait方法时必须加锁，保护条件。&#xA;type Cond struct { // L is held while observing or changing the condition L Locker // contains filtered or unexported fields } 创建一个新的Cond条件变量。&#xA;func NewCond(l Locker) *Cond Broadcast 会唤醒所有等待的goroutine。&#xA;同时，Broadcast也可以不加锁调用。&#xA;func (c *Cond) Broadcast() Signal只会唤醒一个等待的goroutine。&#xA;func (c *Cond) Signal() Signal可以不加锁调用，但是如果不加锁调用，那么Signal必须在Wait之前调用，否则会panic。&#xA;Wait() 会自动释放 c.L 并挂起调用者的goroutine，Wait() 返回时会对 c.L 上锁。&#xA;Wait() 不会主动return，除非它被Signal或者Broadcast唤醒。&#xA;由于 C.</description>
     </item>
     <item>
       <title>升级 Golang 模块依赖的步骤</title>
-      <link>http://localhost:53654/golang/how-to-upgrade-golang-dependencies/</link>
+      <link>http://localhost:1313/golang/how-to-upgrade-golang-dependencies/</link>
       <pubDate>Wed, 19 Jun 2024 17:07:32 +0800</pubDate>
-      <guid>http://localhost:53654/golang/how-to-upgrade-golang-dependencies/</guid>
+      <guid>http://localhost:1313/golang/how-to-upgrade-golang-dependencies/</guid>
       <description>本文是 How To Upgrade Golang Dependencies的中文翻译版本，内容有删减&#xA;无论您是否使用Go modules，使用go get命令升级Go依赖项都是一个简单的任务。以下是升级Go依赖项的几个示例。&#xA;如何把依赖升级到最新的版本 下面的命令将更新您的go.mod和go.sum文件（针对 example.com/pkg）&#xA;go get example.com/pkg 如何将依赖项及其所有子依赖项升级到最新版本 如果您需要将依赖项及其所有子依赖项升级到最新版本（针对 example.com/pkg）&#xA;go get -u example.com/pkg 如何查看可用的依赖项升级 为了查看所有直接和间接依赖项的可用次要和补丁升级&#xA;go list -u -m all 如何一次性升级所有依赖项 为了一次性升级所有依赖项，运行以下命令&#xA;这将升级所有依赖的最新的或次要的版本&#xA;go get -u ./... 下面这个命令会测试依赖项的升级发现是否有问题&#xA;go get -t -u ./... 如何使用Go modules升级到特定版本 使用上面描述的相同机制，我们可以使用go get命令升级到特定的依赖项&#xA;get foo@v1.6.2 或者指定一个git提交哈希值&#xA;go get foo@e3702bed2 或者您可以在Module Queries中进一步探索定义的语义&#xA;测试升级后的依赖项 为了确保您的包在升级后正常工作，您可能需要运行以下命令来测试它们是否正常工作&#xA;go test all 如果您想了解有关Go modules的更多信息，请访问官方文档网站https://github.com/golang/go/wiki/Modules#how-to-upgrade-and-downgrade-dependencies</description>
     </item>
     <item>
       <title>多版本 Go 管理策略</title>
-      <link>http://localhost:53654/golang/managing-multiple-go-versions-with-go/</link>
+      <link>http://localhost:1313/golang/managing-multiple-go-versions-with-go/</link>
       <pubDate>Wed, 19 Jun 2024 17:06:22 +0800</pubDate>
-      <guid>http://localhost:53654/golang/managing-multiple-go-versions-with-go/</guid>
+      <guid>http://localhost:1313/golang/managing-multiple-go-versions-with-go/</guid>
       <description>本文是 [Managing Multiple Go Versions with Go] (https://lakefs.io/blog/managing-multiple-go-versions-with-go/)的中文翻译版本，内容有删减&#xA;作为 Go 编程语言的用户，我发现在一个项目中启用运行多个版本非常有用。如果你已经尝试过或考虑过这个功能，那太好了！在本文中，我将介绍启用多个 Go 版本的时间和方法。最后，我们将讨论为什么这种方法如此强大。&#xA;什么时候需要多版本的Go (When Do We Need Multiple Go Versions?) 默认情况下，安装 Go 只意味着你可以运行一个 go 命令来构建和测试你的项目。这对于入门很简单，但也可能有局限性。&#xA;更灵活的设置是通过 go1.17 或 go1.18 命令启用在同一环境中运行多个版本。另一种替代方法是设置终端的 PATH 环境变量以指向特定的 Go 版本的 SDK。&#xA;以下是我发现可能会有有多个go版本的几种情况：&#xA;项目需求不同 —— 在多个项目之间切换时，通常需要为每个项目使用不同的 Go 版本。 创建特定的测试环境 —— 在测试向后兼容性或确保修复漏洞的成功时，重要的是控制运行时版本。 保持最前沿 —— 当测试最新 Go 发布中仅可用的新功能或包的行为时 必备条件(Prerequisites) 本指南假定您已经知道如何使用 Go 构建和运行程序。具体来说，这意味着您已经安装了 Go 和 Git，并且它们在您的路径中可用。&#xA;Go – https://golang.org/doc/install Git – https://git-scm.com/ Modules – Using Go Modules 如何使用多个 Go 版本(How to Work With Multiple Go Versions) 我们可以使用 go install 命令来下载并安装单个 Go 版本。</description>
     </item>
     <item>
       <title>理解 Golang 中的值传递与引用传递</title>
-      <link>http://localhost:53654/golang/golang-pass-by-value-vs-pass-by-reference/</link>
+      <link>http://localhost:1313/golang/golang-pass-by-value-vs-pass-by-reference/</link>
       <pubDate>Wed, 19 Jun 2024 17:04:45 +0800</pubDate>
-      <guid>http://localhost:53654/golang/golang-pass-by-value-vs-pass-by-reference/</guid>
+      <guid>http://localhost:1313/golang/golang-pass-by-value-vs-pass-by-reference/</guid>
       <description>本文是Golang Pass by value vs Pass by reference的中文翻译版本，内容有删减&#xA;值传递和引用传递是使用指针类型时需要尤其注意的点（特别是在Java, C#, C/C++和Go等语言中）&#xA;当使创建方法/函数包含参数时，该参数可以选择使用普通数据类型或指针来进行传递。这将使传递给方法的参数有所不同：&#xA;按值传递 会将变量的值传递到方法中，或者可以说是将原始变量将值“复制”到另一个内存位置并将新创建的值传递到方法中。因此，在方法中变量发生的任何改变都不会影响原始变量值。 按引用传递 将传递变量的内存位置而不是值。换句话说，它将变量的“容器”传递给方法，因此，方法中变量的任何改变都会影响原始变量。 简而言之,按值传递将复制值，按引用传递将传递内存位置。&#xA;下图是清晰得解释了按值传递和按引用传递的区别&#xA;![][img-1]source: www.penjee.com&#xA;在Go语言中，我们可以处理指针，因此我们必须了解按值传递和按引用传递在 Go 中的工作原理，本文将它分为 3 个部分：“基本”、“引用”、“函数”。&#xA;源代码地址: https://github.com/david-yappeter/go-passbyvalue-passbyreference&#xA;基本数据类型(Basic Data Type） basicAndArray&#xA;package main import &amp;#34;fmt&amp;#34; func main() { a, b := 0, 0 // Initialize Value fmt.Printf(&amp;#34;## INIT\n&amp;#34;) fmt.Printf(&amp;#34;Memory Location a: %p, b: %p\n&amp;#34;, &amp;amp;a, &amp;amp;b) fmt.Printf(&amp;#34;Value a: %d, b: %d\n&amp;#34;, a, b) // 0 0 // Passing By Value a(int) Add(a) // Golang will copy value of &amp;#39;a&amp;#39; and insert it into argument // Passing By Reference b(int), &amp;amp;b(*int) =&amp;gt; with &amp;#39;&amp;amp;&amp;#39; we can get the memory location of &amp;#39;b&amp;#39; AddPtr(&amp;amp;b) // Pass Memory Location of &amp;#39;b&amp;#39; into argument fmt.</description>
     </item>
     <item>
       <title>Golang 错误处理的最佳实践</title>
-      <link>http://localhost:53654/golang/error-handle/</link>
+      <link>http://localhost:1313/golang/error-handle/</link>
       <pubDate>Wed, 19 Jun 2024 17:03:55 +0800</pubDate>
-      <guid>http://localhost:53654/golang/error-handle/</guid>
+      <guid>http://localhost:1313/golang/error-handle/</guid>
       <description>本文是 Effective Error Handling in Golang的中文翻译版本，内容有删减。&#xA;其他优秀的Golang error handle 文章：&#xA;一套优雅的 Go 错误问题解决方案 Go 中的 Errors 处理与其他主流编程语言（如 Java、JavaScript 或 Python）略有不同。Go 的内置 Errors 不包含堆栈跟踪，也不支持传统的 try/catch 方法来处理。相反，Go 中的 Errors 只是函数返回的值，它们可以像处理任何其他数据类型一样被处理, 它为 Go 带来了令人惊讶的轻量级和简单的设计。&#xA;在本文中，我将从 Go 中处理错误的基础知识开始讲解，同时还有在代码中可以遵循的一些简单策略，以确保您的程序是健壮的和易于调试的。&#xA;Error类型 (The Error Type) Go 中的错误类型是通过以下接口实现的：&#xA;type error interface { Error() string } 所以，Go 中的错误是实现了 Error()的任何方法，该方法返回一个字符串类型的错误消息。就是这么简单！&#xA;构建Errors (Constructing Errors) Errors 可以使用 Go 的内置 errors 或 fmt 包进行构造。例如，以下函数使用 errors 包返回一个带有静态错误消息的 error：&#xA;package main import &amp;#34;errors&amp;#34; func DoSomething() error { return errors.</description>
     </item>
     <item>
       <title>Go 1.18 版本新特性概览</title>
-      <link>http://localhost:53654/golang/go-version-118-release-new/</link>
+      <link>http://localhost:1313/golang/go-version-118-release-new/</link>
       <pubDate>Wed, 19 Jun 2024 17:02:21 +0800</pubDate>
-      <guid>http://localhost:53654/golang/go-version-118-release-new/</guid>
+      <guid>http://localhost:1313/golang/go-version-118-release-new/</guid>
       <description>本文由 www.makeuseof.com的中文翻译版本，内容有删减。关于 工作区，泛型和模糊测试更详细的说明，请参考 Go 1.18 的那些事 —— 工作区、模糊测试、泛型&#xA;自 2009 年首次发布以来，Go 编程语言已经进步了很多。Go 1.18 是一个备受期待的版本，因为它支持泛型和许多其他重要更新。&#xA;Go 于 2022 年 3 月发布了 1.18 版。以下是最重大变化的简要介绍。&#xA;对泛型的支持 (Support for Generics) 泛型编程允许您编写在编写函数时，可以用更灵活的类型来定义输入和返回值。&#xA;在支持泛型之前，您需要显式声明参数类型和返回类型。 最简单的泛型形式允许您指定无类型参数：&#xA;func PrintAnything[T any](thing T) { fmt.Println(thing) } 但是泛型其实功能更加强大，你可以声明任何类型的参数。例如，您可以使用 constraints 包来编写一个函数，该函数可以操作任何可以排序的值。包括 int、float 和 string等。这里是一个示例：&#xA;import &amp;#34;golang.org/x/exp/constraints&amp;#34; func Max[T constraints.Ordered](input []T) (max T) { for _, v := range input { if v &amp;gt; max { max = v } } return max } 请注意这个函数使用了泛型和constraints.</description>
     </item>
     <item>
       <title>掌握 Golang 的 sync.Map 并发安全容器</title>
-      <link>http://localhost:53654/golang/go-sync-map/</link>
+      <link>http://localhost:1313/golang/go-sync-map/</link>
       <pubDate>Wed, 19 Jun 2024 17:00:35 +0800</pubDate>
-      <guid>http://localhost:53654/golang/go-sync-map/</guid>
+      <guid>http://localhost:1313/golang/go-sync-map/</guid>
       <description>The new kid in town — Go’s sync.Map 的中文翻译版本，内容有删减。&#xA;本文是一个使用在 sync.Map 包中内置 map 的例子，&#xA;下面代码中的 RegularIntMap 采用了由 RWMutex构成的内置map&#xA;package RegularIntMap type RegularIntMap struct { sync.RWMutex internal map[int]int } func NewRegularIntMap() *RegularIntMap { return &amp;amp;RegularIntMap{ internal: make(map[int]int), } } func (rm *RegularIntMap) Load(key int) (value int, ok bool) { rm.RLock() result, ok := rm.internal[key] rm.RUnlock() return result, ok } func (rm *RegularIntMap) Delete(key int) { rm.Lock() delete(rm.internal, key) rm.Unlock() } func (rm *RegularIntMap) Store(key, value int) { rm.</description>
     </item>
     <item>
       <title>go.mod 文件解析：直接与间接依赖</title>
-      <link>http://localhost:53654/golang/direct-indirect-dependency-module-go/</link>
+      <link>http://localhost:1313/golang/direct-indirect-dependency-module-go/</link>
       <pubDate>Wed, 19 Jun 2024 16:58:53 +0800</pubDate>
-      <guid>http://localhost:53654/golang/direct-indirect-dependency-module-go/</guid>
+      <guid>http://localhost:1313/golang/direct-indirect-dependency-module-go/</guid>
       <description>Direct vs Indirect Dependencies in go.mod file in Go 的中文翻译版本。&#xA;Module 是 Go的依赖工具。根据定义，Module是一组以 go.mod 为根目录的相关包的集合。 go.mod 文件定义了&#xA;Module 导入路径。 用于成功构建项目的依赖项要求。它不仅定义了模块的依赖，同时也确定了依赖的版本。 Module中的依赖可以是两种类型：&#xA;Direct 在项目文件中被直接引用的直接依赖。 Indirect 是module的直接依赖的二次依赖。 在go.mod文件中被声明，但是没有被文件直接引用的依赖也被视为indirect依赖。 go.mod 文件理论上只记录了direct dependency。然而在下面的情况，它也会记录indirect dependency&#xA;不在go.mod文件中出现的direct dependency，或者direct dependency项目中不包含go.mod文件。那么这个依赖将被添加到go.mod文件中，并且使用//indirect作为后缀 没有被任何文件引用的依赖。 go.sum 将记录同时direct和indirect dependencies的校验和&#xA;接下来，我们来看一个direct dependency的例子。&#xA;git mod init learn 创建一个文件 learn.go&#xA;package main import ( &amp;#34;github.com/pborman/uuid&amp;#34; ) func main() { _ = uuid.NewRandom() } 请注意，我们在learn.go中用以下方式指定了依赖&#xA;&amp;#34;github.com/pborman/uuid&amp;#34; 所以 github.com/pborman/uuid 是一个我们的learn 项目的direct dependency，因为它是直接引用到learn.go中的。 现在让我们运行以下命令&#xA;go mod tidy 此命令将下载源文件中所需的所有依赖项。 运行此命令后，让我们再次检查 go.</description>
     </item>
     <item>
       <title>Go init 函数使用介绍</title>
-      <link>http://localhost:53654/golang/the-golang-init-func/</link>
+      <link>http://localhost:1313/golang/the-golang-init-func/</link>
       <pubDate>Wed, 19 Jun 2024 16:44:28 +0800</pubDate>
-      <guid>http://localhost:53654/golang/the-golang-init-func/</guid>
+      <guid>http://localhost:1313/golang/the-golang-init-func/</guid>
       <description>The Go init Function 的中文翻译版本。&#xA;当使用 Go 创建应用程序时，有的时候您需要能够在程序启动时初始化某些资源。例如涉及创建数据库的连接，或从本地存储的配置文件加载配置。&#xA;在本教程中，我们将研究如何使用这个 init() 函数来实现初始化，我们还将看看为什么这不一定是实例化组件的最佳方法。&#xA;替代方案（Alternative Approaches ） 现在，使用 init 函数的典型用例可能类似于“我想实例化与数据库的连接”。但是这实际上可能是 Go 应用程序中设计不佳的副作用。&#xA;实例化数据库连接之类的更好方法可能是使用New函数，该函数返回指向包含数据库连接对象的结构的指针。&#xA;func New() (*Database, error) { conn, err := sql.Open(&amp;#34;postgres&amp;#34;, &amp;#34;connectionURI&amp;#34;) if err != nil { return &amp;amp;Database{}, err } return &amp;amp;Database{ Connection: conn, }, nil } 使用这种方法，您可以将数据库传递给系统中可能需要调用数据库的任何其他组件。&#xA;它还使您可以在启动期间如何更好地处理故障，而不是简单地终止您的应用程序。&#xA;总的来说，我会尽量避免使用 init 函数，并使用上面概述的方法来实例化数据库连接，构建Go 应用程序。&#xA;init 函数（The init Function） 在 Go 中，init() 函数非常强大。同时与其他一些语言相比，在 Go 程序中更容易使用。这些 init() 函数可以在 package 块中使用，并且无论该包被导入多少次，init() 函数只会被调用一次。&#xA;现在你需要知道的是，init() 函数只会被调用一次。当我们想要建立数据库连接，或向各种服务注册中心注册，或执行您通常只想执行一次的任何数量的其他任务，它会是十分有效的。</description>
     </item>
     <item>
       <title>比较 Go 切片的三种高效方法</title>
-      <link>http://localhost:53654/golang/compare-slice/</link>
+      <link>http://localhost:1313/golang/compare-slice/</link>
       <pubDate>Wed, 19 Jun 2024 16:40:44 +0800</pubDate>
-      <guid>http://localhost:53654/golang/compare-slice/</guid>
+      <guid>http://localhost:1313/golang/compare-slice/</guid>
       <description>3 ways to compare slices (arrays)的中文翻译版本，添加了benchMark 测试的结果&#xA;基本案例(Basic case） 在大多数情况下，你需要自己实现比较两个 slices 的代码&#xA;// Equal tells whether a and b contain the same elements. // A nil argument is equivalent to an empty slice. func Equal(a, b []int) bool { if len(a) != len(b) { return false } for i, v := range a { if v != b[i] { return false } } return true } 对于 arrays来说，你可以使用 == 或者!</description>
     </item>
     <item>
       <title>Cobra 命令行工具使用指南</title>
-      <link>http://localhost:53654/golang/cobra-user-guide/</link>
+      <link>http://localhost:1313/golang/cobra-user-guide/</link>
       <pubDate>Wed, 19 Jun 2024 16:36:24 +0800</pubDate>
-      <guid>http://localhost:53654/golang/cobra-user-guide/</guid>
+      <guid>http://localhost:1313/golang/cobra-user-guide/</guid>
       <description>本文是cobra的官方readme的中文翻译版本&#xA;用户指南 当你想要用cobra来构建自己的应用时，你可以按照下面的结构来组织你的cobra应用：&#xA;▾ appName/ ▾ cmd/ add.go your.go commands.go here.go main.go 在一个cobra应用中，通常main.go文件非常简单，它只有一个目的：初始化cobra。&#xA;package main import ( &amp;#34;{pathToYourApp}/cmd&amp;#34; ) func main() { cmd.Execute() } 使用Cobra Generator Cobra-CLI 是一个独立的程序，它将创建您的应用程序并添加您想要的任何命令。 这是将 Cobra 集成到您的应用程序的最简单方法。&#xA;关于使用Cobra generator的细节，可以参考The Cobra-CLI Generator README&#xA;使用Cobra库 要实现 Cobra，您需要创建一个空的 main.go 文件和一个 rootCmd 文件。 您可以根据需要选择性地提供其他命令。&#xA;创建rootCmd Cobra 不需要任何特殊的构造函数。只需创建命令即可。&#xA;您可以把下面的内容放在 app/cmd/root.go 中。&#xA;var rootCmd = &amp;amp;cobra.Command{ Use: &amp;#34;hugo&amp;#34;, Short: &amp;#34;Hugo is a very fast static site generator&amp;#34;, Long: `A Fast and Flexible Static Site Generator built with love by spf13 and friends in Go.</description>
     </item>
   </channel>

@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Softwares on Tim Wang的技术博客</title>
-    <link>http://localhost:53654/software/</link>
-    <description>Recent content in Softwares on Tim Wang的技术博客</description>
+    <title>Softwares on Tim Wang Tech Blog</title>
+    <link>http://localhost:1313/software/</link>
+    <description>Recent content in Softwares on Tim Wang Tech Blog</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
     <lastBuildDate>Sun, 23 Jun 2024 09:56:47 +0800</lastBuildDate>
-    <atom:link href="http://localhost:53654/software/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/software/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>什么是即时编译 (Just in Time)</title>
-      <link>http://localhost:53654/software/just-in-time/</link>
+      <link>http://localhost:1313/software/just-in-time/</link>
       <pubDate>Sun, 23 Jun 2024 09:56:47 +0800</pubDate>
-      <guid>http://localhost:53654/software/just-in-time/</guid>
+      <guid>http://localhost:1313/software/just-in-time/</guid>
       <description>本文由 Just in Time Compilation Explained 的中文翻译版本，内容有删减&#xA;即时编译(JIT)是一种提高解释程序性能的方法。在执行过程中，程序被编译为本机代码以提高其性能。它也被称为动态编译。&#xA;比静态编译相比, 动态编译具有一些优点。当运行 Java 或 C# 应用程序时，运行时可以对应用程序进行性能分析，最终生成更优化的代码。如果程序在运行时发生更改，则运行时可以重新编译代码。&#xA;与之对应的缺点则是启动延迟和运行时的编译开销。为了限制开销，许多 JIT 编译器仅编译经常使用的代码。&#xA;概览（Overview） 传统上，有两种方法可以将源代码转换为可以在平台上运行的机器码。静态编译将代码转换为特定平台的机器码，解释器直接执行源代码。&#xA;JIT 则结合两者的优点。在运行解释程序时，JIT 编译器确定最常用的关键代码并将其编译为机器码。根据编译器的配置不同，它可以在小范围的代码或者方法上完成此编译操作。&#xA;动态编译最早是在 J. McCarthy 在 1960 年一篇关于 LISP 的论文中提出。&#xA;JIT是在程序执行期间完成编译，意味着将源代码转换为机器码是发生在运行时，而不是在执行之前。JIT 的优点是在于因为编译是在运行时进行的，所以JIT 编译器可以访问动态运行时信息，使其能够进行更好的优化（例如内联函数）。&#xA;关于JIT编译，重要的是要了解它将字节码编译成适配当前架构的机器码。这意味着，生成的机器代码对正在运行的计算机的 CPU 架构进行了优化。&#xA;JIT 编译器的常见例子是是 Java 中的 JVM（Java 虚拟机）和 C# 中的 CLR（公共语言运行时）。&#xA;历史（History） 起初，编译器负责将高级语言（定义为比汇编程序更高级别）转换为目标代码（机器指令），然后通过链接器将其链接为可执行文件。&#xA;在语言发展过程中的某一时刻，编译器能够将高级语言编译为伪代码，然后由解释器来运行程序。这消除了目标代码和可执行文件，并允许这些语言移植到多个操作系统和硬件平台。Pascal（编译为P代码）是第一个这样做的语言; Java和C#是最近的例子。最终，术语P代码被字节码取代，因为大多数伪操作都可以用一个字节来描述。&#xA;JIT 编译器是运行时解释器的一项功能，它不是在每次调用方法时解释字节码，而是将字节码编译为当前计算机的机器码，然后改为调用此机器码。理想情况下，直接运行目标代码将解决每次运行时，重新编译程序带来的低效率问题。&#xA;典型场景 (Typical scenario) The source code is completely converted into machine code&#xA;源代码完全转换为机器代码&#xA;(JIT 场景) JIT scenario The source code will be converted into assembly language like structure [for ex IL (intermediate language) for C#, ByteCode for java].</description>
     </item>
     <item>
       <title>JSON Patch and JSON Merge Patch</title>
-      <link>http://localhost:53654/software/json-patch-vs-merge-patch/</link>
+      <link>http://localhost:1313/software/json-patch-vs-merge-patch/</link>
       <pubDate>Sun, 23 Jun 2024 09:55:47 +0800</pubDate>
-      <guid>http://localhost:53654/software/json-patch-vs-merge-patch/</guid>
+      <guid>http://localhost:1313/software/json-patch-vs-merge-patch/</guid>
       <description>JSON Patch and JSON Merge Patch 的中文翻译版本。&#xA;作为近年来受到关注HTTP的 “PATCH” 方法的带动，人们开始提出关于表示 JSON 驱动的 PATCH 格式的想法，它以声明方式描述了两个 JSON 文档之间的差异。 目前已经有许多解决方案被提出，不计其数。而其中IETF 已经发布了两种格式作为 RFC 文档来解决这个问题：RFC 6902 (JSON Patch) 和 RFC 7396 (JSON Merge Patch)。两者都有优缺点，会根据不同的用例因人而异，所以让我们快速比较，看看你会使用哪一个。&#xA;JSON Patch JSON Patch format 和数据库事务类似：它是JSON 文档上的更改操作，由适当的实现自动执行。它基本上是一系列 &amp;quot;add&amp;quot;, &amp;quot;remove&amp;quot;, &amp;quot;replace&amp;quot;, &amp;quot;move&amp;quot; 和 &amp;quot;copy&amp;quot; 操作。&#xA;让我们通过一个简单的例子来看看JSON 文档：&#xA;{ &amp;#34;users&amp;#34; : [ { &amp;#34;name&amp;#34; : &amp;#34;Alice&amp;#34; , &amp;#34;email&amp;#34; : &amp;#34;alice@example.org&amp;#34; }, { &amp;#34;name&amp;#34; : &amp;#34;Bob&amp;#34; , &amp;#34;email&amp;#34; : &amp;#34;bob@example.org&amp;#34; } ] } 我们可以通过PATCH操作更新它，这次操作更改了Alice的邮件地址，然后添加了一个新的元素到数组中：</description>
     </item>
     <item>
       <title>No Elasticsearch Node Available for olivere/elastic</title>
-      <link>http://localhost:53654/software/elastic/</link>
+      <link>http://localhost:1313/software/elastic/</link>
       <pubDate>Sun, 23 Jun 2024 09:54:22 +0800</pubDate>
-      <guid>http://localhost:53654/software/elastic/</guid>
+      <guid>http://localhost:1313/software/elastic/</guid>
       <description>前言 最近笔者接到了公司内部的ES团队的通知，需要将自己应用的数据从ES5搬迁到ES7。我在维护一个基于Golang语言开发的项目，遇到了一些关于ES 的Golang Client https://github.com/olivere/elastic 的问题，特此写这篇博客记录一下。&#xA;具体任务 在从ES5迁移到ES7的过程中，由于ES的换代的一些新特性和改变，需要首先进行具体任务的分解，主要包括&#xA;数据格式升级：从ES6开始，ES便不推荐在同一个Index下存在多个type的数据。因此需要将此前在同一个Index下数据拆散到不同的Index之中就可以解决问题（官方原因是之前index下不同实体太多，切分布稀疏不均匀，严重干扰 Lucene 压缩文档的能力，具体可参考 Removal of mapping types） ES client（olivere/elastic）的升级：由于底层已经切换到了最新的ES7，并且在我司内部的ES7 将强制启动token认证，同时由于采用了 ES的client olivere/elastic 所以需要选择最合适的方案进行代码的迁移。 &amp;ldquo;No Elasticsearch Node Available&amp;rdquo; 首先为了改最少的代码，笔者的第一个想法便是用olivere的ES5的client elastic.v5 直接访问最新的ES Endpoint,结果第一个遇到的问题便是&amp;quot;No Elasticsearch Node Available&amp;quot;。在经过Google一番之后, 从这篇博客中 程序印象 ，查出初步的主要原因是Sniffing的配置造成的。&#xA;Elasticsearch：Sniffing Sniffing 的主要功能是将Elasticsearch的静态节点列表传递给客户端，然后将客户端请求平均分布在Elasticsearch 集群节点之间.如果启用 sniffing，则客户端将开始调用 _nodes /_all /http 端点(类似 http://127.0.0.1:9200/__nodes /_all /http)，并且响应将是群集中存在的所有节点及其 IP 地址的列表。然后，客户端将更新其连接池以使用所有新节点，并使群集状态与客户端的连接池保持同步。&#xA;如果想要检查自己的ES集群的Sniffing的配置，可以通过访问&#xA;curl -XGET &#39;http://127.0.0.1:9200/_nodes/http?pretty=true { &amp;#34;_nodes&amp;#34; : { &amp;#34;total&amp;#34; : 1, &amp;#34;successful&amp;#34; : 1, &amp;#34;failed&amp;#34; : 0 }, &amp;#34;cluster_name&amp;#34; : &amp;#34;elasticsearch&amp;#34;, &amp;#34;nodes&amp;#34; : { &amp;#34;v9vBH0xXQ1-GZw-bOfxlFQ&amp;#34; : { &amp;#34;name&amp;#34; : &amp;#34;v9vBH0x&amp;#34;, &amp;#34;transport_address&amp;#34; : &amp;#34;127.</description>
     </item>
     <item>
       <title>如何在Apple 芯片也称为M1芯片）上构建Docker镜像</title>
-      <link>http://localhost:53654/software/docker-build-on-m1-mac/</link>
+      <link>http://localhost:1313/software/docker-build-on-m1-mac/</link>
       <pubDate>Sun, 23 Jun 2024 09:52:55 +0800</pubDate>
-      <guid>http://localhost:53654/software/docker-build-on-m1-mac/</guid>
+      <guid>http://localhost:1313/software/docker-build-on-m1-mac/</guid>
       <description>How To Build Docker Images For Apple Silicon (Aka M1 Chip) 的中文翻译版本,内容有删减&#xA;背景（Background） 苹果不久前发布了基于M1芯片的新MacBook。与之前所有基于英特尔的Apple笔记本电脑不同，M1具有不同的架构 - arm64而不是英特尔的“amd64”。&#xA;新的架构意味着大多数软件产品应该重新编译,至少对于用编译语言编写的软件必须这样做。该规则适用于主要用Go写的项目。然而，这并不是100%正确的：苹果不遗余力地使旧的编译代码与新架构兼容，Roseta 2是用来达成这个目标的主要工具.&#xA;Docker 也试图迎头赶上 the M1 support came out a few weeks ago.但是，事情并不像预期那样无缝运行：&#xA;Docker依靠 qemu 在M1芯片上模拟英特尔的架构。然而事实是 QEMU有时不能很好地工作：在 Apple Silicon 机器上尝试运行基于 Intel 的容器可能会崩溃，因为 QEMU 有时无法运行容器。例如文件变更 API File System Events（例如 inotify）在 QEMU 仿真下不起作用 [&amp;hellip;]。 因此，我们建议您在 Apple Silicon 机器上运行 ARM64 容器。与基于 Intel 的容器相比，这些容器也更快且使用更少的内存。&#xA;如何为arm64打包镜像（How to build an image for arm64） 幸运的是，Docker 已经宣布 一项实验性功能 buildx，它可以为特定架构（arm64、amd64 等）构建映像。&#xA;Step 1.</description>
     </item>
     <item>
       <title>软件开发中的上游和下游</title>
-      <link>http://localhost:53654/software/upstream-downstream/</link>
+      <link>http://localhost:1313/software/upstream-downstream/</link>
       <pubDate>Sun, 23 Jun 2024 09:50:29 +0800</pubDate>
-      <guid>http://localhost:53654/software/upstream-downstream/</guid>
+      <guid>http://localhost:1313/software/upstream-downstream/</guid>
       <description>What is Upstream and Downstream in Software Development的中文翻译版本。&#xA;在最近一段时间，我开始在软件开发环境中接触到 “上游” 和 “下游” 这两个词，常常迷惑不解。每次我都必须查一下它的含义，因此决定将它们写成blog来帮助理解。&#xA;生产过程中的上游和下游 让我们从一个简单的生产过程开始，尽管它与软件开发无关，但是我们可以在此基础上定义软件开发的上游和下游。&#xA;在上面的例子中，我们有三个步骤:&#xA;收集零件 组装零件 绘制装配体 上面的生产过程与河流非常相似，因此很容易理解 随着流程从一步到下一步，逐步向&amp;quot;下游&amp;quot;移动&#xA;我们可以推断以下规则:&#xA;依赖规则: 每个当前的项目都依赖于上游的所有项目 增值规则: 在向下游移动的过程中，每一步都为产品增加更多价值 现在，让我们尝试将这些规则应用于不同的软件开发环境。&#xA;软件依赖中的上游和下游 大多数软件组件都依赖于其他组件。那么什么是上游依赖和下游依赖呢？&#xA;如图所示:&#xA;组件 C 依赖于组件 B，而组件 B 又依赖于组件 A。&#xA;应用依赖规则，我们可以肯定地说组件 A 是组件 B 的上游，而组件 B 是组件 C 的上游（即使箭头指向另一个方向）。&#xA;在这里应用价值规则有点抽象，但我们可以说组件 C 拥有最大的价值，因为它“导入”了组件 B 和 A 的所有特征，并将自己的价值添加到这些特征中，使其成为下游组件。&#xA;上游和下游开源项目 另一个经常使用“上游”和“下游”这两个词的环境是开源开发。它实际上与上面讨论的组件依赖关系非常相似&#xA;考虑项目 A 和 B，其中 A 是原始项目，B 是 A 的分支：&#xA;这是开源项目中相当常见的开发风格：我们创建项目的分支，修复错误或在该分支中添加功能，然后向原始项目提交补丁。&#xA;在这种情况下，依赖规则使项目 A 成为上游项目，因为它可以在没有项目 B 的情况下很好地生存，但如果没有项目 A（原始项目），项目 B（分叉）甚至不会存在。</description>
     </item>
   </channel>

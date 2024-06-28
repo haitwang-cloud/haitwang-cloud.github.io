@@ -6,8 +6,15 @@
     <description>Recent content in GPU on Tim Wang Tech Blog</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Thu, 20 Jun 2024 17:14:15 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 27 Jun 2024 16:50:15 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/gpu/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Kubernetes GPU Management Basics: Introduction to Device Plugin and Source Code Analysis</title>
+      <link>http://localhost:1313/gpu/k8s-device-plugin-en/</link>
+      <pubDate>Thu, 27 Jun 2024 16:50:15 +0800</pubDate>
+      <guid>http://localhost:1313/gpu/k8s-device-plugin-en/</guid>
+      <description>Introduction In a Kubernetes cluster, certain workloads require access to hardware resources on the nodes, such as GPUs, FPGAs, and InfiniBand. To enable Kubernetes to recognize and schedule these hardware resources, the concept of Device Plugins was introduced. This article will explain the working principles of Device Plugins in detail.&#xA;What is a Device Plugin? A Device Plugin is a special type of plugin in Kubernetes that manages hardware devices on a node and presents device information to Kubernetes.</description>
+    </item>
     <item>
       <title>Kubernetes GPU管理探秘第一篇：Kubernetes Device Plugin介绍和源码分析</title>
       <link>http://localhost:1313/gpu/k8s-device-plugin/</link>

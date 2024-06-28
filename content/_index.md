@@ -5,13 +5,14 @@ draft: false
 
 English |
 [简体中文]({{< relref "intro-zh" >}})
+ |[SAP内推]({{< relref "referral" >}})
 
 
 Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technology, Golang, networking engineering, software development ecosystems, and practical insights on Kubernetes. Each article, whether original or meticulously translated, aims to build a bridge between theoretical knowledge and hands-on skills, expanding your technical horizons. Let's embark on this journey together, level by level! 📚
 
 ## Delving into GPU Management with Kubernetes
 
-- [Kubernetes GPU Management Basics: Introduction to Device Plugin and Source Code Analysis](/gpu/k8s-device-plugin)
+- [Kubernetes GPU Management Basics: Introduction to Device Plugin and Source Code Analysis](/gpu/k8s-device-plugin-en)
 - [Advanced Kubernetes GPU Management: Enabling Nvidia MPS](/gpu/k8s-device-plugin-mps)
 - [Troubleshooting: Resolving "Failed to initialize NVML: Unknown Error"](/gpu/nvml-error/)
 

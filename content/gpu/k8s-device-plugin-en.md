@@ -1,41 +1,39 @@
 +++
-title = 'Kubernetes GPU管理探秘第一篇：Kubernetes Device Plugin介绍和源码分析'
-date = 2024-06-20T17:14:15+08:00
+title = 'Kubernetes GPU Management Basics: Introduction to Device Plugin and Source Code Analysis'
+date = 2024-06-27T16:50:15+08:00
 draft = false
 +++
 
-# k8s GPU device plugin介绍和源码分析
+## Introduction
 
 ![plugin01](/pics/plugin01.png)
 
-## 前言
+In a Kubernetes cluster, certain workloads require access to hardware resources on the nodes, such as GPUs, FPGAs, and InfiniBand. To enable Kubernetes to recognize and schedule these hardware resources, the concept of Device Plugins was introduced. This article will explain the working principles of Device Plugins in detail.
 
-在 Kubernetes 集群中,有些工作负载需要访问节点上的硬件资源,比如 GPU、FPGA、InfiniBand 等。为了让 Kubernetes 能够感知和调度这些硬件资源,Kubernetes 引入了 Device Plugin 的概念。本文将详细介绍 Device Plugin 的工作原理。
+## What is a Device Plugin?
 
-## Device Plugin 简介
+A Device Plugin is a special type of plugin in Kubernetes that manages hardware devices on a node and presents device information to Kubernetes. Each type of hardware device requires a corresponding Device Plugin process to be running, typically provided by the hardware vendors.
 
-Device Plugin 是 Kubernetes 中一种特殊的插件,负责管理节点上的硬件设备,并将设备信息呈现给 Kubernetes。每种类型的硬件设备,都需要有它对应的 Device Plugin 进程在运行。通常,这些 Device Plugin 进程是由硬件供应商提供的。
+Device Plugins communicate with kubelet through a gRPC service and perform two main functions:
 
-Device Plugin 通过 gRPC 服务与 kubelet 进行通信,履行了以下两个主要职责:
+1. Discovering hardware devices on the node
+2. Preparing and setting up the runtime environment for containers that need to use the devices
 
-1. 发现节点上的硬件设备
-2. 准备并安装需要使用设备的容器运行时环境
-
-## Device Plugin 工作流程
-
-下面让我们通过一个具体的例子,来了解 Device Plugin 的工作流程。假设有一个节点上安装了 3 块 NVIDIA GPU 设备,现在要让一个 Pod 使用其中一块 GPU 设备。
+## How Device Plugins Work
 
 ![plugin02](/pics/plugin02.png)
 
-### 设备发现
+Let's explore the workflow of Device Plugins with a concrete example. Suppose a node has three NVIDIA GPU devices installed, and we want to let a Pod use one of these GPU devices.
 
-在节点启动时,kubelet 首先启动该节点上的所有 Device Plugin。以 NVIDIA GPU 设备为例,kubelet 会启动 nvidia-device-plugin 进程。
+### Device Discovery
 
-该 Device Plugin 通过 gRPC 的 ListAndWatch 远程过程调用,定期向 kubelet 汇报该节点上可用的 GPU 设备列表。在我们的例子中,就是 [GPU0, GPU1, GPU2] 这个 ID 列表。注意,这个列表**只包含 GPU 设备的 ID,不包括任何关于设备本身的详细信息**。kubelet 将这些设备 ID 保存在内存中,并通过 API Server 将 GPU 的数量以 Extended Resource 的形式暴露出去。
+When a node starts, kubelet first initiates all the Device Plugins on that node. For NVIDIA GPU devices, kubelet will start the `nvidia-device-plugin` process.
 
-### 调度决策
+This Device Plugin uses the gRPC `ListAndWatch` remote procedure call to periodically report the list of available GPU devices on the node to kubelet. In our example, the list would be [GPU0, GPU1, GPU2]. Note that this list only contains the IDs of the GPU devices and does not include any detailed information about the devices themselves. Kubelet stores these device IDs in memory and exposes the number of GPUs as Extended Resources via the API Server.
 
-当用户想要创建一个使用 GPU 的 Pod 时,只需在 Pod 声明中添加 `limits` 小节,指定所需的 GPU 数量即可,就像下面这样:
+### Scheduling Decisions
+
+When a user wants to create a Pod that uses a GPU, they simply need to add a `limits` section in the Pod specification, specifying the required number of GPUs, like this:
 
 ```yaml
 apiVersion: v1
@@ -49,50 +47,49 @@ spec:
       image: "k8s.gcr.io/cuda-vector-add:v0.1"
       resources:
         limits:
-          nvidia.com/gpu: 1 # 请求1个GPU
+          nvidia.com/gpu: 1 # request 1 GPU
 
 ```
 
-此时,Kubernetes 调度器会查找有足够 GPU 资源的节点来运行该 Pod。调度器从 API Server 获取节点的 GPU 资源数量,找到符合条件的节点后,将该节点的 GPU 资源数量减1,完成 Pod 到节点的绑定。
-
-### 设备分配
+### Device Allocation
 
 ![plugin03](/pics/plugin03.png)
 
-一旦某个节点被选中运行 GPU Pod,该节点上的 kubelet 就会为 Pod 中的容器分配实际的 GPU 设备。kubelet 会向本节点上的 nvidia-device-plugin 发送 gRPC Allocate 请求,指定需要分配的 GPU 设备 ID 列表。
+Once a node is chosen to run the GPU Pod, kubelet on that node allocates the actual GPU device to the Pod's container. Kubelet sends a gRPC Allocate request to the nvidia-device-plugin, specifying the GPU device ID list.
 
-nvidia-device-plugin 根据接收到的 GPU ID 列表,查找对应设备的更多信息,比如设备文件路径、驱动文件目录等。这些信息会随 gRPC 响应一并返回给 kubelet。
+The nvidia-device-plugin retrieves more details about the specified GPU devices, such as device file paths and driver directories, and returns this information to kubelet via the gRPC response.
 
-在 kubelet 中，处理 GPU 请求和分配会涉及以下的代码：
-
+In kubelet, handling GPU requests and allocation involves the following code:
 ```go
 if pod.Spec.Containers[0].Resources.Limits["nvidia.com/gpu"] == 1 {
-    // 搜索可用设备
+    // search for available GPUs
     deviceIDs, err := findAvailableGPUs()
     if err != nil {
-       // 处理错误
+       // handle error
     }
-    // 向设备插件发送 Allocate 请求
+    // allocate the GPU device
     _, err = devicePluginClient.Allocate(context.TODO(), &pluginapi.AllocateRequest{ContainerRequests: []*pluginapi.ContainerAllocateRequest{{DevicesIDs: deviceIDs}}})
     if err != nil {
-       // 处理错误
+       // handle error
     }
 }
 ```
 
-### 容器启动
+### Container Initialization
 
-kubelet 收到 nvidia-device-plugin 返回的 GPU 设备信息后,就可以为 Pod 中的容器创建正确的运行环境了。它将设备文件路径作为容器的 `Devices` 参数,驱动文件目录作为容器的 `Volume Mounts` 参数,传递给容器运行时(如 Docker)。
+After kubelet receives the GPU device information from the `nvidia-device-plugin`, it can create the proper runtime environment for the Pod's container. Kubelet uses the device file paths as the container's `Devices` parameter and the driver directories as the container's `Volume Mounts` parameter. These are then passed to the container runtime, such as Docker.
 
-容器运行时根据这些参数启动容器,并完成设备资源的挂载,最终使 Pod 中的应用可以访问分配的 GPU 设备。
+The container runtime uses these parameters to start the container and mount the device resources, allowing the Pod's application to access the assigned GPU device.
 
-### 源码分析
+### Source Code Analysis
 
-本文以[https://github.com/kubernetes/kubernetes/blob/master/pkg/kubelet/cm/devicemanager/manager.go](https://github.com/kubernetes/kubernetes/blob/master/pkg/kubelet/cm/devicemanager/manager.go)此处的源代码进行分析。
+For a deeper understanding, let's analyze the source code from [here](https://github.com/kubernetes/kubernetes/blob/master/pkg/kubelet/cm/devicemanager/manager.go).
 
-Kubernetes 使用设备插件来进行设备管理，包括GPU设备。设备插件允许第三方资源如 GPU 被 Kubernetes 识别和管理。 这个机制的核心部分是 `ManagerImpl`，这是由 Kubernetes 编写并运行在 Kubelet 中的。
+Kubernetes uses device plugins to manage hardware devices, including GPUs. Device plugins enable third-party resources like GPUs to be recognized and managed by Kubernetes. The core component of this mechanism is `ManagerImpl`, which is written and run by Kubernetes in kubelet.
 
-- 结构体 `ManagerImpl` 管理设备插件。它存储设备插件的各类信息，其中 `endpoints` 用于存放设备插件的 endpoint 信息，每一个 endpoint 代表了一个设备插件接口。`healthyDevices`中存储的是所有健康的设备资源名和设备 ID。`unhealthyDevices` 是一个设备名到设备ID集合的映射，存储的是所有处于非健康状态的设备。 `allocatedDevices` 是一个设备名到设备ID集合的映射，它存储的是所有已经被分配出去（正在使用）的设备。
+- The `ManagerImpl` structure manages device plugins. It stores various information about the device plugins, including `endpoints`, which contains endpoint information for each device plugin. Each endpoint represents a device plugin interface. `healthyDevices` stores all healthy device resource names and IDs. `unhealthyDevices` maps device names to sets of device IDs for all unhealthy devices. `allocatedDevices` maps device names to sets of device IDs for all devices that have been allocated (are in use).
+
+By understanding the roles and workflow of Device Plugins, you can efficiently manage hardware resources in your Kubernetes clusters, ensuring that various workloads are met effectively.
 
 ```go
 type ManagerImpl struct {
@@ -152,7 +149,7 @@ type ManagerImpl struct {
 }
 ```
 
-- 方法 `Allocate`: 当Pod请求使用某种设备插件（如GPU）的设备资源时，会调用这个方法 。方法会根据 `container.Resources.Limits` 来获取每种设备资源需要请求的数量，然后为每个设备资源类型调用 `devicesToAllocate` 方法，该方法会返回需要经过 Allocate 请求来分配的设备列表。然后对于每种设备资源，会调用 `allocateContainerResources` 方法，该方法会首先尝试从对应设备的健康设备集合中分配设备，然后更新 `podDevices` 状态并发起 Allocate 请求，失败的话则回滚。
+- The `Allocate` method is called when a Pod requests device resources from a device plugin, such as a GPU. This method uses `container.Resources.Limits` to determine the quantity of each device resource needed. It then calls the `devicesToAllocate` method for each device type, which returns a list of devices that require allocation. For each device resource type, the `allocateContainerResources`  method is called. This method first tries to allocate devices from the set of healthy devices, updates the podDevices state, and initiates the Allocate request. If the allocation fails, the process rolls back.
 
 ```go
 func (m *ManagerImpl) Allocate(pod *v1.Pod, container *v1.Container) error {
@@ -196,7 +193,7 @@ func (m *ManagerImpl) Allocate(pod *v1.Pod, container *v1.Container) error {
 }
 ```
 
-- 方法 `GetCapacity`: 该方法被 Kubelet 调用，以获取设备的容量信息，用于在 Node 对象中报告 Node 的设备资源情况，其中包含容量（未分配设备）、可分配（未分配并且健康状态）和已经丢失（已停止或者健康状态变为非健康）的设备列表。如果设备插件处于非健康状态，则删除容量和 device plugin 的资源映射。
+- The `GetCapacity` method, which is called by the kubelet to get the capacity of the device plugin, returns the total number of devices available for each resource type. This information is used to determine whether a pod can be scheduled on a node based on the requested resources.
 
 ```go
 func (m *ManagerImpl) GetCapacity() (v1.ResourceList, v1.ResourceList, []string) {
@@ -250,20 +247,24 @@ func (m *ManagerImpl) GetCapacity() (v1.ResourceList, v1.ResourceList, []string)
 }
 ```
 
-整个 `ManagerImpl` 的设计提供了对设备插件的抽象，使得 kubernetes 可以进行设备的管理和调度，并且允许设备插件的运行和设备状态发生变化（如设备丢失或者插件进程重启）
+## Understanding Kubernetes Device Plugins: A Detailed Guide
 
-## 小结
+### The Design of `ManagerImpl`
 
-通过上面的分析,我们了解了 Device Plugin 在 Kubernetes 中扮演了硬件设备的"转换器"角色:
+The design of `ManagerImpl` provides an abstraction for device plugins, enabling Kubernetes to manage and schedule devices. It also allows for the dynamic operation of device plugins and adapts to changes in device status, such as device loss or plugin process restarts.
 
-1. 将节点上的硬件设备信息转换为 Extended Resource,供调度器调度使用
-2. 将容器对硬件设备的请求转换为实际的设备文件和驱动目录,传递给容器运行时
+## Summary
 
-这种插件化设计,使得 Kubernetes 具备了良好的硬件资源支持能力。无论是现有的还是新出现的硬件设备,只要提供了对应的 Device Plugin,就可以被 Kubernetes 集群所感知和利用。
+From the analysis above, we can see that Device Plugins in Kubernetes act as "translators" for hardware devices:
 
-通过本文,相信您对 Kubernetes Device Plugin 的工作原理有了更深入的理解。如果还有任何疑问,欢迎留言讨论。
+1. They convert hardware device information on nodes into Extended Resources, which the scheduler can use.
+2. They translate container requests for hardware devices into actual device files and driver directories, passing this information to the container runtime.
 
-## 参考链接
+This plugin-based design gives Kubernetes strong support for hardware resources. Whether dealing with existing or new hardware devices, as long as there is a corresponding Device Plugin, the Kubernetes cluster can recognize and use the hardware.
+
+Through this article, you should now have a deeper understanding of how Kubernetes Device Plugins work. If you have any questions, feel free to leave a comment for discussion.
+
+## References
 
 - [https://techmythos.substack.com/p/a-beginners-guide-to-building-a-kubernetes](https://techmythos.substack.com/p/a-beginners-guide-to-building-a-kubernetes)
 - [https://kubernetes.io/blog/2022/12/19/devicemanager-ga/](https://kubernetes.io/blog/2022/12/19/devicemanager-ga/)

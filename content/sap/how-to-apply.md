@@ -4,6 +4,7 @@ date = 2024-07-01T09:29:21+08:00
 draft = false
 +++
 
+返回岗位列表：[SAP 最新全职工作机会](https://tim-wang-tecg-blog.pages.dev/referral/)
 
 ### 1. 检查内推邮件
 

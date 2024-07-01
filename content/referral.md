@@ -7,7 +7,7 @@ draft = false
 **📢 如果您对下面的岗位感兴趣，请把邮件发送到指定的邮箱
 📬[tim.wang03@sap.com](mailto:tim.wang03@sap.com)，
 并不要忘记附上岗位ID和您的简历📄。如果邮件里没有包含这些信息🔍，💔它将无法进入我们的内推流程💔。**
-> 如需了解如何在SAP内推系统中填写申请信息并上传您的简历，请访问[详细教程](/referral/how-to-apply)
+> 如需了解如何在SAP内推系统中填写申请信息并上传您的简历，请访问[详细教程](/sap/how-to-apply)
 
 ## 工作地点：SAP Labs China（上海）
 

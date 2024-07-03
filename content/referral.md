@@ -67,7 +67,7 @@ draft = false
 - 教育要求：计算机科学/软件工程相关专业学士/硕士，2023/2024届毕业生，英语书面和口头表达能力优秀
 - 职位关键词：Cloud, Logistics, Test Engineer, Testing, Developer, Technology, Operations, Engineering
 
-### SAP 数字化云工程师-396584
+<!-- ### SAP 数字化云工程师-396584
 
 - **发布日期：2024年6月5日**
 - 已申请人数: 3
@@ -77,7 +77,7 @@ draft = false
 - 软件技能：精通编程语言(如Java、JS)，Git与CI/CD，云端开发经验优先。
 - 团队协作：精益开发环境，自主决策，灵活应变，积极合作，共创文化。
 - 教育要求：计算机科学/软件工程相关专业学士/硕士，2023/2024届毕业生，英语书面和口头表达能力优秀
-- 职位关键词：Logistics, Cloud, Supply Chain, Test Engineer, Testing, Operations, Technology, Engineering
+- 职位关键词：Logistics, Cloud, Supply Chain, Test Engineer, Testing, Operations, Technology, Engineering -->
 
 <!-- ### SAP 公共云ERP开发工程师（支付、现金与财资方向）-397123
 

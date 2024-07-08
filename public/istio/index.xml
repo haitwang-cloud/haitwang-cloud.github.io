@@ -6,8 +6,15 @@
     <description>Recent content in Istio on Tim Wang Tech Blog</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Thu, 20 Jun 2024 16:24:32 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 08 Jul 2024 16:47:07 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/istio/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>如何解决 Istioctl Analyze -A 命令报invalid memory address问题</title>
+      <link>http://localhost:1313/istio/istioctl-analyze-error/</link>
+      <pubDate>Mon, 08 Jul 2024 16:47:07 +0800</pubDate>
+      <guid>http://localhost:1313/istio/istioctl-analyze-error/</guid>
+      <description>问题描述 最近我在尝试用 Istioctl Analyze -A来对整体的Istio配置进行分析，但是在执行命令的时候，我遇到了如下错误：&#xA;panic: runtime error: invalid memory address or nil pointer dereference [signal SIGSEGV: segmentation violation code=0x2 addr=0x90 pc=0x104d85f9c] goroutine 1 [running]: istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).analyzeNamespaceNotFound(0x140080985a0?, 0x140080985a0, {0x105ed1480, 0x140066a7c20?}) istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:145 +0xdc istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).Analyze.func1(0x104f6cdda?) istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:59 +0x58 istio.io/istio/pkg/config/analysis/local.(*istiodContext).ForEach(0x140066a7c20, {{0x104f6cdda, 0x11}, {0x104f5243f, 0x7}, {0x104f72cd1, 0x13}}, 0x14006897980) istio.io/istio/pkg/config/analysis/local/context.go:168 +0x574 istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).Analyze(0x107d30e20, {0x105ed1480?, 0x140066a7c20}) istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:57 +0xf0 istio.io/istio/pkg/config/analysis.(*CombinedAnalyzer).Analyze(0x14000cbe6c0, {0x105ed1480, 0x140066a7c20}) istio.io/istio/pkg/config/analysis/analyzer.go:75 +0xcc istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).internalAnalyze(0x14000a7ec30, 0x1400007faa0?, 0x1400007faa0) istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:146 +0x244 istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).ReAnalyze(...) istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:131 istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).Analyze(0x14000a7ec30, 0x105ee1ee8?) istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:171 +0xac istio.io/istio/istioctl/pkg/analyze.Analyze.func1(0x14000d6f200?, {0x140008e8020, 0x0, 0x2}) istio.io/istio/istioctl/pkg/analyze/analyze.go:229 +0xb74 github.</description>
+    </item>
     <item>
       <title>深入理解Istio：网络原理与Sidecar的自动注入机制</title>
       <link>http://localhost:1313/istio/istio-sidecar-inject/</link>

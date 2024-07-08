@@ -18,6 +18,7 @@
 - 多环境应用开发实战：Istio下的微服务构建策略 [无缝对接多环境:基于Istio的微服务应用构建技巧](/istio/build-app-under-multi-istio)
 - Istio流量异常处理：502错误根源分析与解决 [Istio应用故障排查手册:上游连接重置502错误详解](/istio/istio-upstream-error)
 - Istio核心技术探秘：网络原理与Sidecar自动注入机制 [深入理解Istio：网络原理与Sidecar的自动注入机制](/istio/istio-sidecar-inject)
+- 如何解决 Istioctl Analyze -A 命令报invalid memory address问题 [panic: runtime error: invalid memory address](/istio/istioctl-analyze-error)
 
 ## Golang 资源大全：从基础到高级特性
 

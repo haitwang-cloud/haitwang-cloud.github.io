@@ -1,0 +1,424 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>如何解决 Istioctl Analyze -A 命令报invalid memory address问题 - Tim Wang Tech Blog</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="问题描述 最近我在尝试用 Istioctl Analyze -A来对整体的Istio配置进行分析，但是在执行命令的时候，我遇到了如下错误：
+panic: runtime error: invalid memory address or nil pointer dereference [signal SIGSEGV: segmentation violation code=0x2 addr=0x90 pc=0x104d85f9c] goroutine 1 [running]: istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).analyzeNamespaceNotFound(0x140080985a0?, 0x140080985a0, {0x105ed1480, 0x140066a7c20?}) istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:145 &#43;0xdc istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).Analyze.func1(0x104f6cdda?) istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:59 &#43;0x58 istio.io/istio/pkg/config/analysis/local.(*istiodContext).ForEach(0x140066a7c20, {{0x104f6cdda, 0x11}, {0x104f5243f, 0x7}, {0x104f72cd1, 0x13}}, 0x14006897980) istio.io/istio/pkg/config/analysis/local/context.go:168 &#43;0x574 istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).Analyze(0x107d30e20, {0x105ed1480?, 0x140066a7c20}) istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:57 &#43;0xf0 istio.io/istio/pkg/config/analysis.(*CombinedAnalyzer).Analyze(0x14000cbe6c0, {0x105ed1480, 0x140066a7c20}) istio.io/istio/pkg/config/analysis/analyzer.go:75 &#43;0xcc istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).internalAnalyze(0x14000a7ec30, 0x1400007faa0?, 0x1400007faa0) istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:146 &#43;0x244 istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).ReAnalyze(...) istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:131 istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).Analyze(0x14000a7ec30, 0x105ee1ee8?) istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:171 &#43;0xac istio.io/istio/istioctl/pkg/analyze.Analyze.func1(0x14000d6f200?, {0x140008e8020, 0x0, 0x2}) istio.io/istio/istioctl/pkg/analyze/analyze.go:229 &#43;0xb74 github." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.127.0">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang Tech Blog</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">如何解决 Istioctl Analyze -A 命令报invalid memory address问题</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Jul 8, 2024</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><h2 id="问题描述">问题描述</h2>
+<p>最近我在尝试用 <code>Istioctl Analyze -A</code>来对整体的Istio配置进行分析，但是在执行命令的时候，我遇到了如下错误：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>panic: runtime error: invalid memory address or nil pointer dereference
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>signal SIGSEGV: segmentation violation code<span style="color:#f92672">=</span>0x2 addr<span style="color:#f92672">=</span>0x90 pc<span style="color:#f92672">=</span>0x104d85f9c<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>goroutine <span style="color:#ae81ff">1</span> <span style="color:#f92672">[</span>running<span style="color:#f92672">]</span>:
+</span></span><span style="display:flex;"><span>istio.io/istio/pkg/config/analysis/analyzers/authz.<span style="color:#f92672">(</span>*AuthorizationPoliciesAnalyzer<span style="color:#f92672">)</span>.analyzeNamespaceNotFound<span style="color:#f92672">(</span>0x140080985a0?, 0x140080985a0, <span style="color:#f92672">{</span>0x105ed1480, 0x140066a7c20?<span style="color:#f92672">})</span>
+</span></span><span style="display:flex;"><span> istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:145 +0xdc
+</span></span><span style="display:flex;"><span>istio.io/istio/pkg/config/analysis/analyzers/authz.<span style="color:#f92672">(</span>*AuthorizationPoliciesAnalyzer<span style="color:#f92672">)</span>.Analyze.func1<span style="color:#f92672">(</span>0x104f6cdda?<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span> istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:59 +0x58
+</span></span><span style="display:flex;"><span>istio.io/istio/pkg/config/analysis/local.<span style="color:#f92672">(</span>*istiodContext<span style="color:#f92672">)</span>.ForEach<span style="color:#f92672">(</span>0x140066a7c20, <span style="color:#f92672">{{</span>0x104f6cdda, 0x11<span style="color:#f92672">}</span>, <span style="color:#f92672">{</span>0x104f5243f, 0x7<span style="color:#f92672">}</span>, <span style="color:#f92672">{</span>0x104f72cd1, 0x13<span style="color:#f92672">}}</span>, 0x14006897980<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span> istio.io/istio/pkg/config/analysis/local/context.go:168 +0x574
+</span></span><span style="display:flex;"><span>istio.io/istio/pkg/config/analysis/analyzers/authz.<span style="color:#f92672">(</span>*AuthorizationPoliciesAnalyzer<span style="color:#f92672">)</span>.Analyze<span style="color:#f92672">(</span>0x107d30e20, <span style="color:#f92672">{</span>0x105ed1480?, 0x140066a7c20<span style="color:#f92672">})</span>
+</span></span><span style="display:flex;"><span> istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:57 +0xf0
+</span></span><span style="display:flex;"><span>istio.io/istio/pkg/config/analysis.<span style="color:#f92672">(</span>*CombinedAnalyzer<span style="color:#f92672">)</span>.Analyze<span style="color:#f92672">(</span>0x14000cbe6c0, <span style="color:#f92672">{</span>0x105ed1480, 0x140066a7c20<span style="color:#f92672">})</span>
+</span></span><span style="display:flex;"><span> istio.io/istio/pkg/config/analysis/analyzer.go:75 +0xcc
+</span></span><span style="display:flex;"><span>istio.io/istio/pkg/config/analysis/local.<span style="color:#f92672">(</span>*IstiodAnalyzer<span style="color:#f92672">)</span>.internalAnalyze<span style="color:#f92672">(</span>0x14000a7ec30, 0x1400007faa0?, 0x1400007faa0<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span> istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:146 +0x244
+</span></span><span style="display:flex;"><span>istio.io/istio/pkg/config/analysis/local.<span style="color:#f92672">(</span>*IstiodAnalyzer<span style="color:#f92672">)</span>.ReAnalyze<span style="color:#f92672">(</span>...<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span> istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:131
+</span></span><span style="display:flex;"><span>istio.io/istio/pkg/config/analysis/local.<span style="color:#f92672">(</span>*IstiodAnalyzer<span style="color:#f92672">)</span>.Analyze<span style="color:#f92672">(</span>0x14000a7ec30, 0x105ee1ee8?<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span> istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:171 +0xac
+</span></span><span style="display:flex;"><span>istio.io/istio/istioctl/pkg/analyze.Analyze.func1<span style="color:#f92672">(</span>0x14000d6f200?, <span style="color:#f92672">{</span>0x140008e8020, 0x0, 0x2<span style="color:#f92672">})</span>
+</span></span><span style="display:flex;"><span> istio.io/istio/istioctl/pkg/analyze/analyze.go:229 +0xb74
+</span></span><span style="display:flex;"><span>github.com/spf13/cobra.<span style="color:#f92672">(</span>*Command<span style="color:#f92672">)</span>.execute<span style="color:#f92672">(</span>0x14000d50f00, <span style="color:#f92672">{</span>0x140008e8000, 0x2, 0x2<span style="color:#f92672">})</span>
+</span></span><span style="display:flex;"><span> github.com/spf13/cobra@v1.7.0/command.go:940 +0x66c
+</span></span><span style="display:flex;"><span>github.com/spf13/cobra.<span style="color:#f92672">(</span>*Command<span style="color:#f92672">)</span>.ExecuteC<span style="color:#f92672">(</span>0x14000a96000<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span> github.com/spf13/cobra@v1.7.0/command.go:1068 +0x320
+</span></span><span style="display:flex;"><span>github.com/spf13/cobra.<span style="color:#f92672">(</span>*Command<span style="color:#f92672">)</span>.Execute<span style="color:#f92672">(</span>0x1400006e090?<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span> github.com/spf13/cobra@v1.7.0/command.go:992 +0x1c
+</span></span><span style="display:flex;"><span>main.main<span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span> istio.io/istio/istioctl/cmd/istioctl/main.go:39 +0xd0
+</span></span></code></pre></div><p>咋一眼看上去，这个问题好像是因为内存地址无效或者空指针引用导致的，从错误日志来看，函数 AuthorizationPoliciesAnalyzer.analyzeNamespaceNotFound 在 authorizationpolicies.go 文件中的第145行引发了panic。函数的定义似乎是为了处理找不到namespace的情况，但它似乎没有正确地处理这种情况。</p>
+<h3 id="istioctl-analyze介绍">istioctl Analyze介绍</h3>
+<p>Istio是一个开源的服务网格，它提供了一种统一的方法来连接、保护、控制和观察服务。<code>istioctl</code>是Istio的命令行工具，用于安装、管理和故障排除Istio服务网格。<code>istioctl analyze</code>是<code>istioctl</code>的一个子命令，用于分析Istio配置的有效性并提供反馈。</p>
+<h3 id="如何使用istioctl-analyze">如何使用<code>istioctl analyze</code></h3>
+<ol>
+<li>
+<p><strong>安装Istio</strong>: 在使用<code>istioctl analyze</code>之前，你需要在你的集群上安装Istio。你可以从Istio的官网下载Istio并按照指南进行安装。</p>
+</li>
+<li>
+<p><strong>配置Istio</strong>: 配置Istio通常涉及到创建和修改Istio资源，比如<code>Gateway</code>、<code>VirtualService</code>、<code>DestinationRule</code>等。</p>
+</li>
+<li>
+<p><strong>运行<code>istioctl analyze</code></strong>: 使用以下命令来分析你的Istio配置文件：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>istioctl analyze &lt;path-to-configuration-file&gt;
+</span></span></code></pre></div><p>或者，如果你想要分析当前目录下的所有配置文件，可以使用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>istioctl analyze
+</span></span></code></pre></div></li>
+</ol>
+<h3 id="具体例子">具体例子</h3>
+<p>假设你有一个名为<code>my-gateway.yaml</code>的Istio配置文件，内容如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">networking.istio.io/v1alpha3</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Gateway</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-gateway</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">selector</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">istio</span>: <span style="color:#ae81ff">ingressgateway</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">servers</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">port</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">number</span>: <span style="color:#ae81ff">80</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">http</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">HTTP</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">hosts</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#34;*&#34;</span>
+</span></span></code></pre></div><p>你可以使用以下命令来分析这个配置文件：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>istioctl analyze my-gateway.yaml
+</span></span></code></pre></div><p>执行这个命令后，<code>istioctl analyze</code>将会检查配置文件的语法和逻辑错误，并给出相应的反馈。例如，如果配置文件中的<code>hosts</code>字段不正确，<code>istioctl analyze</code>可能会返回一个错误消息，指出问题所在。</p>
+<h3 id="输出示例">输出示例</h3>
+<p>如果配置正确，你可能会看到如下输出：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>✔ Valid configuration
+</span></span></code></pre></div><p>如果配置有误，输出可能会包含错误或警告信息，例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>W01: MyWarning - This is a warning message.
+</span></span><span style="display:flex;"><span>E01: MyError - This is an error message.
+</span></span></code></pre></div><p><code>istioctl analyze</code>是一个非常有用的工具，可以帮助你确保Istio配置的正确性，避免在部署时出现问题。通过这种方式，你可以在部署之前验证配置的有效性，从而提高部署的成功率和效率。</p>
+<h2 id="问题原因">问题原因</h2>
+<p>在查看了当前k8s cluster中所有的 Istio <code>AuthorizationPolicy</code>之后，并没有发现有任何Namespace不存在的情况。因此，我怀疑这个问题可能是由于某些特定的配置导致的。</p>
+<h3 id="解决方案">解决方案</h3>
+<p>在查看了这个Github issue <a href="https://github.com/istio/istio/issues/36272">istioctl analyze invalid memory address</a>之后，我开始查看是否有某些<code>AuthorizationPolicy</code>的配置可能导致了这个问题。最终，我发现了一个<code>AuthorizationPolicy</code>的配置中有一个<code>from</code>字段为空的情况,如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">action</span>: <span style="color:#ae81ff">ALLOW</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">rules</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">from</span>:
+</span></span><span style="display:flex;"><span>    - {}
+</span></span></code></pre></div><p>然而，正确的配置应该是这样的：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">rules</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">from</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">source</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">principals</span>:
+</span></span><span style="display:flex;"><span>              - <span style="color:#ae81ff">cluster.local/ns/promtail/sa/promtail</span>
+</span></span></code></pre></div><p>在尝试删除这个错误的<code>AuthorizationPolicy</code>配置之后，我再次运行了<code>istioctl analyze -A</code>命令，这次命令成功执行，没有再出现错误。最终的原因是其他同事不熟悉Istio的配置规则，导致了这个错误的配置。</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  <div class="giscus mt-24"></div>
+  <script
+    src="https://giscus.app/client.js"
+    data-repo="haitwang-cloud/haitwang-cloud.github.io"
+    data-repo-id="R_kgDOMH03cQ"
+    data-category="General"
+    data-category-id="DIC_kwDOMH03cc4CgVak"
+    data-mapping="pathname"
+    data-strict="1"
+    data-reactions-enabled="0"
+    data-emit-metadata="0"
+    data-input-position="top"
+    data-theme="light"
+    data-lang="zh-CN"
+    data-loading="lazy"
+    crossorigin="anonymous"
+    async
+  ></script>
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2024
+    <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

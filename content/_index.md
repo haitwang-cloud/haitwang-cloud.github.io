@@ -21,6 +21,7 @@ Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technolog
 - [Istio Control Plane Management on Kubernetes: Multi-Instance Deployment](/istio/how-to-install-multi-istio-control-plane)
 - [Practical Multi-Environment Application Development: Building Microservices with Istio](/istio/build-app-under-multi-istio)
 - [Exploring Istio Core Technologies: Network Principles and Sidecar Auto Injection](/istio/istio-sidecar-inject)
+- [Resolving Memory Error in Istioctl Analyze Command](/istio/istioctl-analyze-error-en)
 
 ## Kubernetes (K8s)
 

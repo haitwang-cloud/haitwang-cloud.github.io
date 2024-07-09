@@ -6,8 +6,15 @@
     <description>Recent content in Istio on Tim Wang Tech Blog</description>
     <generator>Hugo</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Mon, 08 Jul 2024 16:47:07 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 09 Jul 2024 09:55:49 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/istio/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Resolving Memory Error in Istioctl Analyze Command</title>
+      <link>http://localhost:1313/istio/istioctl-analyze-error-en/</link>
+      <pubDate>Tue, 09 Jul 2024 09:55:49 +0800</pubDate>
+      <guid>http://localhost:1313/istio/istioctl-analyze-error-en/</guid>
+      <description>Problem Description Recently, while using the istioctl analyze -A command to analyze Istio configurations, we encountered a perplexing error:&#xA;panic: runtime error: invalid memory address or nil pointer dereference [signal SIGSEGV: segmentation violation code=0x2 addr=0x90 pc=0x104d85f9c] goroutine 1 [running]: istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).analyzeNamespaceNotFound(0x140080985a0?, 0x140080985a0, {0x105ed1480, 0x140066a7c20?}) istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:145 +0xdc ... The error log indicates that the AuthorizationPoliciesAnalyzer.analyzeNamespaceNotFound function triggered a panic when handling a scenario where a namespace couldn&amp;rsquo;t be found.&#xA;Introduction to Istioctl Analyze Istio is a popular service mesh solution, and istioctl is its command-line tool.</description>
+    </item>
     <item>
       <title>如何解决 Istioctl Analyze -A 命令报invalid memory address问题</title>
       <link>http://localhost:1313/istio/istioctl-analyze-error/</link>

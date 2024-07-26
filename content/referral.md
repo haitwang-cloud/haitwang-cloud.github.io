@@ -24,6 +24,7 @@ draft = false
 - 附加优势：具有SAP Cloud Platform (BTP)或其他Cloud Foundry平台经验，了解SAP HANA、CDS和CAP，有ABAP背景。
 - 语言能力：英语流利，能够用英语进行工作沟通。
 
+### 针对3~5年工作经验
 
 #### SAP Cloud HANA开发工程师-398741
 
@@ -38,6 +39,16 @@ draft = false
 
 ### 针对5年以上工作经验
 
+#### SAP Cloud ALM DevOps 工程师-400629
+
+- **发布日期：2024年7月23日**
+- 职责目标：确保SaaS产品和服务的可靠性和性能。
+- 核心任务：集成SACaaS到SAP Cloud ALM中，管理日常运营事件。
+- 软件技能：精通Dynatrace、Kibana、Grafana等分析工具，了解CI/CD流程和Jenkins等工具。
+- 工作经验：至少6年云运维、DevOps经验，熟悉SAP BTP平台。
+- 教育要求：计算机科学或相关领域本科及以上学历，良好沟通技巧。
+- 附加优势：了解SAC、SACaaS及HANA Cloud，有Kubernetes经验优先。
+
 #### SAP Cloud HANA资深开发工程师-398713
 
 - **发布日期：2024年6月27日**
@@ -49,10 +60,20 @@ draft = false
 - 附加优势：精通Python、Golang等编程语言，具备分布式、国际化开发经验。
 - 语言能力：英语和普通话沟通能力强，团队协作能力突出。
 
-
 ## 工作地点：SAP 西安研发中心
 
 ### 针对3~5年工作经验
+
+#### SAP Infra Cloud Engineer - 400175
+
+- **发布日期：2024年7月23日**
+- 职责目标：负责微服务实施、部署与运维。
+- 核心任务：参与云基础设施开发与支持。
+- 软件技能：掌握Kubernetes、Prometheus、Docker。
+- 工作经验：3～5年云工程师经验。
+- 教育要求：计算机或相关领域优秀学位。
+- 附加优势：熟悉CI/CD流程，英语流利。
+
 
 #### SAP HANA DevOps工程师-396800
 
@@ -73,3 +94,17 @@ draft = false
 - 工作经验：5-8年相关工作经验，具备云服务和云原生软件开发经验。
 - 教育要求：信息学或相关领域优秀学位，英语沟通能力强。
 - 附加优势：具备Kubernetes、Prometheus、Docker等技术经验，团队协作精神佳。
+
+
+### 针对5~10年工作经验
+
+#### SAP Senior Infra Cloud Engineer - 400149
+
+- **发布日期：2024年7月23日**
+- 职责目标：开发和运行基于Kubernetes的HANA数据库与分析云产品基础设施。
+- 核心任务：负责一个或多个微服务的实现、部署和运营。
+- 技术栈：Kubernetes、CI/CD、Prometheus、Grafana、Docker、Git、Jenkins。
+- 软件技能：掌握Java、Groovy、Python、Golang、Perl、Ruby、C、C++等编程语言。
+- 工作经验：5-8年DevOps工具和技术经验，熟悉云原生软件开发。
+- 教育要求：信息学或相关领域优秀学位。
+- 附加优势：良好的英语语言能力，出色的团队合作和软技能。

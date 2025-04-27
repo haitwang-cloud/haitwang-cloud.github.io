@@ -41,7 +41,7 @@ draft = false
 * 教育要求：计算机或相关专业学士及以上学历，英语流利。
 * 附加优势：了解云平台（AWS、Azure）、数据处理及分析技术，熟悉Agentic AI优先。
 
-#### SAP 应用安全专家（云与DevSecOps方向）
+#### SAP 应用安全专家(云与DevSecOps方向-412554)
 * 发布时间：2025年3月29日
 * 职责目标：负责SAP SuccessFactors应用安全，设计默认安全架构，推动DevSecOps实践。
 * 核心任务：实施Akamai WAF、API保护和反Bot解决方案，应对Layer7攻击和DoS/DDoS威胁。

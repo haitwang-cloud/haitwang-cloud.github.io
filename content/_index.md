@@ -8,7 +8,11 @@ English |
  |[SAP内推]({{< relref "referral" >}})
 
 
-Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technology, Golang, networking engineering, software development ecosystems, and practical insights on Kubernetes. Each article, whether original or meticulously translated, aims to build a bridge between theoretical knowledge and hands-on skills, expanding your technical horizons. Let's embark on this journey together, level by level! 📚
+Welcome to my blog! 🚀 This is a hub for exploring cutting-edge technologies like Kubernetes, Istio, GPU management, Golang, and software development. Each article bridges theoretical knowledge with practical insights, offering hands-on guidance for cloud-native systems, distributed architectures, and advanced engineering practices. Whether you're troubleshooting Kubernetes issues, diving into Istio's traffic management, or optimizing GPU utilization, you'll find valuable resources here. Join me in unraveling complex tech concepts and advancing your skills!
+
+## Large Language Models (LLMs) and AI Infrastructure
+
+- [Distributed Inference with vLLM](/llm/vllm-distributed-inference-doc/)
 
 ## Delving into GPU Management with Kubernetes
 
@@ -39,4 +43,4 @@ Welcome to my tech exploration hub! 🚀 Here, we dive into Istio, GPU technolog
 - [Resolving Elasticsearch Connection Issues: “No Node Available”](/software/elastic)
 
 
-🎯 About Me: I am a tech enthusiast and an engineer, specializing in cloud-native technologies, distributed systems, network engineering, and Golang. With over 5 years of technical experience 🔧, I have played significant roles at companies like eBay and SAP 👨‍💻, focusing on the construction and maintenance of K8S and Istio mesh. Recently, I have been deeply involved in the management of vGPUs within K8S clusters, exploring new technologies and best practices in this field. As a lifelong learner 🎓, I enjoy sharing my knowledge and experience through my blog. Whether you are a seasoned professional or a newcomer, I welcome you to engage and learn with me!
+🎯 About Me: Over the past year, I have remained actively engaged in the open-source community, primarily contributing to cloud-native, Kubernetes, and AI infrastructure projects. My work spans reporting and resolving complex bugs in production environments, proposing and implementing new features for GPU scheduling and observability, and improving deployment documentation for large-scale AI serving frameworks such as vLLM. I have also helped refine workflows, provided troubleshooting for GPU operators, and advocated for enhancements to better support enterprise requirements in hybrid cloud clusters. My efforts reflect a deep commitment to improving reliability, scalability, and user experience in modern infrastructure systems.

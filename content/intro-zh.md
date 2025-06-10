@@ -6,7 +6,7 @@
 
 ## 大语言模型 和 AI 基础设施
 
-- [vLLM分布式推理](/llm/vllm-distributed-inference-doc/)
+- [vLLM分布式推理](/llm/vllm-distributed-inference-doc)
 
 ## GPU：探索GPU的奥秘，从基础到高级应用
 

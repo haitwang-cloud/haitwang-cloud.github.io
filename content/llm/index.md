@@ -1,6 +1,5 @@
 +++
 title: "LLM"
-date: 2025-06-10
 +++
 
 # LLM Articles

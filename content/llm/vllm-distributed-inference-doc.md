@@ -39,14 +39,14 @@ vLLM 中的 GPU 并行技术
 
 这种方法最初是在[Megatron-LM (Shoeybi et al., 2019)](https://arxiv.org/abs/1909.08053)中为训练开发的，已在vLLM中针对推理工作负载进行了调整和优化。
 
-![](./pics/vllm_tp_strategies.png)
+![](/pics/vllm_tp_strategies.png)
 
 张量并行依赖两种核心技术：
 
 1.  Column Parallelism（列并行）: 沿权重矩阵列分割，计算后拼接结果。
 2.  Row Parallelism（行并行）: 沿矩阵行分割，计算后通过求和聚合部分结果。
 
-![](./pics/vllm_column_row_parallel.png)
+![](/pics/vllm_column_row_parallel.png)
 
 以 Llama 模型中的 MLP 层为例：
 
@@ -56,7 +56,7 @@ vLLM 中的 GPU 并行技术
 
 张量并行确保推理计算分布在多个GPU上，最大化可用的内存带宽和计算能力。使用时，我们可以通过有效地乘以内存带宽来实现延迟改进。这是因为分片模型权重允许多个GPU并行访问内存，从而减少单个GPU可能遇到的瓶颈。
 
-![](./pics/vllm_tensor_parallelism.png) Source: [Sebastian Raschka, 2023](https://sebastianraschka.com/blog/2023/pytorch-memory-optimization.html).
+![](/pics/vllm_tensor_parallelism.png) Source: [Sebastian Raschka, 2023](https://sebastianraschka.com/blog/2023/pytorch-memory-optimization.html).
 
 但请注意，张量并行需要**高带宽互连**（如 NVLink 或 InfiniBand）来最小化由于增加的通信成本而产生的开销。
 
@@ -87,7 +87,7 @@ vLLM 中的 GPU 并行技术
 
 尽管并行化的基本原理指向线性扩展，但实际**性能提升可能呈超线性增长**，原因在于内存效应。无论是张量并行还是流水线并行，KV 缓存可用内存的增加可能导致吞吐量非线性提升。
 
-![](./pics/vllm_kv_cache_effects.png)
+![](/pics/vllm_kv_cache_effects.png)
 
 这种超线性效应源于更大的缓存允许处理更多请求（更大批量）并改善内存局部性，从而显著提升 GPU 利用率。例如，从 TP=1 到 TP=2，KV 缓存块数量增加 13.9 倍，**token 吞吐量提升 3.9 倍**，远超预期的 2 倍线性增长。
 

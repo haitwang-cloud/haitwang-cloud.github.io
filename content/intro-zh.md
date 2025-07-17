@@ -7,6 +7,7 @@
 ## 大语言模型 和 AI 基础设施
 
 - [vLLM分布式推理](/llm/vllm-distributed-inference-doc)
+- [大语言模型推理引擎性能对比分析：vLLM与sglang](/llm/llm-benchmark-cn/)
 
 ## GPU：探索GPU的奥秘，从基础到高级应用
 
@@ -71,7 +72,7 @@
 - k8s Affinity与 taint/toleration的区别：理解工作节点的亲和性与排斥性配置 [比较affinity与taint/toleration](/k8s/diff-of-Affinity-and-taint/)
 - k8s 默认的调度器工作机制和策略：深入理解Kubernetes调度器的工作原理。[调度器机制](/k8s/k8s-schedule-road-path/)
 - 如何在 Kubernetes 中有效使用 Secret、ConfigMap 和 Lease：详解及示例。[使用 Secret、ConfigMap 和 Lease](/k8s/k8s-secret-configMap-Lease/)
-  
+
 ### Kubernetes 高级特性与优化 (Advanced)
 
 - 全面解析Bare Metal Kubernetes:必知的关键点：深入理解在裸金属上部署Kubernetes的关键要素 [Bare Metal Kubernetes解析](/k8s/bare-metal-kubernetes/)
@@ -91,7 +92,7 @@
 
 - 用k8sgpt-localai解锁Kubernetes的超能力：[探索AI技术在Kubernetes中的应用](/k8s/k8sgpt-operater/)
 - 简化Helm Charts部署：使用tpl函数引用Values：提高Helm部署效率 [简化Helm 部署](/k8s/using-the-helm-tpl-function/)
-  
+
 ## 网络技术深度解析：实战指南与核心概念
 
 - BGP路由协议深度揭秘：网络架构的基石 [网络基础构建：揭秘BGP路由协议](/network/what-is-bgp)

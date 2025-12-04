@@ -37,6 +37,7 @@ Welcome to my blog! 🚀 This is a hub for exploring cutting-edge technologies l
 - [K8s Cloud Provider Source Code Analysis: An In-Depth Look at Kubernetes Cloud Providers Source Code Analysis](/k8s/k8s-cloud-provider/)
 - [Resolving OCI Runtime Create Failed: Expected CgroupsPath: Fixing Container Runtime Configuration Issues](/k8s/oci-error/)
 - [Client-go Label Selector Causing CPU Throttling: Diagnosing and Fixing CPU Limitation Issues](/k8s/oom-killed-by-client-go-label-select/)
+- [Kyverno ImageValidatingPolicy CRD Conflict Issue and Solution](/k8s/kyverno-crd-missing-en/)
 
 
 ## Software Development: Best Practices & Techniques

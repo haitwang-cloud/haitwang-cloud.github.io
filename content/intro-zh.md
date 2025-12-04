@@ -79,6 +79,7 @@
 - K8s Cloud Provider源码解析：深入分析Kubernetes云服务提供商的源码 [源码解析](/k8s/k8s-cloud-provider/)
 - Kubernetes与K3s比较：探索Kubernetes与K3s的不同之处 [Kubernetes与K3s比较](/k8s/k8s-vs-k3s/)
 - K8s informers的介绍：掌握Kubernetes的事件通知机制 [K8s informers的介绍](/k8s/k8s_informers/)
+- [Kyverno ImageValidatingPolicy CRD 冲突问题及解决方案](/k8s/kyverno-crd-missing-zh/)
 
 ### Kubernetes 运维与开发
 

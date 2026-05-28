@@ -65,12 +65,58 @@
   
   
   
-  <meta name="description" content="前言 最近笔者接到了公司内部的ES团队的通知，需要将自己应用的数据从ES5搬迁到ES7。我在维护一个基于Golang语言开发的项目，遇到了一些关于ES 的Golang Client https://github.com/olivere/elastic 的问题，特此写这篇博客记录一下。
-具体任务 在从ES5迁移到ES7的过程中，由于ES的换代的一些新特性和改变，需要首先进行具体任务的分解，主要包括
-数据格式升级：从ES6开始，ES便不推荐在同一个Index下存在多个type的数据。因此需要将此前在同一个Index下数据拆散到不同的Index之中就可以解决问题（官方原因是之前index下不同实体太多，切分布稀疏不均匀，严重干扰 Lucene 压缩文档的能力，具体可参考 Removal of mapping types） ES client（olivere/elastic）的升级：由于底层已经切换到了最新的ES7，并且在我司内部的ES7 将强制启动token认证，同时由于采用了 ES的client olivere/elastic 所以需要选择最合适的方案进行代码的迁移。 &ldquo;No Elasticsearch Node Available&rdquo; 首先为了改最少的代码，笔者的第一个想法便是用olivere的ES5的client elastic.v5 直接访问最新的ES Endpoint,结果第一个遇到的问题便是&quot;No Elasticsearch Node Available&quot;。在经过Google一番之后, 从这篇博客中 程序印象 ，查出初步的主要原因是Sniffing的配置造成的。
-Elasticsearch：Sniffing Sniffing 的主要功能是将Elasticsearch的静态节点列表传递给客户端，然后将客户端请求平均分布在Elasticsearch 集群节点之间.如果启用 sniffing，则客户端将开始调用 _nodes /_all /http 端点(类似 http://127.0.0.1:9200/__nodes /_all /http)，并且响应将是群集中存在的所有节点及其 IP 地址的列表。然后，客户端将更新其连接池以使用所有新节点，并使群集状态与客户端的连接池保持同步。
+  <meta name="description" content="前言
+最近笔者接到了公司内部的ES团队的通知，需要将自己应用的数据从ES5搬迁到ES7。我在维护一个基于Golang语言开发的项目，遇到了一些关于ES 的Golang Client https://github.com/olivere/elastic 的问题，特此写这篇博客记录一下。
+具体任务
+在从ES5迁移到ES7的过程中，由于ES的换代的一些新特性和改变，需要首先进行具体任务的分解，主要包括
+
+数据格式升级：从ES6开始，ES便不推荐在同一个Index下存在多个type的数据。因此需要将此前在同一个Index下数据拆散到不同的Index之中就可以解决问题（官方原因是之前index下不同实体太多，切分布稀疏不均匀，严重干扰 Lucene 压缩文档的能力，具体可参考 Removal of mapping types）
+ES client（olivere/elastic）的升级：由于底层已经切换到了最新的ES7，并且在我司内部的ES7 将强制启动token认证，同时由于采用了 ES的client olivere/elastic 所以需要选择最合适的方案进行代码的迁移。
+
+&ldquo;No Elasticsearch Node Available&rdquo;
+首先为了改最少的代码，笔者的第一个想法便是用olivere的ES5的client elastic.v5 直接访问最新的ES Endpoint,结果第一个遇到的问题便是&quot;No Elasticsearch Node Available&quot;。在经过Google一番之后, 从这篇博客中 程序印象 ，查出初步的主要原因是Sniffing的配置造成的。
+Elasticsearch：Sniffing
+Sniffing 的主要功能是将Elasticsearch的静态节点列表传递给客户端，然后将客户端请求平均分布在Elasticsearch 集群节点之间.如果启用 sniffing，则客户端将开始调用 _nodes /_all /http 端点(类似 http://127.0.0.1:9200/__nodes /_all /http)，并且响应将是群集中存在的所有节点及其 IP 地址的列表。然后，客户端将更新其连接池以使用所有新节点，并使群集状态与客户端的连接池保持同步。
+
 如果想要检查自己的ES集群的Sniffing的配置，可以通过访问
-curl -XGET &#39;http://127.0.0.1:9200/_nodes/http?pretty=true { &#34;_nodes&#34; : { &#34;total&#34; : 1, &#34;successful&#34; : 1, &#34;failed&#34; : 0 }, &#34;cluster_name&#34; : &#34;elasticsearch&#34;, &#34;nodes&#34; : { &#34;v9vBH0xXQ1-GZw-bOfxlFQ&#34; : { &#34;name&#34; : &#34;v9vBH0x&#34;, &#34;transport_address&#34; : &#34;127." />
+
+curl -XGET &#39;http://127.0.0.1:9200/_nodes/http?pretty=true
+
+{
+  &#34;_nodes&#34; : {
+    &#34;total&#34; : 1,
+    &#34;successful&#34; : 1,
+    &#34;failed&#34; : 0
+  },
+  &#34;cluster_name&#34; : &#34;elasticsearch&#34;,
+  &#34;nodes&#34; : {
+    &#34;v9vBH0xXQ1-GZw-bOfxlFQ&#34; : {
+      &#34;name&#34; : &#34;v9vBH0x&#34;,
+      &#34;transport_address&#34; : &#34;127.0.0.1:9300&#34;,
+      &#34;host&#34; : &#34;127.0.0.1&#34;,
+      &#34;ip&#34; : &#34;127.0.0.1&#34;,
+      &#34;version&#34; : &#34;7.2.1&#34;,
+      &#34;build_hash&#34; : &#34;fe6cb20&#34;,
+      &#34;roles&#34; : [
+        &#34;master&#34;,
+        &#34;data&#34;,
+        &#34;ingest&#34;
+      ],
+      &#34;attributes&#34; : {
+        &#34;ml.max_open_jobs&#34; : &#34;10&#34;,
+        &#34;ml.enabled&#34; : &#34;true&#34;
+      },
+      &#34;http&#34; : {
+        &#34;bound_address&#34; : [
+          &#34;0.0.0.0:9200&#34;
+        ],
+        &#34;publish_address&#34; : &#34;127.0.0.1:9200&#34;, # sniffing mode setting
+        &#34;max_content_length_in_bytes&#34; : 104857600
+      }
+    }
+  }
+}
+如果想要在elastic.v5中禁止sniffing，在进行Client初始化的时候可以通过SetSniff(false)来实现。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -125,7 +171,7 @@ curl -XGET &#39;http://127.0.0.1:9200/_nodes/http?pretty=true { &#34;_nodes&#34;
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -275,7 +321,7 @@ curl -XGET &#39;http://127.0.0.1:9200/_nodes/http?pretty=true { &#34;_nodes&#34;
 <li><strong>ES client（olivere/elastic）的升级</strong>：由于底层已经切换到了最新的ES7，并且在我司内部的ES7 将强制启动token认证，同时由于采用了 ES的client <a href="https://github.com/olivere/elastic">olivere/elastic</a> 所以需要选择最合适的方案进行代码的迁移。</li>
 </ul>
 <h4 id="no-elasticsearch-node-available">&ldquo;No Elasticsearch Node Available&rdquo;</h4>
-<p>首先为了改最少的代码，笔者的第一个想法便是用<!-- raw HTML omitted --><strong>olivere</strong><!-- raw HTML omitted -->的ES5的client <a href="https://gopkg.in/olivere/elastic.v5">elastic.v5</a> 直接访问最新的ES Endpoint,结果第一个遇到的问题便是&quot;No Elasticsearch Node Available&quot;。在经过Google一番之后, 从这篇博客中 <a href="https://www.do1618.com/archives/1355/no-elasticsearch-node-available/">程序印象</a> ，查出初步的主要原因是<a href="https://github.com/olivere/elastic/wiki/Sniffing">Sniffing</a>的配置造成的。</p>
+<p>首先为了改最少的代码，笔者的第一个想法便是用<u><strong>olivere</strong></u>的ES5的client <a href="https://gopkg.in/olivere/elastic.v5">elastic.v5</a> 直接访问最新的ES Endpoint,结果第一个遇到的问题便是&quot;No Elasticsearch Node Available&quot;。在经过Google一番之后, 从这篇博客中 <a href="https://www.do1618.com/archives/1355/no-elasticsearch-node-available/">程序印象</a> ，查出初步的主要原因是<a href="https://github.com/olivere/elastic/wiki/Sniffing">Sniffing</a>的配置造成的。</p>
 <h5 id="elasticsearchsniffing">Elasticsearch：Sniffing</h5>
 <p><a href="https://github.com/olivere/elastic/wiki/Sniffing">Sniffing</a> 的主要功能是将Elasticsearch的静态节点列表传递给客户端，然后将客户端请求平均分布在Elasticsearch 集群节点之间.如果启用 sniffing，则客户端将开始调用 <code>_nodes /_all /http</code> 端点(类似 <code>http://127.0.0.1:9200/__nodes /_all /http</code>)，并且响应将是群集中存在的所有节点及其 IP 地址的列表。然后，客户端将更新其连接池以使用所有新节点，并使群集状态与客户端的连接池保持同步。</p>
 <p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a9deded0a28945e0beb5ecdba0309e88~tplv-k3u1fbpfcp-watermark.image" alt=""></p>
@@ -380,7 +426,7 @@ curl -XGET &#39;http://127.0.0.1:9200/_nodes/http?pretty=true { &#34;_nodes&#34;
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

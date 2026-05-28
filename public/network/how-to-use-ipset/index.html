@@ -65,13 +65,21 @@
   
   
   
-  <meta name="description" content="本文是 How to use ipset Command in Linux的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是 How to use ipset Command in Linux的中文翻译版本，内容有删减
+
 IP sets 是 IP 地址、网络范围、MAC 地址、端口号和网络接口名称的存储集合。iptables 工具可以利用 IP sets进行更高效的规则匹配。例如，假设您要让自己的应用丢弃来自已知为恶意的多个 IP 地址范围之一的访问流量。您可以创建一个 IP sets，然后在 iptables 规则中引用该 SET，而不是直接为 iptables 中的每个范围配置规则。这使您的规则集具有动态性，因此更易于配置;每当需要添加或交换由防火墙处理的网络标识符时，只需更改 IP sets即可。
 ipset 命令使您能够创建和修改 IP sets。首先，您需要为IP sets设置名称、存储方法和数据类型，例如：
-# ipset create range_set hash:net 在上面的情况下，range_set是IP sets的名称，hash是IP sets的存储方法，net 是数据类型。接下来，您可以将数据添加到IP sets中：
-# ipset add range_set 178.137.87.0/24 # ipset add range_set 46.148.22.0/24 然后，您可以使用 iptables 规则来丢弃source中和range_set中的IP范围匹配的流量：
-# iptables -I INPUT -m set --match-set range_set src -j DROP 或者，你可以设置丢弃target与集合range_set中的IP范围匹配的流量：
-iptables -I OUTPUT -m set --match-set range_set dst -j DROP IPSet语法 （SYNTAX） ipset 命令的语法是：" />
+# ipset create range_set hash:net
+在上面的情况下，range_set是IP sets的名称，hash是IP sets的存储方法，net 是数据类型。接下来，您可以将数据添加到IP sets中：
+# ipset add range_set 178.137.87.0/24
+# ipset add range_set 46.148.22.0/24
+然后，您可以使用 iptables 规则来丢弃source中和range_set中的IP范围匹配的流量：
+# iptables -I INPUT -m set --match-set range_set src -j DROP
+或者，你可以设置丢弃target与集合range_set中的IP范围匹配的流量：
+iptables -I OUTPUT -m set --match-set range_set dst -j DROP
+IPSet语法 （SYNTAX）
+ipset 命令的语法是：" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -126,7 +134,7 @@ iptables -I OUTPUT -m set --match-set range_set dst -j DROP IPSet语法 （SYNTA
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -371,7 +379,7 @@ iptables -I OUTPUT -m set --match-set range_set dst -j DROP IPSet语法 （SYNTA
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

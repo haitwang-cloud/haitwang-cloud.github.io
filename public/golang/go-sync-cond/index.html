@@ -65,18 +65,36 @@
   
   
   
-  <meta name="description" content="本文是 How to properly use the conditional variable sync.Cond in Golang的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是 How to properly use the conditional variable sync.Cond in Golang的中文翻译版本，内容有删减
+
 Golang sync包中的Cond实现了一个条件变量，可以用在多个Reader等待一个共享资源ready的场景中（如果只有一个读一个写，此时锁或者channel就可以搞定）。
 Cond pool的点在于：多个goroutine等待，1个goroutine发生事件通知。
 每一个Cond都关联了一个Lock(*sync.Mutex or *sync.RWMutex)，在修改条件或者调用Wait方法时必须加锁，保护条件。
-type Cond struct { // L is held while observing or changing the condition L Locker // contains filtered or unexported fields } 创建一个新的Cond条件变量。
-func NewCond(l Locker) *Cond Broadcast 会唤醒所有等待的goroutine。
+type Cond struct {
+        // L is held while observing or changing the condition
+        L Locker
+        // contains filtered or unexported fields
+}
+创建一个新的Cond条件变量。
+func NewCond(l Locker) *Cond
+Broadcast 会唤醒所有等待的goroutine。
 同时，Broadcast也可以不加锁调用。
-func (c *Cond) Broadcast() Signal只会唤醒一个等待的goroutine。
-func (c *Cond) Signal() Signal可以不加锁调用，但是如果不加锁调用，那么Signal必须在Wait之前调用，否则会panic。
+func (c *Cond) Broadcast()
+Signal只会唤醒一个等待的goroutine。
+func (c *Cond) Signal()
+Signal可以不加锁调用，但是如果不加锁调用，那么Signal必须在Wait之前调用，否则会panic。
 Wait() 会自动释放 c.L 并挂起调用者的goroutine，Wait() 返回时会对 c.L 上锁。
 Wait() 不会主动return，除非它被Signal或者Broadcast唤醒。
-由于 C." />
+由于 C.L 在 Wait() 第一次恢复时没有锁定，因此调用者通常不应认为 Wait() 返回时条件为真。
+调用者应该在循环中调用Wait。（简单来说，每当你想使用条件时，都必须加锁。）
+c.L.Lock()
+for !condition() {
+    c.Wait()
+}
+... make use of condition ...
+c.L.Unlock()
+下面的例子更好的说明了Cond的使用。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -131,7 +149,7 @@ Wait() 不会主动return，除非它被Signal或者Broadcast唤醒。
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -279,10 +297,10 @@ Wait() 不会主动return，除非它被Signal或者Broadcast唤醒。
 <p>Cond pool的点在于：多个goroutine等待，1个goroutine发生事件通知。</p>
 <p>每一个Cond都关联了一个Lock(<code>*sync.Mutex or *sync.RWMutex</code>)，在修改条件或者调用Wait方法时必须加锁，<strong>保护条件</strong>。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Cond</span> <span style="color:#66d9ef">struct</span> {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// L is held while observing or changing the condition
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">L</span> <span style="color:#a6e22e">Locker</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// contains filtered or unexported fields
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// L is held while observing or changing the condition</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">L</span> <span style="color:#a6e22e">Locker</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// contains filtered or unexported fields</span>
+</span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>创建一个新的Cond条件变量。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewCond</span>(<span style="color:#a6e22e">l</span> <span style="color:#a6e22e">Locker</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Cond</span>
 </span></span></code></pre></div><p>Broadcast 会唤醒所有等待的goroutine。</p>
@@ -319,8 +337,8 @@ Wait() 不会主动return，除非它被Signal或者Broadcast唤醒。
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>{}
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">NewCond</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">m</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// this go routine wait for changes to the sharedRsc
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// this go routine wait for changes to the sharedRsc</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">sharedRsc</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">false</span> {
 </span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;goroutine1 wait&#34;</span>)
 </span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Wait</span>()
@@ -331,8 +349,8 @@ Wait() 不会主动return，除非它被Signal或者Broadcast唤醒。
 </span></span><span style="display:flex;"><span>    }()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// this go routine wait for changes to the sharedRsc
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// this go routine wait for changes to the sharedRsc</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">sharedRsc</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">false</span> {
 </span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;goroutine2 wait&#34;</span>)
 </span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Wait</span>()
@@ -342,8 +360,8 @@ Wait() 不会主动return，除非它被Signal或者Broadcast唤醒。
 </span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
 </span></span><span style="display:flex;"><span>    }()
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// this one writes changes to sharedRsc
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// this one writes changes to sharedRsc</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;main goroutine ready&#34;</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">sharedRsc</span> = <span style="color:#66d9ef">true</span>
@@ -376,8 +394,8 @@ goroutine1 true
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>{}
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">NewCond</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">m</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// this go routine wait for changes to the sharedRsc
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// this go routine wait for changes to the sharedRsc</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
 </span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">sharedRsc</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">false</span> {
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;goroutine1 wait&#34;</span>)
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Wait</span>()
@@ -388,8 +406,8 @@ goroutine1 true
 </span></span><span style="display:flex;"><span>	}()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// this go routine wait for changes to the sharedRsc
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// this go routine wait for changes to the sharedRsc</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
 </span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">sharedRsc</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">false</span> {
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;goroutine2 wait&#34;</span>)
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Wait</span>()
@@ -399,8 +417,8 @@ goroutine1 true
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
 </span></span><span style="display:flex;"><span>	}()
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// this one writes changes to sharedRsc
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// this one writes changes to sharedRsc</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;main goroutine ready&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">sharedRsc</span> = <span style="color:#66d9ef">true</span>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Broadcast</span>()
@@ -433,8 +451,8 @@ goroutine1 true
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>{}
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">NewCond</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">m</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// this go routine wait for changes to the sharedRsc
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// this go routine wait for changes to the sharedRsc</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
 </span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">sharedRsc</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">false</span> {
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;goroutine1 wait&#34;</span>)
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Wait</span>()
@@ -445,8 +463,8 @@ goroutine1 true
 </span></span><span style="display:flex;"><span>	}()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// this go routine wait for changes to the sharedRsc
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// this go routine wait for changes to the sharedRsc</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;goroutine2 wait&#34;</span>)
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Wait</span>()
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;goroutine2&#34;</span>, <span style="color:#a6e22e">sharedRsc</span>)
@@ -454,8 +472,8 @@ goroutine1 true
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
 </span></span><span style="display:flex;"><span>	}()
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// this one writes changes to sharedRsc
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// this one writes changes to sharedRsc</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;main goroutine ready&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">sharedRsc</span> = <span style="color:#66d9ef">true</span>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Broadcast</span>()
@@ -500,10 +518,10 @@ goroutine1 true
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">lock</span>.<span style="color:#a6e22e">Unlock</span>()
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> len(<span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">queue</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// When the queue is empty, invocation of Pop() is blocked until new item is enqueued.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#75715e">// When Close() is called, the f.closed is set and the condition is broadcasted.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#75715e">// Which causes this loop to continue and return from the Pop().
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">IsClosed</span>() {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// When the queue is empty, invocation of Pop() is blocked until new item is enqueued.</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// When Close() is called, the f.closed is set and the condition is broadcasted.</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// Which causes this loop to continue and return from the Pop().</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">IsClosed</span>() {
 </span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">FIFOClosedError</span>
 </span></span><span style="display:flex;"><span>            }
 </span></span><span style="display:flex;"><span>
@@ -537,23 +555,6 @@ goroutine1 true
   
   
   
-  
-  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
-    
-    <a
-      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/go-fuzz-testing/"
-      ><span class="mr-1.5">←</span><span>在 Golang 中进行 Fuzz 测试</span></a
-    >
-    
-    
-    <a
-      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/how-to-upgrade-golang-dependencies/"
-      ><span>升级 Golang 模块依赖的步骤</span><span class="ml-1.5">→</span></a
-    >
-    
-  </nav>
   
   
 
@@ -595,7 +596,7 @@ goroutine1 true
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

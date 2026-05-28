@@ -65,8 +65,40 @@
   
   
   
-  <meta name="description" content="问题描述 最近我在尝试用 Istioctl Analyze -A来对整体的Istio配置进行分析，但是在执行命令的时候，我遇到了如下错误：
-panic: runtime error: invalid memory address or nil pointer dereference [signal SIGSEGV: segmentation violation code=0x2 addr=0x90 pc=0x104d85f9c] goroutine 1 [running]: istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).analyzeNamespaceNotFound(0x140080985a0?, 0x140080985a0, {0x105ed1480, 0x140066a7c20?}) istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:145 &#43;0xdc istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).Analyze.func1(0x104f6cdda?) istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:59 &#43;0x58 istio.io/istio/pkg/config/analysis/local.(*istiodContext).ForEach(0x140066a7c20, {{0x104f6cdda, 0x11}, {0x104f5243f, 0x7}, {0x104f72cd1, 0x13}}, 0x14006897980) istio.io/istio/pkg/config/analysis/local/context.go:168 &#43;0x574 istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).Analyze(0x107d30e20, {0x105ed1480?, 0x140066a7c20}) istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:57 &#43;0xf0 istio.io/istio/pkg/config/analysis.(*CombinedAnalyzer).Analyze(0x14000cbe6c0, {0x105ed1480, 0x140066a7c20}) istio.io/istio/pkg/config/analysis/analyzer.go:75 &#43;0xcc istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).internalAnalyze(0x14000a7ec30, 0x1400007faa0?, 0x1400007faa0) istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:146 &#43;0x244 istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).ReAnalyze(...) istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:131 istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).Analyze(0x14000a7ec30, 0x105ee1ee8?) istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:171 &#43;0xac istio.io/istio/istioctl/pkg/analyze.Analyze.func1(0x14000d6f200?, {0x140008e8020, 0x0, 0x2}) istio.io/istio/istioctl/pkg/analyze/analyze.go:229 &#43;0xb74 github." />
+  <meta name="description" content="问题描述
+最近我在尝试用 Istioctl Analyze -A来对整体的Istio配置进行分析，但是在执行命令的时候，我遇到了如下错误：
+
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x2 addr=0x90 pc=0x104d85f9c]
+
+goroutine 1 [running]:
+istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).analyzeNamespaceNotFound(0x140080985a0?, 0x140080985a0, {0x105ed1480, 0x140066a7c20?})
+ istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:145 &#43;0xdc
+istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).Analyze.func1(0x104f6cdda?)
+ istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:59 &#43;0x58
+istio.io/istio/pkg/config/analysis/local.(*istiodContext).ForEach(0x140066a7c20, {{0x104f6cdda, 0x11}, {0x104f5243f, 0x7}, {0x104f72cd1, 0x13}}, 0x14006897980)
+ istio.io/istio/pkg/config/analysis/local/context.go:168 &#43;0x574
+istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).Analyze(0x107d30e20, {0x105ed1480?, 0x140066a7c20})
+ istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:57 &#43;0xf0
+istio.io/istio/pkg/config/analysis.(*CombinedAnalyzer).Analyze(0x14000cbe6c0, {0x105ed1480, 0x140066a7c20})
+ istio.io/istio/pkg/config/analysis/analyzer.go:75 &#43;0xcc
+istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).internalAnalyze(0x14000a7ec30, 0x1400007faa0?, 0x1400007faa0)
+ istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:146 &#43;0x244
+istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).ReAnalyze(...)
+ istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:131
+istio.io/istio/pkg/config/analysis/local.(*IstiodAnalyzer).Analyze(0x14000a7ec30, 0x105ee1ee8?)
+ istio.io/istio/pkg/config/analysis/local/istiod_analyze.go:171 &#43;0xac
+istio.io/istio/istioctl/pkg/analyze.Analyze.func1(0x14000d6f200?, {0x140008e8020, 0x0, 0x2})
+ istio.io/istio/istioctl/pkg/analyze/analyze.go:229 &#43;0xb74
+github.com/spf13/cobra.(*Command).execute(0x14000d50f00, {0x140008e8000, 0x2, 0x2})
+ github.com/spf13/cobra@v1.7.0/command.go:940 &#43;0x66c
+github.com/spf13/cobra.(*Command).ExecuteC(0x14000a96000)
+ github.com/spf13/cobra@v1.7.0/command.go:1068 &#43;0x320
+github.com/spf13/cobra.(*Command).Execute(0x1400006e090?)
+ github.com/spf13/cobra@v1.7.0/command.go:992 &#43;0x1c
+main.main()
+ istio.io/istio/istioctl/cmd/istioctl/main.go:39 &#43;0xd0
+咋一眼看上去，这个问题好像是因为内存地址无效或者空指针引用导致的，从错误日志来看，函数 AuthorizationPoliciesAnalyzer.analyzeNamespaceNotFound 在 authorizationpolicies.go 文件中的第145行引发了panic。函数的定义似乎是为了处理找不到namespace的情况，但它似乎没有正确地处理这种情况。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -121,7 +153,7 @@ panic: runtime error: invalid memory address or nil pointer dereference [signal 
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -405,7 +437,7 @@ panic: runtime error: invalid memory address or nil pointer dereference [signal 
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

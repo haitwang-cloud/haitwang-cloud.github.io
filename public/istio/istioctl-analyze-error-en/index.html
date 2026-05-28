@@ -65,9 +65,18 @@
   
   
   
-  <meta name="description" content="Problem Description Recently, while using the istioctl analyze -A command to analyze Istio configurations, we encountered a perplexing error:
-panic: runtime error: invalid memory address or nil pointer dereference [signal SIGSEGV: segmentation violation code=0x2 addr=0x90 pc=0x104d85f9c] goroutine 1 [running]: istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).analyzeNamespaceNotFound(0x140080985a0?, 0x140080985a0, {0x105ed1480, 0x140066a7c20?}) istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:145 &#43;0xdc ... The error log indicates that the AuthorizationPoliciesAnalyzer.analyzeNamespaceNotFound function triggered a panic when handling a scenario where a namespace couldn&rsquo;t be found.
-Introduction to Istioctl Analyze Istio is a popular service mesh solution, and istioctl is its command-line tool." />
+  <meta name="description" content="Problem Description
+Recently, while using the istioctl analyze -A command to analyze Istio configurations, we encountered a perplexing error:
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x2 addr=0x90 pc=0x104d85f9c]
+
+goroutine 1 [running]:
+istio.io/istio/pkg/config/analysis/analyzers/authz.(*AuthorizationPoliciesAnalyzer).analyzeNamespaceNotFound(0x140080985a0?, 0x140080985a0, {0x105ed1480, 0x140066a7c20?})
+ istio.io/istio/pkg/config/analysis/analyzers/authz/authorizationpolicies.go:145 &#43;0xdc
+...
+The error log indicates that the AuthorizationPoliciesAnalyzer.analyzeNamespaceNotFound function triggered a panic when handling a scenario where a namespace couldn&rsquo;t be found.
+Introduction to Istioctl Analyze
+Istio is a popular service mesh solution, and istioctl is its command-line tool. The istioctl analyze subcommand is used to validate Istio configurations and provide feedback." />
   <meta name="author" content="Tim Wang" />
   
 
@@ -122,7 +131,7 @@ Introduction to Istioctl Analyze Istio is a popular service mesh solution, and i
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -380,7 +389,7 @@ Introduction to Istioctl Analyze Istio is a popular service mesh solution, and i
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

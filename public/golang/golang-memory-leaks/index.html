@@ -65,18 +65,57 @@
   
   
   
-  <meta name="description" content="本文是 Golang-Memory-Leaks 的中文翻译版本，内容仅供学习参考，如有侵权请联系删除。
+  <meta name="description" content="
+本文是 Golang-Memory-Leaks 的中文翻译版本，内容仅供学习参考，如有侵权请联系删除。
+
 其他优秀的 ppof 性能分析文章👍👍👍，请参考 golang pprof 实战 和 你不知道的 Go 之 pprof：
 最近,我在生产环境中遇到了内存泄漏。我发现某个服务在负载内存在稳步上升，直到进程触发内存溢出异常。经过深入调查，我找到了内存泄漏的源头，以及为什么会发生这种情况。为了诊断问题，我使用了Golang的分析工具pprof。在本文中，我将解释什么是pprof，并展示我如何诊断内存泄漏。
-背景 我们的客户端通过一个代理服务使用我们的系统,我们为其提供访问权限。内存泄漏发生在这个代理服务中。
-内存泄漏 在收到客户端关于断开连接的投诉后，我开始寻找问题的根源。 我首先做的是检查公司提供的Grafana监控系统，查看代理服务的内存和CPU使用情况。我查看并且比较了3种不同情况下的指标:
-服务在重启后处于空闲状态 服务处于负载状态 服务在负载状态下，现在处于空闲状态 所有重叠的线都表示服务处于空闲状态，只有绿色的线表示服务正在接收流量。
+背景
+我们的客户端通过一个代理服务使用我们的系统,我们为其提供访问权限。内存泄漏发生在这个代理服务中。
+内存泄漏
+在收到客户端关于断开连接的投诉后，我开始寻找问题的根源。
+我首先做的是检查公司提供的Grafana监控系统，查看代理服务的内存和CPU使用情况。我查看并且比较了3种不同情况下的指标:
+
+服务在重启后处于空闲状态
+服务处于负载状态
+服务在负载状态下，现在处于空闲状态
+
+
+所有重叠的线都表示服务处于空闲状态，只有绿色的线表示服务正在接收流量。
 从上图中可以看出几个问题
-当服务处于空闲状态且没有流量时，其内存保持在较低水平 当流量停止命中单个机器时，该机器的内存使用率下降，但仍高于其他实例。 在开始性能分析之前，我列出了一些我想排除的事情:
-我正在使用Golang版本1.12.5，所以我想确保潜在的泄漏不是来自运行时(即使运行时也有问题)。可以在github页面上的open issues on the github page得到很好的回答。 尝试使用激进的垃圾回收debug.SetGCPercent(10) 手动尝试debug.FreeOSMemory()，运行时主要关注性能，在内存进行垃圾回收之后，为了性能考虑，并不会立即将其释放回操作系统 尝试在staging环境中使用小负载测试重现泄漏，以确认我的怀疑。 在完成上面的检查事项并且发现泄漏仍然存在且可以重现之后，我开始使用pprof对服务进行性能分析。
-Golang 性能工具 - pprof 性能分析类型 你可以收集以下几种性能指标
-goroutine - 当前所有goroutine的堆栈跟踪 heap - 所有堆分配的采样 threadcreate - 创建新的操作系统线程的堆栈跟踪 block - 导致在同步原语上阻塞的堆栈跟踪 mutex - 互斥锁的持有者的堆栈跟踪 profile - cpu 性能分析 trace - 允许在一定时间范围内收集所有分析数据 性能分析示例 为了开始性能分析，我导入了pprof并启动了一个HTTP服务器。
-请注意，如果您已经有一个HTTP服务器在运行，那么只需要import pprof就足够了。我已经有一个TCP服务器在运行，所以我添加了另一个goroutine来监听一个单独的端口用于pprof。" />
+
+当服务处于空闲状态且没有流量时，其内存保持在较低水平
+当流量停止命中单个机器时，该机器的内存使用率下降，但仍高于其他实例。
+
+在开始性能分析之前，我列出了一些我想排除的事情:
+
+我正在使用Golang版本1.12.5，所以我想确保潜在的泄漏不是来自运行时(即使运行时也有问题)。可以在github页面上的open issues on the github page得到很好的回答。
+尝试使用激进的垃圾回收debug.SetGCPercent(10)
+手动尝试debug.FreeOSMemory()，运行时主要关注性能，在内存进行垃圾回收之后，为了性能考虑，并不会立即将其释放回操作系统
+尝试在staging环境中使用小负载测试重现泄漏，以确认我的怀疑。
+
+在完成上面的检查事项并且发现泄漏仍然存在且可以重现之后，我开始使用pprof对服务进行性能分析。
+Golang 性能工具 - pprof
+性能分析类型
+你可以收集以下几种性能指标
+
+goroutine - 当前所有goroutine的堆栈跟踪
+heap - 所有堆分配的采样
+threadcreate - 创建新的操作系统线程的堆栈跟踪
+block - 导致在同步原语上阻塞的堆栈跟踪
+mutex - 互斥锁的持有者的堆栈跟踪
+profile - cpu 性能分析
+trace - 允许在一定时间范围内收集所有分析数据
+
+性能分析示例
+为了开始性能分析，我导入了pprof并启动了一个HTTP服务器。
+请注意，如果您已经有一个HTTP服务器在运行，那么只需要import pprof就足够了。我已经有一个TCP服务器在运行，所以我添加了另一个goroutine来监听一个单独的端口用于pprof。
+import _ &#34;net/http/pprof&#34;
+
+go func() {
+	log.Println(http.ListenAndServe(&#34;localhost:6060&#34;, nil))
+}()
+对于内存泄漏，我们首先从heap开始分析。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -131,7 +170,7 @@ goroutine - 当前所有goroutine的堆栈跟踪 heap - 所有堆分配的采样
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -435,23 +474,6 @@ goroutine - 当前所有goroutine的堆栈跟踪 heap - 所有堆分配的采样
   
   
   
-  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
-    
-    <a
-      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/leakprof-featherlight/"
-      ><span class="mr-1.5">←</span><span>LeakProf：Golang 的轻量级在线 Goroutine 泄漏检测工具</span></a
-    >
-    
-    
-    <a
-      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/table-driven-unit-tests/"
-      ><span>Golang 中的 Table Driven 单元测试</span><span class="ml-1.5">→</span></a
-    >
-    
-  </nav>
-  
   
 
   
@@ -492,7 +514,7 @@ goroutine - 当前所有goroutine的堆栈跟踪 heap - 所有堆分配的采样
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

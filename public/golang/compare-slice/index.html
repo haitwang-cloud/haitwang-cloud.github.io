@@ -65,9 +65,32 @@
   
   
   
-  <meta name="description" content="3 ways to compare slices (arrays)的中文翻译版本，添加了benchMark 测试的结果
-基本案例(Basic case） 在大多数情况下，你需要自己实现比较两个 slices 的代码
-// Equal tells whether a and b contain the same elements. // A nil argument is equivalent to an empty slice. func Equal(a, b []int) bool { if len(a) != len(b) { return false } for i, v := range a { if v != b[i] { return false } } return true } 对于 arrays来说，你可以使用 == 或者!" />
+  <meta name="description" content="
+3 ways to compare slices (arrays)的中文翻译版本，添加了benchMark 测试的结果
+
+基本案例(Basic case）
+
+在大多数情况下，你需要自己实现比较两个 slices 的代码
+// Equal tells whether a and b contain the same elements.
+// A nil argument is equivalent to an empty slice.
+func Equal(a, b []int) bool {
+    if len(a) != len(b) {
+        return false
+    }
+    for i, v := range a {
+        if v != b[i] {
+            return false
+        }
+    }
+    return true
+}
+对于  arrays来说，你可以使用  == 或者!=
+a := [2]int{1, 2}
+b := [2]int{1, 3}
+fmt.Println(a == b) // false
+
+只有在数组的元素类型的值是可比较的时候，才可以使用 ==和!=。如果它们的对应元素相等，则两个数组值相等。
+The Go Programming Language Specification: Comparison operators" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -122,7 +145,7 @@
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -269,9 +292,9 @@
 <h3 id="基本案例basic-case">基本案例(Basic case）</h3>
 <hr>
 <p>在大多数情况下，你需要自己实现比较两个 <a href="https://yourbasic.org/golang/slices-explained/"><strong>slices</strong></a> 的代码</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#75715e">// Equal tells whether a and b contain the same elements.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// A nil argument is equivalent to an empty slice.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Equal</span>(<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> []<span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">bool</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#75715e">// Equal tells whether a and b contain the same elements.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// A nil argument is equivalent to an empty slice.</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Equal</span>(<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> []<span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">bool</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">a</span>) <span style="color:#f92672">!=</span> len(<span style="color:#a6e22e">b</span>) {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
 </span></span><span style="display:flex;"><span>    }
@@ -379,23 +402,6 @@ func BenchmarkDeepEqual(b *testing.B) {
   
   
   
-  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
-    
-    <a
-      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/the-golang-init-func/"
-      ><span class="mr-1.5">←</span><span>Go init 函数使用介绍</span></a
-    >
-    
-    
-    <a
-      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/cobra-user-guide/"
-      ><span>Cobra 命令行工具使用指南</span><span class="ml-1.5">→</span></a
-    >
-    
-  </nav>
-  
   
 
   
@@ -436,7 +442,7 @@ func BenchmarkDeepEqual(b *testing.B) {
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

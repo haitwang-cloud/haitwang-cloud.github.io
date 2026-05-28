@@ -65,7 +65,9 @@
   
   
   
-  <meta name="description" content="本文是How to install NVIDIA GPU Operator with A100 on Kubernetes base Rocky linux的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是How to install NVIDIA GPU Operator with A100 on Kubernetes base Rocky linux的中文翻译版本，内容有删减
+
 以前在kubernetes使用NVIDIA GPU非常复杂。为了部署一个简单的容器，我们需要构建驱动程序drivers、容器运行时CRI、设备插件device plugin和监控等基本组件。最近NVIDIA GPU Feature Discovery添加了一些功能，以减少 GPU 配置的麻烦，但系统工程师的需求仍然没有得到满足，因为 NVIDIA 驱动程序和运行时仍然需要手动配置。NVIDIA GPU Feature Discovery 在 Kubernetes 集群中以 DaemonSet 的方式运行，每个节点上都会运行一个 GPU Feature Discovery 容器。该容器使用 NVIDIA Device Plugin 来访问节点上的 GPU 设备，并收集相关属性.
 Fig1. https://developer.nvidia.com/blog/nvidia-gpu-operator-simplifying-gpu-management-in-kubernetes
 通过使用NVIDIA GPU Operator，可以解决在Kubernetes中使用GPU的复杂配置问题。如果查看NVIDIA博客提供的与NVIDIA GPU Operator相关的内容（图1），可以看到驱动程序、运行时、设备插件和监控都被配置为容器。因此，您不再需要在操作系统中安装NVIDIA驱动程序。
@@ -75,7 +77,14 @@ Fig3. https://blogs.vmware.com/apps/2018/09/using-gpus-with-virtual-machines-on-
 A100 GPU引入的MIG功能在GPU上支持虚拟化，将一个GPU分割为最多7个实例，减少了Hypervisor部分，提供了管理和性能上的收益。然而，基于实例的VRAM碎片化仍然存在，这是GPU架构中无法避免的问题。
 Fig4. https://docs.nvidia.com/datacenter/tesla/mig-user-guide/
 现在，我将解释如何配置NVIDIA GPU Operator。首先，让我们检查配置NVIDIA GPU Operator的基本要求。
-Kubernetes v1.19&#43; NVIDIA GPU Operator v1." />
+
+Kubernetes v1.19&#43;
+NVIDIA GPU Operator v1.9
+Linux distributions
+Ubuntu 18.04.z, 20.04.z LTS, Red Hat Enterprise Linux CoreOS (RHCOS) for use with OpenShift 4.8 and 4.9, CentOS 7
+
+安装helm
+如果在你的worker节点上没有安装helm，请确保先安装helm。helm安装完成后，添加NVIDIA helm仓库。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -130,7 +139,7 @@ Kubernetes v1.19&#43; NVIDIA GPU Operator v1." />
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -398,7 +407,7 @@ Ubuntu 18.04.z, 20.04.z LTS, Red Hat Enterprise Linux CoreOS (RHCOS) for use wit
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

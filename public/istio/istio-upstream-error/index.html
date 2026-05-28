@@ -65,13 +65,31 @@
   
   
   
-  <meta name="description" content="本文是How to debug Istio Upstream Reset 502 UPE (old 503 UC)的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是How to debug Istio Upstream Reset 502 UPE (old 503 UC)的中文翻译版本，内容有删减
+
 Istio 是一个复杂的系统。对于应用程序来说，它的主要组件是 sidecar 容器 Istio-Proxy，它代理 Pod 中所有容器的流量。而这可能会导致一些问题。
-问题重现🐛 在一个拥有超过 40 个不同微服务的大型系统中，QA工程师在单个端点上发现了一个bug。这该端点是 POST 端点，它返回分块（chunked）数据。
+问题重现🐛
+在一个拥有超过 40 个不同微服务的大型系统中，QA工程师在单个端点上发现了一个bug。这该端点是 POST 端点，它返回分块（chunked）数据。
 然后我们发现 Istio 返回了 502 错误，Istio日志中还有一个额外的标志：upstream_reset_before_response_started。然而应用程序日志证实了结果是正确的。
+
 在旧版本的 Istio 中，它会返回 503 错误，带有 UC 标志。
-问题分析⛏️ 让我们看看 curl 的响应，以及 Istio-proxy 的日志：
-kubectl exec -it curl-0 -- curl http://http-chunked:8080/wrong -v &lt; HTTP/1.1 502 Bad Gateway &lt; content-length: 87 &lt; content-type: text/plain &lt; date: Sun, 24 Apr 2022 12:28:28 GMT &lt; server: istio-envoy &lt; x-envoy-decorator-operation: http-chunked." />
+
+问题分析⛏️
+让我们看看 curl 的响应，以及 Istio-proxy 的日志：
+kubectl exec -it curl-0 -- curl http://http-chunked:8080/wrong -v
+&lt; HTTP/1.1 502 Bad Gateway
+&lt; content-length: 87
+&lt; content-type: text/plain
+&lt; date: Sun, 24 Apr 2022 12:28:28 GMT
+&lt; server: istio-envoy
+&lt; x-envoy-decorator-operation: http-chunked.default.svc.cluster.local:8080/*
+upstream connect error or disconnect/reset before headers. reset reason: protocol error
+
+$ kubectl logs http-chunked-0 -c istio-proxy
+[2022-04-24T12:23:37.047Z] &#34;GET /wrong HTTP/1.1&#34; 502 UPE upstream_reset_before_response_started{protocol_error} - &#34;-&#34; 0 87 1001 - &#34;-&#34; &#34;curl/7.80.0&#34; &#34;3987a4cb-2e0e-4de6-af66-7e3447600c73&#34; &#34;http-chunked:8080&#34; &#34;10.244.0.17:8080&#34; inbound|8080|| 127.0.0.6:39063 10.244.0.17:8080 10.244.0.14:35500 - default
+侦查🕵️问题
+为了分析整个应用程序的流量，我们可以使用 tcpdump 和 Wireshark。此时Istio-proxy 作为 sidecar 运行，并将所有出入 pod 的流量路由到自己的代理进行处理。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -126,7 +144,7 @@ kubectl exec -it curl-0 -- curl http://http-chunked:8080/wrong -v &lt; HTTP/1.1 
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -423,7 +441,7 @@ Istio 使用 HTTP 传输编码来实现以下功能：</li>
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

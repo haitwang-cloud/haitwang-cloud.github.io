@@ -65,19 +65,50 @@
   
   
   
-  <meta name="description" content="Cloud Provider 介绍 Kubernetes 的 Cloud Provider 机制是将 Kubernetes 与公有云、私有云等基础设施进行对接的关键组件。它主要具有以下功能:
+  <meta name="description" content="Cloud Provider 介绍
+Kubernetes 的 Cloud Provider 机制是将 Kubernetes 与公有云、私有云等基础设施进行对接的关键组件。它主要具有以下功能:
+
+
 节点管理:实现节点的生命周期管理,如实例监控、故障检测、节点驱逐等。
+
+
 负载均衡:将 Kubernetes 的 Service 对象映射到云平台的负载均衡服务,如 AWS ELB、阿里云 SLB 等。
+
+
 存储管理:通过 FlexVolume、CSI 接口与云存储服务集成,为 Pod 提供持久化存储。
+
+
 路由管理:在底层网络中设置路由规则,确保 Pod 间的互联互通。
+
+
 身份认证:结合云平台的 IAM 服务进行访问权限控制。
+
+
 Kubernetes 的 Cloud Provider 接口使得不同的云平台能够实现自己的 Controller Manager 来集成这些功能。目前已有的Cloud Provider主要包括:
-AWS Cloud Provider 阿里云 Cloud Provider vSphere Cloud Provider 启用 Cloud Provider 后,相关的控制组件会部署在 Kubernetes 集群中。
+
+AWS Cloud Provider
+阿里云 Cloud Provider
+vSphere Cloud Provider
+
+启用 Cloud Provider 后,相关的控制组件会部署在 Kubernetes 集群中。
 这种解耦设计降低了 Kubernetes 项目与具体云平台的耦合,允许云供应商进行定制化集成,也使得多云和混合云的管理变得更加复杂。关于 Cloud Provider更多的历史和背景介绍可以参考这篇来自k8s的sig-cloud-providercloud-provider-documentation
-代码分析 本篇主要讨论的是最基础的kubernetes/cloud-provider,它是所有云供应商的基础,也是所有云供应商的实现的基础。
-架构设计 整体的架构如下图所示: 目前它包含的Informers有:
-NodeInformer ServiceInformer 其主要函数包括:
-processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下图所示: 主要代码分析 NodeConditionPredicate func listWithPredicates(nodeLister corelisters." />
+代码分析
+本篇主要讨论的是最基础的kubernetes/cloud-provider,它是所有云供应商的基础,也是所有云供应商的实现的基础。
+架构设计
+整体的架构如下图所示:
+
+目前它包含的Informers有:
+
+NodeInformer
+ServiceInformer
+
+其主要函数包括:
+
+processServiceCreateOrUpdate()
+processServiceDelete()
+
+它的主要逻辑如下图所示:
+" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -132,7 +163,7 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -364,8 +395,8 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
 <p>这段代码的目的是为了帮助用户通过传递不同的条件函数来灵活地过滤节点列表，从而选择特定条件下的节点。例如，用户可以定义一个节点是否处于健康状态的条件函数、节点是否满足特定标签的条件函数等，然后通过 <code>listWithPredicates</code> 函数获取符合所有条件的节点列表。</p>
 <h4 id="syncloadbalancerifneeded">syncLoadBalancerIfNeeded</h4>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">wantsLoadBalancer</span>(<span style="color:#a6e22e">service</span>) <span style="color:#f92672">||</span> <span style="color:#a6e22e">needsCleanup</span>(<span style="color:#a6e22e">service</span>) {
-</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Delete the load balancer if service no longer wants one, or if service needs cleanup.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">op</span> = <span style="color:#a6e22e">deleteLoadBalancer</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Delete the load balancer if service no longer wants one, or if service needs cleanup.</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">op</span> = <span style="color:#a6e22e">deleteLoadBalancer</span>
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">newStatus</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">LoadBalancerStatus</span>{}
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">exists</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">balancer</span>.<span style="color:#a6e22e">GetLoadBalancer</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">clusterName</span>, <span style="color:#a6e22e">service</span>)
 </span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
@@ -382,33 +413,33 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
 </span></span><span style="display:flex;"><span>				}
 </span></span><span style="display:flex;"><span>			}
 </span></span><span style="display:flex;"><span>		}
-</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Always remove finalizer when load balancer is deleted, this ensures Services
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">// can be deleted after all corresponding load balancer resources are deleted.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">removeFinalizer</span>(<span style="color:#a6e22e">service</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Always remove finalizer when load balancer is deleted, this ensures Services</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// can be deleted after all corresponding load balancer resources are deleted.</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">removeFinalizer</span>(<span style="color:#a6e22e">service</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 </span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;failed to remove load balancer cleanup finalizer: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
 </span></span><span style="display:flex;"><span>		}
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">eventRecorder</span>.<span style="color:#a6e22e">Event</span>(<span style="color:#a6e22e">service</span>, <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">EventTypeNormal</span>, <span style="color:#e6db74">&#34;DeletedLoadBalancer&#34;</span>, <span style="color:#e6db74">&#34;Deleted load balancer&#34;</span>)
 </span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
-</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Create or update the load balancer if service wants one.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">op</span> = <span style="color:#a6e22e">ensureLoadBalancer</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Create or update the load balancer if service wants one.</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">op</span> = <span style="color:#a6e22e">ensureLoadBalancer</span>
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">klog</span>.<span style="color:#a6e22e">V</span>(<span style="color:#ae81ff">2</span>).<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;Ensuring load balancer for service %s&#34;</span>, <span style="color:#a6e22e">key</span>)
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">eventRecorder</span>.<span style="color:#a6e22e">Event</span>(<span style="color:#a6e22e">service</span>, <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">EventTypeNormal</span>, <span style="color:#e6db74">&#34;EnsuringLoadBalancer&#34;</span>, <span style="color:#e6db74">&#34;Ensuring load balancer&#34;</span>)
-</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Always add a finalizer prior to creating load balancers, this ensures Services
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">// can&#39;t be deleted until all corresponding load balancer resources are also deleted.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">addFinalizer</span>(<span style="color:#a6e22e">service</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Always add a finalizer prior to creating load balancers, this ensures Services</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// can&#39;t be deleted until all corresponding load balancer resources are also deleted.</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">addFinalizer</span>(<span style="color:#a6e22e">service</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 </span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;failed to add load balancer cleanup finalizer: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
 </span></span><span style="display:flex;"><span>		}
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">newStatus</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">ensureLoadBalancer</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">service</span>)
 </span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 </span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">cloudprovider</span>.<span style="color:#a6e22e">ImplementedElsewhere</span> {
-</span></span><span style="display:flex;"><span>				<span style="color:#75715e">// ImplementedElsewhere indicates that the ensureLoadBalancer is a nop and the
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>				<span style="color:#75715e">// functionality is implemented by a different controller.  In this case, we
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>				<span style="color:#75715e">// return immediately without doing anything.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>				<span style="color:#a6e22e">klog</span>.<span style="color:#a6e22e">V</span>(<span style="color:#ae81ff">4</span>).<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;LoadBalancer for service %s implemented by a different controller %s, Ignoring error&#34;</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">cloud</span>.<span style="color:#a6e22e">ProviderName</span>())
+</span></span><span style="display:flex;"><span>				<span style="color:#75715e">// ImplementedElsewhere indicates that the ensureLoadBalancer is a nop and the</span>
+</span></span><span style="display:flex;"><span>				<span style="color:#75715e">// functionality is implemented by a different controller.  In this case, we</span>
+</span></span><span style="display:flex;"><span>				<span style="color:#75715e">// return immediately without doing anything.</span>
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">klog</span>.<span style="color:#a6e22e">V</span>(<span style="color:#ae81ff">4</span>).<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;LoadBalancer for service %s implemented by a different controller %s, Ignoring error&#34;</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">cloud</span>.<span style="color:#a6e22e">ProviderName</span>())
 </span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#66d9ef">nil</span>
 </span></span><span style="display:flex;"><span>			}
-</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// Use %w deliberately so that a returned RetryError can be handled.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;failed to ensure load balancer: %w&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// Use %w deliberately so that a returned RetryError can be handled.</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;failed to ensure load balancer: %w&#34;</span>, <span style="color:#a6e22e">err</span>)
 </span></span><span style="display:flex;"><span>		}
 </span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">newStatus</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
 </span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;service status returned by EnsureLoadBalancer is nil&#34;</span>)
@@ -453,8 +484,8 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
 <p>下面的测试代码展示了一种结构化、测试数据隔离、全面和可维护的测试方法，适用于对复杂逻辑的测试，并能有效保证代码质量和正确性。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>    <span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestServiceCache</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//ServiceCache a common service cache for all the test cases
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">sc</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">serviceCache</span>{<span style="color:#a6e22e">serviceMap</span>: make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">cachedService</span>)}
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//ServiceCache a common service cache for all the test cases</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">sc</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">serviceCache</span>{<span style="color:#a6e22e">serviceMap</span>: make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">cachedService</span>)}
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">testCases</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">struct</span> {
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">testName</span>     <span style="color:#66d9ef">string</span>
@@ -467,8 +498,8 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">cS</span>.<span style="color:#a6e22e">state</span> = <span style="color:#a6e22e">defaultExternalService</span>()
 </span></span><span style="display:flex;"><span>		},
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
-</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//There must be exactly one element
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">serviceMap</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//There must be exactly one element</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">serviceMap</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span> {
 </span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Expected=1 Obtained=%d&#34;</span>, len(<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">serviceMap</span>))
 </span></span><span style="display:flex;"><span>			}
 </span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
@@ -480,8 +511,8 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>		},
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
-</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//Now it should have no element
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">serviceMap</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//Now it should have no element</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">serviceMap</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> {
 </span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Expected=0 Obtained=%d&#34;</span>, len(<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">serviceMap</span>))
 </span></span><span style="display:flex;"><span>			}
 </span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
@@ -492,8 +523,8 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">set</span>(<span style="color:#e6db74">&#34;addTest&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">cachedService</span>{<span style="color:#a6e22e">state</span>: <span style="color:#a6e22e">defaultExternalService</span>()})
 </span></span><span style="display:flex;"><span>		},
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
-</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//Now it should have one element
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">Cs</span>, <span style="color:#66d9ef">bool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;addTest&#34;</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//Now it should have one element</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Cs</span>, <span style="color:#66d9ef">bool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;addTest&#34;</span>)
 </span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> !<span style="color:#66d9ef">bool</span> {
 </span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;is Available Expected=true Obtained=%v&#34;</span>, <span style="color:#66d9ef">bool</span>)
 </span></span><span style="display:flex;"><span>			}
@@ -505,12 +536,12 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
 </span></span><span style="display:flex;"><span>	}, {
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">testName</span>: <span style="color:#e6db74">&#34;ListKeys&#34;</span>,
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>: <span style="color:#66d9ef">func</span>() {
-</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//Add one more entry here
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">set</span>(<span style="color:#e6db74">&#34;addTest1&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">cachedService</span>{<span style="color:#a6e22e">state</span>: <span style="color:#a6e22e">defaultExternalService</span>()})
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//Add one more entry here</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">set</span>(<span style="color:#e6db74">&#34;addTest1&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">cachedService</span>{<span style="color:#a6e22e">state</span>: <span style="color:#a6e22e">defaultExternalService</span>()})
 </span></span><span style="display:flex;"><span>		},
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
-</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//It should have two elements
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">keys</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">ListKeys</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//It should have two elements</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">keys</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">ListKeys</span>()
 </span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">keys</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">2</span> {
 </span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;elements Expected=2 Obtained=%v&#34;</span>, len(<span style="color:#a6e22e">keys</span>))
 </span></span><span style="display:flex;"><span>			}
@@ -518,10 +549,10 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
 </span></span><span style="display:flex;"><span>		},
 </span></span><span style="display:flex;"><span>	}, {
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">testName</span>:   <span style="color:#e6db74">&#34;GetbyKeys&#34;</span>,
-</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>: <span style="color:#66d9ef">nil</span>, <span style="color:#75715e">//Nothing to set
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
-</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//It should have two elements
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">svc</span>, <span style="color:#a6e22e">isKey</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">GetByKey</span>(<span style="color:#e6db74">&#34;addTest&#34;</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>: <span style="color:#66d9ef">nil</span>, <span style="color:#75715e">//Nothing to set</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//It should have two elements</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">svc</span>, <span style="color:#a6e22e">isKey</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">GetByKey</span>(<span style="color:#e6db74">&#34;addTest&#34;</span>)
 </span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">svc</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">isKey</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">false</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 </span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Expected(non-nil, true, nil) Obtained(%v,%v,%v)&#34;</span>, <span style="color:#a6e22e">svc</span>, <span style="color:#a6e22e">isKey</span>, <span style="color:#a6e22e">err</span>)
 </span></span><span style="display:flex;"><span>			}
@@ -529,10 +560,10 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
 </span></span><span style="display:flex;"><span>		},
 </span></span><span style="display:flex;"><span>	}, {
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">testName</span>:   <span style="color:#e6db74">&#34;allServices&#34;</span>,
-</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>: <span style="color:#66d9ef">nil</span>, <span style="color:#75715e">//Nothing to set
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
-</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//It should return two elements
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">svcArray</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">allServices</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">setCacheFn</span>: <span style="color:#66d9ef">nil</span>, <span style="color:#75715e">//Nothing to set</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">checkCacheFn</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//It should return two elements</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">svcArray</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sc</span>.<span style="color:#a6e22e">allServices</span>()
 </span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">svcArray</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">2</span> {
 </span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Expected(2) Obtained(%v)&#34;</span>, len(<span style="color:#a6e22e">svcArray</span>))
 </span></span><span style="display:flex;"><span>			}
@@ -558,6 +589,23 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
   
   
   
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/using-the-helm-tpl-function/"
+      ><span class="mr-1.5">←</span><span>简化Helm Charts部署：使用tpl函数引用Values</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8s-schedule-road-path/"
+      ><span>k8s 默认的调度器工作机制和策略</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
   
   
 
@@ -599,7 +647,7 @@ processServiceCreateOrUpdate() processServiceDelete() 它的主要逻辑如下�
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

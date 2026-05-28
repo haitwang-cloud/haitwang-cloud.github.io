@@ -65,13 +65,18 @@
   
   
   
-  <meta name="description" content="How To Build Docker Images For Apple Silicon (Aka M1 Chip) 的中文翻译版本,内容有删减
-背景（Background） 苹果不久前发布了基于M1芯片的新MacBook。与之前所有基于英特尔的Apple笔记本电脑不同，M1具有不同的架构 - arm64而不是英特尔的“amd64”。
+  <meta name="description" content="
+How To Build Docker Images For Apple Silicon (Aka M1 Chip) 的中文翻译版本,内容有删减
+
+背景（Background）
+苹果不久前发布了基于M1芯片的新MacBook。与之前所有基于英特尔的Apple笔记本电脑不同，M1具有不同的架构 - arm64而不是英特尔的“amd64”。
 新的架构意味着大多数软件产品应该重新编译,至少对于用编译语言编写的软件必须这样做。该规则适用于主要用Go写的项目。然而，这并不是100%正确的：苹果不遗余力地使旧的编译代码与新架构兼容，Roseta 2是用来达成这个目标的主要工具.
 Docker 也试图迎头赶上 the M1 support came out a few weeks ago.但是，事情并不像预期那样无缝运行：
-Docker依靠 qemu 在M1芯片上模拟英特尔的架构。然而事实是 QEMU有时不能很好地工作：在 Apple Silicon 机器上尝试运行基于 Intel 的容器可能会崩溃，因为 QEMU 有时无法运行容器。例如文件变更 API File System Events（例如 inotify）在 QEMU 仿真下不起作用 [&hellip;]。 因此，我们建议您在 Apple Silicon 机器上运行 ARM64 容器。与基于 Intel 的容器相比，这些容器也更快且使用更少的内存。
-如何为arm64打包镜像（How to build an image for arm64） 幸运的是，Docker 已经宣布 一项实验性功能 buildx，它可以为特定架构（arm64、amd64 等）构建映像。
-Step 1." />
+Docker依靠 qemu 在M1芯片上模拟英特尔的架构。然而事实是 QEMU有时不能很好地工作：在 Apple Silicon 机器上尝试运行基于 Intel 的容器可能会崩溃，因为 QEMU 有时无法运行容器。例如文件变更 API File System Events（例如 inotify）在 QEMU 仿真下不起作用 [&hellip;]。  因此，我们建议您在 Apple Silicon 机器上运行 ARM64 容器。与基于 Intel 的容器相比，这些容器也更快且使用更少的内存。
+如何为arm64打包镜像（How to build an image for arm64）
+幸运的是，Docker 已经宣布 一项实验性功能 buildx，它可以为特定架构（arm64、amd64 等）构建映像。
+Step 1.开启实验功能（ Enable experimental features0
+如果您使用的是 Mac 版 Docker Desktop，您只需在 Docker CLI 上启用实验性功能 —— 编辑 ~/.docker/config.json 添加以下内容：" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -126,7 +131,7 @@ Step 1." />
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -299,7 +304,7 @@ mystifying_bell * docker-container
   mystifying_bell0 unix:///var/run/docker.sock inactive
 default      docker
   default     default           running linux/amd64, linux/arm64, linux/riscv64, linux/ppc64le, linux/s390x, linux/386, linux/arm/v7, linux/arm/v6
-</code></pre><h3 id="step-3-build-multi-architecture-imagestep-3-build-multiarchitecture-image">Step 3. Build multi-architecture image<a href="#step-3-build-multiarchitecture-image">#</a></h3>
+</code></pre><h3 id="step-3-build-multi-architecture-image">Step 3. Build multi-architecture image<a href="#step-3-build-multiarchitecture-image">#</a></h3>
 <p>Build your multi-architecture image:</p>
 <p>通过以下命令构建您的多架构映像：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker buildx build --platform linux/amd64,linux/arm64 -t company/image_name .
@@ -360,7 +365,7 @@ default      docker
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

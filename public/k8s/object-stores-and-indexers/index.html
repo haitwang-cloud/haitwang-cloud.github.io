@@ -65,14 +65,38 @@
   
   
   
-  <meta name="description" content="本文是Understanding Kubernetes controllers part II – object stores and indexers的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是Understanding Kubernetes controllers part II – object stores and indexers的中文翻译版本，内容有删减
+
 基本上，我们已经学会了如何使用 Kubernetes Go client来检索 Kubernetes 资源的信息，因此我们可以在我们的controller中简单地执行这个操作。然而，这有点低效。假设，例如，你正在使用多个工作线程，就像我们所做的那样。那么你可能会一遍又一遍地检索相同的信息，对 API 服务器造成很大负载。为了避免这种情况，可以使用一种特殊的 Kubernetes Informers 类型，称为index informers，它们构建一个线程安全的对象存储作为缓存。当集群的状态发生变化时，Informer 不仅会调用我们controller的处理函数，还会执行必要的更新以保持缓存的最新状态。由于缓存具有处理索引的额外能力，因此被称为 Indexer。因此，在今天的文章末尾，以下图片将呈现出来。
+
 在本文的其余部分，我们将更详细地讨论索引器及其与 Informer 的交互，而在下一篇文章中，我们将学习如何创建和使用 Informer，并深入了解它们的内部运作。
-Watches and resource versions 在我们讨论 Informers 和 Indexers 之前，我们必须了解客户端可以使用的基本机制，以跟踪集群状态。为了实现这一点，Kubernetes API 提供了一种称为 watch 的机制。最好通过一个例子来解释这个概念。
+Watches and resource versions
+在我们讨论 Informers 和 Indexers 之前，我们必须了解客户端可以使用的基本机制，以跟踪集群状态。为了实现这一点，Kubernetes API 提供了一种称为 watch 的机制。最好通过一个例子来解释这个概念。
 在继续之前，请确保你有一个运行中的 Kubernetes 集群。我们将使用 curl 直接与 API 进行交互。为了避免必须在请求中添加令牌或证书，我们将使用 kubectl 代理机制。因此，请在另一个单独的终端中运行：
-$ kubectl proxy 此时你应该看到一个消息，表示该代理正在本地主机的某个端口上监听（通常是8001）。发送到该端口的任何请求将被转发到 Kubernetes API 服务器。为了访问我们的集群，让我们首先启动一个单独的 HTTPD。
-$ kubectl run alpine --image=httpd:alpine 然后我们使用CURL来获取默认命名空间中正在运行的 pod 列表。
-$ curl localhost:8001/api/v1/namespaces/default/pods { &#34;kind&#34;: &#34;PodList&#34;, &#34;apiVersion&#34;: &#34;v1&#34;, &#34;metadata&#34;: { &#34;selfLink&#34;: &#34;/api/v1/namespaces/default/pods&#34;, &#34;resourceVersion&#34;: &#34;6834&#34; }, &#34;items&#34;: [ { &#34;metadata&#34;: { &#34;name&#34;: &#34;alpine-56cf65bbfc-tzqqx&#34;, &#34;generateName&#34;: &#34;alpine-56cf65bbfc-&#34;, &#34;namespace&#34;: &#34;default&#34;, &#34;selfLink&#34;: &#34;/api/v1/namespaces/default/pods/alpine-56cf65bbfc-tzqqx&#34;, &#34;uid&#34;: &#34;584ddf85-5f8d-11e9-80c0-080027696a3f&#34;, &#34;resourceVersion&#34;: &#34;6671&#34;, --- REDACTED --- 正如预期的那样，你将获得一个 JSON 编码的对象类型 PodList。有趣的部分是元数据中的数据。你会看到有一个字段 resourceVersion。本质上，资源版本是一个随时间增加的数字，它唯一地标识集群的某个状态。" />
+$ kubectl proxy
+此时你应该看到一个消息，表示该代理正在本地主机的某个端口上监听（通常是8001）。发送到该端口的任何请求将被转发到 Kubernetes API 服务器。为了访问我们的集群，让我们首先启动一个单独的 HTTPD。
+$ kubectl run alpine --image=httpd:alpine
+然后我们使用CURL来获取默认命名空间中正在运行的 pod 列表。
+$ curl localhost:8001/api/v1/namespaces/default/pods
+{
+  &#34;kind&#34;: &#34;PodList&#34;,
+  &#34;apiVersion&#34;: &#34;v1&#34;,
+  &#34;metadata&#34;: {
+    &#34;selfLink&#34;: &#34;/api/v1/namespaces/default/pods&#34;,
+    &#34;resourceVersion&#34;: &#34;6834&#34;
+  },
+  &#34;items&#34;: [
+    {
+      &#34;metadata&#34;: {
+        &#34;name&#34;: &#34;alpine-56cf65bbfc-tzqqx&#34;,
+        &#34;generateName&#34;: &#34;alpine-56cf65bbfc-&#34;,
+        &#34;namespace&#34;: &#34;default&#34;,
+        &#34;selfLink&#34;: &#34;/api/v1/namespaces/default/pods/alpine-56cf65bbfc-tzqqx&#34;,
+        &#34;uid&#34;: &#34;584ddf85-5f8d-11e9-80c0-080027696a3f&#34;,
+        &#34;resourceVersion&#34;: &#34;6671&#34;,
+--- REDACTED ---
+正如预期的那样，你将获得一个 JSON 编码的对象类型 PodList。有趣的部分是元数据中的数据。你会看到有一个字段 resourceVersion。本质上，资源版本是一个随时间增加的数字，它唯一地标识集群的某个状态。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -127,7 +151,7 @@ $ curl localhost:8001/api/v1/namespaces/default/pods { &#34;kind&#34;: &#34;PodL
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -326,33 +350,33 @@ $ curl localhost:8001/api/v1/namespaces/default/pods { &#34;kind&#34;: &#34;PodL
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">v1alpha1</span>.<span style="color:#a6e22e">NewFooLister</span>(<span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Informer</span>().<span style="color:#a6e22e">GetIndexer</span>())
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p><code>Informer</code>和<code>Indexer</code>之间的通信是通过函数 <code>_handleDeltas_</code> 完成的，该函数接收一个 <code>_Delta_ </code>对象列表，其定义在 <a href="https://github.com/kubernetes/client-go/blob/master/tools/cache/delta_fifo.go">delta_fifo.go</a> 中（我们将在下一篇文章中了解更多关于这是如何工作的）。如果我们查看这个函数，我们会发现它不仅调用所有注册的处理函数（通过 <code>_processor_</code>），而且根据 <code>delta</code> 的类型还调用存储的 <code>_Add_</code>、<code>_Update_</code> 和 <code>_Delete_</code> 方法。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// DeltaFIFOOptions is the configuration parameters for DeltaFIFO. All are
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// optional.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">DeltaFIFOOptions</span> <span style="color:#66d9ef">struct</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// DeltaFIFOOptions is the configuration parameters for DeltaFIFO. All are</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// optional.</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">DeltaFIFOOptions</span> <span style="color:#66d9ef">struct</span> {
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// KeyFunction is used to figure out what key an object should have. (It&#39;s
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// exposed in the returned DeltaFIFO&#39;s KeyOf() method, with additional
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// handling around deleted objects and queue state).
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// Optional, the default is MetaNamespaceKeyFunc.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">KeyFunction</span> <span style="color:#a6e22e">KeyFunc</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// KeyFunction is used to figure out what key an object should have. (It&#39;s</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// exposed in the returned DeltaFIFO&#39;s KeyOf() method, with additional</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// handling around deleted objects and queue state).</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Optional, the default is MetaNamespaceKeyFunc.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">KeyFunction</span> <span style="color:#a6e22e">KeyFunc</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// KnownObjects is expected to return a list of keys that the consumer of
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// this queue &#34;knows about&#34;. It is used to decide which items are missing
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// when Replace() is called; &#39;Deleted&#39; deltas are produced for the missing items.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// KnownObjects may be nil if you can tolerate missing deletions on Replace().
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">KnownObjects</span> <span style="color:#a6e22e">KeyListerGetter</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// KnownObjects is expected to return a list of keys that the consumer of</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// this queue &#34;knows about&#34;. It is used to decide which items are missing</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// when Replace() is called; &#39;Deleted&#39; deltas are produced for the missing items.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// KnownObjects may be nil if you can tolerate missing deletions on Replace().</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">KnownObjects</span> <span style="color:#a6e22e">KeyListerGetter</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// EmitDeltaTypeReplaced indicates that the queue consumer
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// understands the Replaced DeltaType. Before the `Replaced` event type was
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// added, calls to Replace() were handled the same as Sync(). For
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// backwards-compatibility purposes, this is false by default.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// When true, `Replaced` events will be sent for items passed to a Replace() call.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// When false, `Sync` events will be sent instead.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">EmitDeltaTypeReplaced</span> <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// EmitDeltaTypeReplaced indicates that the queue consumer</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// understands the Replaced DeltaType. Before the `Replaced` event type was</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// added, calls to Replace() were handled the same as Sync(). For</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// backwards-compatibility purposes, this is false by default.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// When true, `Replaced` events will be sent for items passed to a Replace() call.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// When false, `Sync` events will be sent instead.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">EmitDeltaTypeReplaced</span> <span style="color:#66d9ef">bool</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// If set, will be called for objects before enqueueing them. Please
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// see the comment on TransformFunc for details.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Transformer</span> <span style="color:#a6e22e">TransformFunc</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// If set, will be called for objects before enqueueing them. Please</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// see the comment on TransformFunc for details.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Transformer</span> <span style="color:#a6e22e">TransformFunc</span>
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>我们现在对sample controller的工作原理有了一个相当完整的了解。<code>Informer</code>利用Kubernetes API及其基于资源版本的监视机制来获取集群状态的更新。这些更新用于维护一个对象存储，反映集群的当前状态，并调用定义的事件处理函数。<code>controller</code>向<code>Informer</code>注册其函数，以在资源发生更改时调用这些函数。然后，它可以访问对象存储，轻松检索资源的当前状态，并采取必要的措施推动系统朝向目标状态发展。</p>
 </section>
@@ -363,6 +387,23 @@ $ curl localhost:8001/api/v1/namespaces/default/pods { &#34;kind&#34;: &#34;PodL
   
   
   
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/bare-metal-kubernetes/"
+      ><span class="mr-1.5">←</span><span>全面解析Bare Metal Kubernetes:必知的关键点</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/oom-killed-by-client-go-label-select/"
+      ><span>Client-go 中的label selector 引起的 CPU Throttling问题</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
   
   
 
@@ -404,7 +445,7 @@ $ curl localhost:8001/api/v1/namespaces/default/pods { &#34;kind&#34;: &#34;PodL
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

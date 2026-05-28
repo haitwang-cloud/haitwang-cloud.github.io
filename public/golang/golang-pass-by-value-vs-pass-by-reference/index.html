@@ -65,16 +65,65 @@
   
   
   
-  <meta name="description" content="本文是Golang Pass by value vs Pass by reference的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是Golang Pass by value vs Pass by reference的中文翻译版本，内容有删减
+
+
 值传递和引用传递是使用指针类型时需要尤其注意的点（特别是在Java, C#, C/C&#43;&#43;和Go等语言中）
 当使创建方法/函数包含参数时，该参数可以选择使用普通数据类型或指针来进行传递。这将使传递给方法的参数有所不同：
-按值传递 会将变量的值传递到方法中，或者可以说是将原始变量将值“复制”到另一个内存位置并将新创建的值传递到方法中。因此，在方法中变量发生的任何改变都不会影响原始变量值。 按引用传递 将传递变量的内存位置而不是值。换句话说，它将变量的“容器”传递给方法，因此，方法中变量的任何改变都会影响原始变量。 简而言之,按值传递将复制值，按引用传递将传递内存位置。
+
+按值传递 会将变量的值传递到方法中，或者可以说是将原始变量将值“复制”到另一个内存位置并将新创建的值传递到方法中。因此，在方法中变量发生的任何改变都不会影响原始变量值。
+按引用传递 将传递变量的内存位置而不是值。换句话说，它将变量的“容器”传递给方法，因此，方法中变量的任何改变都会影响原始变量。
+
+
+简而言之,按值传递将复制值，按引用传递将传递内存位置。
+
 下图是清晰得解释了按值传递和按引用传递的区别
 ![][img-1]source: www.penjee.com
 在Go语言中，我们可以处理指针，因此我们必须了解按值传递和按引用传递在 Go 中的工作原理，本文将它分为 3 个部分：“基本”、“引用”、“函数”。
 源代码地址: https://github.com/david-yappeter/go-passbyvalue-passbyreference
-基本数据类型(Basic Data Type） basicAndArray
-package main import &#34;fmt&#34; func main() { a, b := 0, 0 // Initialize Value fmt.Printf(&#34;## INIT\n&#34;) fmt.Printf(&#34;Memory Location a: %p, b: %p\n&#34;, &amp;a, &amp;b) fmt.Printf(&#34;Value a: %d, b: %d\n&#34;, a, b) // 0 0 // Passing By Value a(int) Add(a) // Golang will copy value of &#39;a&#39; and insert it into argument // Passing By Reference b(int), &amp;b(*int) =&gt; with &#39;&amp;&#39; we can get the memory location of &#39;b&#39; AddPtr(&amp;b) // Pass Memory Location of &#39;b&#39; into argument fmt." />
+基本数据类型(Basic Data Type）
+
+basicAndArray
+package main
+
+import &#34;fmt&#34;
+
+func main() {
+	a, b := 0, 0
+
+	// Initialize Value
+	fmt.Printf(&#34;## INIT\n&#34;)
+	fmt.Printf(&#34;Memory Location a: %p, b: %p\n&#34;, &amp;a, &amp;b)
+	fmt.Printf(&#34;Value a: %d, b: %d\n&#34;, a, b) // 0 0
+
+	// Passing By Value a(int)
+	Add(a) // Golang will copy value of &#39;a&#39; and insert it into argument
+
+	// Passing By Reference b(int), &amp;b(*int) =&gt; with &#39;&amp;&#39; we can get the memory location of &#39;b&#39;
+	AddPtr(&amp;b) // Pass Memory Location of &#39;b&#39; into argument
+
+	fmt.Printf(&#34;\n## FINAL\n&#34;)
+	fmt.Printf(&#34;Memory Location a: %p, b: %p\n&#34;, &amp;a, &amp;b)
+	fmt.Printf(&#34;Value a: %d, b: %d\n&#34;, a, b) // 0 1
+}
+
+// Pass By Value
+func Add(x int) {
+	fmt.Printf(&#34;\n## &#39;Add&#39; Function\n&#34;)
+	fmt.Printf(&#34;Before Add, Memory Location: %p, Value: %d\n&#34;, &amp;x, x)
+	x&#43;&#43;
+	fmt.Printf(&#34;After Add, Memory Location: %p, Value: %d\n&#34;, &amp;x, x)
+}
+
+// Pass By Reference
+func AddPtr(x *int) {
+	fmt.Printf(&#34;\n## &#39;AddPtr&#39; Function\n&#34;)
+	fmt.Printf(&#34;Before AddPtr, Memory Location: %p, Value: %d\n&#34;, x, *x)
+	*x&#43;&#43; // We add * in front of the variable because it is a pointer, * will call value of a pointer
+	fmt.Printf(&#34;After AddPtr, Memory Location: %p, Value: %d\n&#34;, x, *x)
+}
+Output:" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -129,7 +178,7 @@ package main import &#34;fmt&#34; func main() { a, b := 0, 0 // Initialize Value
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -297,36 +346,36 @@ package main import &#34;fmt&#34; func main() { a, b := 0, 0 // Initialize Value
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Initialize Value
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;## INIT\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Initialize Value</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;## INIT\n&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Memory Location a: %p, b: %p\n&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">a</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">b</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value a: %d, b: %d\n&#34;</span>, <span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span>) <span style="color:#75715e">// 0 0
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Passing By Value a(int)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">a</span>) <span style="color:#75715e">// Golang will copy value of &#39;a&#39; and insert it into argument
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Passing By Reference b(int), &amp;b(*int) =&gt; with &#39;&amp;&#39; we can get the memory location of &#39;b&#39;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">AddPtr</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">b</span>) <span style="color:#75715e">// Pass Memory Location of &#39;b&#39; into argument
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value a: %d, b: %d\n&#34;</span>, <span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span>) <span style="color:#75715e">// 0 0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Passing By Value a(int)</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">a</span>) <span style="color:#75715e">// Golang will copy value of &#39;a&#39; and insert it into argument</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Passing By Reference b(int), &amp;b(*int) =&gt; with &#39;&amp;&#39; we can get the memory location of &#39;b&#39;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">AddPtr</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">b</span>) <span style="color:#75715e">// Pass Memory Location of &#39;b&#39; into argument</span>
+</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;\n## FINAL\n&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Memory Location a: %p, b: %p\n&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">a</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">b</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value a: %d, b: %d\n&#34;</span>, <span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span>) <span style="color:#75715e">// 0 1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Value a: %d, b: %d\n&#34;</span>, <span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span>) <span style="color:#75715e">// 0 1</span>
+</span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// Pass By Value
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">x</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Pass By Value</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">x</span> <span style="color:#66d9ef">int</span>) {
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;\n## &#39;Add&#39; Function\n&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Before Add, Memory Location: %p, Value: %d\n&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">x</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">x</span><span style="color:#f92672">++</span>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;After Add, Memory Location: %p, Value: %d\n&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">x</span>)
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// Pass By Reference
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">AddPtr</span>(<span style="color:#a6e22e">x</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Pass By Reference</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">AddPtr</span>(<span style="color:#a6e22e">x</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">int</span>) {
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;\n## &#39;AddPtr&#39; Function\n&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Before AddPtr, Memory Location: %p, Value: %d\n&#34;</span>, <span style="color:#a6e22e">x</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">x</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#f92672">*</span><span style="color:#a6e22e">x</span><span style="color:#f92672">++</span> <span style="color:#75715e">// We add * in front of the variable because it is a pointer, * will call value of a pointer
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;After AddPtr, Memory Location: %p, Value: %d\n&#34;</span>, <span style="color:#a6e22e">x</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">x</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">*</span><span style="color:#a6e22e">x</span><span style="color:#f92672">++</span> <span style="color:#75715e">// We add * in front of the variable because it is a pointer, * will call value of a pointer</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;After AddPtr, Memory Location: %p, Value: %d\n&#34;</span>, <span style="color:#a6e22e">x</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">x</span>)
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>Output:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Golang" data-lang="Golang"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">##</span> <span style="color:#a6e22e">INIT</span>
@@ -363,8 +412,8 @@ package main import &#34;fmt&#34; func main() { a, b := 0, 0 // Initialize Value
 </span></span><span style="display:flex;"><span>)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Slices
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;======================&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Slices</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;======================&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;SLICES&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;======================&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">arrInt</span> []<span style="color:#66d9ef">int</span> = []<span style="color:#66d9ef">int</span>{<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>}
@@ -377,8 +426,8 @@ package main import &#34;fmt&#34; func main() { a, b := 0, 0 // Initialize Value
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;After\n&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;ArrInt: %+v, SliceInt: %+v\n&#34;</span>, <span style="color:#a6e22e">arrInt</span>, <span style="color:#a6e22e">sliceInt</span>)
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// MAP
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;======================&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// MAP</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;======================&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;MAP&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;======================&#34;</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">emptyMap</span> = make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{})
@@ -515,23 +564,6 @@ package main import &#34;fmt&#34; func main() { a, b := 0, 0 // Initialize Value
   
   
   
-  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
-    
-    <a
-      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/managing-multiple-go-versions-with-go/"
-      ><span class="mr-1.5">←</span><span>多版本 Go 管理策略</span></a
-    >
-    
-    
-    <a
-      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/error-handle/"
-      ><span>Golang 错误处理的最佳实践</span><span class="ml-1.5">→</span></a
-    >
-    
-  </nav>
-  
   
 
   
@@ -572,7 +604,7 @@ package main import &#34;fmt&#34; func main() { a, b := 0, 0 // Initialize Value
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

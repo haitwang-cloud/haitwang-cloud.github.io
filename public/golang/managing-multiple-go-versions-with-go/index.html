@@ -65,13 +65,29 @@
   
   
   
-  <meta name="description" content="本文是 [Managing Multiple Go Versions with Go] (https://lakefs.io/blog/managing-multiple-go-versions-with-go/)的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是 [Managing Multiple Go Versions with Go] (https://lakefs.io/blog/managing-multiple-go-versions-with-go/)的中文翻译版本，内容有删减
+
 作为 Go 编程语言的用户，我发现在一个项目中启用运行多个版本非常有用。如果你已经尝试过或考虑过这个功能，那太好了！在本文中，我将介绍启用多个 Go 版本的时间和方法。最后，我们将讨论为什么这种方法如此强大。
-什么时候需要多版本的Go (When Do We Need Multiple Go Versions?) 默认情况下，安装 Go 只意味着你可以运行一个 go 命令来构建和测试你的项目。这对于入门很简单，但也可能有局限性。
+什么时候需要多版本的Go (When Do We Need Multiple Go Versions?)
+默认情况下，安装 Go 只意味着你可以运行一个 go 命令来构建和测试你的项目。这对于入门很简单，但也可能有局限性。
 更灵活的设置是通过 go1.17 或 go1.18 命令启用在同一环境中运行多个版本。另一种替代方法是设置终端的 PATH 环境变量以指向特定的 Go 版本的 SDK。
 以下是我发现可能会有有多个go版本的几种情况：
-项目需求不同 —— 在多个项目之间切换时，通常需要为每个项目使用不同的 Go 版本。 创建特定的测试环境 —— 在测试向后兼容性或确保修复漏洞的成功时，重要的是控制运行时版本。 保持最前沿 —— 当测试最新 Go 发布中仅可用的新功能或包的行为时 必备条件(Prerequisites) 本指南假定您已经知道如何使用 Go 构建和运行程序。具体来说，这意味着您已经安装了 Go 和 Git，并且它们在您的路径中可用。
-Go – https://golang.org/doc/install Git – https://git-scm.com/ Modules – Using Go Modules 如何使用多个 Go 版本(How to Work With Multiple Go Versions) 我们可以使用 go install 命令来下载并安装单个 Go 版本。" />
+
+项目需求不同 —— 在多个项目之间切换时，通常需要为每个项目使用不同的 Go 版本。
+创建特定的测试环境 —— 在测试向后兼容性或确保修复漏洞的成功时，重要的是控制运行时版本。
+保持最前沿 —— 当测试最新 Go 发布中仅可用的新功能或包的行为时
+
+必备条件(Prerequisites)
+本指南假定您已经知道如何使用 Go 构建和运行程序。具体来说，这意味着您已经安装了 Go 和 Git，并且它们在您的路径中可用。
+
+Go – https://golang.org/doc/install
+Git – https://git-scm.com/
+Modules – Using Go Modules
+
+如何使用多个 Go 版本(How to Work With Multiple Go Versions)
+
+我们可以使用 go install 命令来下载并安装单个 Go 版本。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -126,7 +142,7 @@ Go – https://golang.org/doc/install Git – https://git-scm.com/ Modules –
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -387,23 +403,6 @@ $ export PATH=${GOROOT}/bin;${PATH}
   
   
   
-  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
-    
-    <a
-      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/how-to-upgrade-golang-dependencies/"
-      ><span class="mr-1.5">←</span><span>升级 Golang 模块依赖的步骤</span></a
-    >
-    
-    
-    <a
-      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/golang-pass-by-value-vs-pass-by-reference/"
-      ><span>理解 Golang 中的值传递与引用传递</span><span class="ml-1.5">→</span></a
-    >
-    
-  </nav>
-  
   
 
   
@@ -444,7 +443,7 @@ $ export PATH=${GOROOT}/bin;${PATH}
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

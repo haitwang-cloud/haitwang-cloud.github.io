@@ -65,14 +65,26 @@
   
   
   
-  <meta name="description" content="本文是 leader-election-in-kubernetes-using-client-go的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是 leader-election-in-kubernetes-using-client-go的中文翻译版本，内容有删减
+
 如果您想了解 Kubernetes 中leader election的工作原理，那么希望本文能对您有所帮助。在本文中，我们将讨论高可用系统中leader election的概念，并探讨kubernetes/client-go库，以了解其在 Kubernetes 控制器中的应用。
 近年来，“高可用性”一词因可靠系统和基础设施需求的增加而变得流行起来。在分布式系统中，高可用性通常涉及最大化运行时间和系统容错。高可用性中通常采用的一种做法是使用冗余来避免单点故障。为冗余做好系统和服务的准备工作可能只需要在负载均衡器后面部署更多的副本。虽然这样的配置对许多应用程序来说可能有效，但有些用例需要在副本之间进行仔细的协调才能使系统正确运行。
 一个很好的例子是当一个 Kubernetes 控制器被部署为多个实例时。为了防止任何意外的行为，leader election过程必须确保在副本之间选出一个leader，并且该leader是唯一主动协调集群的实例。其他实例应该保持不活动，但随时准备接管leader实例的工作，以防其失败。
 在 Kubernetes 中，leader election的过程很简单。它始于创建一个锁对象，leader会定期更新当前时间戳，以通知其他副本其领导权。这个锁对象可以是一个Lease，ConfigMap或者Endpoint，它还保存了当前leader的身份。如果leader在给定的时间间隔内未能更新时间戳，则认为它已经崩溃，此时非活动副本会竞争更新锁，以获取领导权。成功获取锁的pod将成为新的leader。
 在我们开始写代码之前，我们来看一下这个过程是如何工作的。
 首先，我们需要一个本地的Kubernetes集群。我将使用 KinD，但是您可以随意选择一个本地的k8s发行版。
-$ kind create cluster Creating cluster &#34;kind&#34; ... ✓ Ensuring node image (kindest/node:v1.21.1) 🖼 ✓ Preparing nodes 📦 ✓ Writing configuration 📜 ✓ Starting control-plane 🕹️ ✓ Installing CNI 🔌 ✓ Installing StorageClass 💾 Set kubectl context to &#34;kind-kind&#34; You can now use your cluster with:kubectl cluster-info --context kind-kindNot sure what to do next?" />
+$ kind create cluster
+Creating cluster &#34;kind&#34; ...
+ ✓ Ensuring node image (kindest/node:v1.21.1) 🖼
+ ✓ Preparing nodes 📦
+ ✓ Writing configuration 📜
+ ✓ Starting control-plane 🕹️
+ ✓ Installing CNI 🔌
+ ✓ Installing StorageClass 💾
+Set kubectl context to &#34;kind-kind&#34;
+You can now use your cluster with:kubectl cluster-info --context kind-kindNot sure what to do next? 😅  Check out https://kind.sigs.k8s.io/docs/user/quick-start/
+我们将使用的示例应用程序可以在k8s-leader-election，它使用kubernetes/client-go实现leader election。让我们在我们的集群上运行应用程序：" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -127,7 +139,7 @@ $ kind create cluster Creating cluster &#34;kind&#34; ... ✓ Ensuring node imag
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -411,6 +423,23 @@ $ kind create cluster Creating cluster &#34;kind&#34; ... ✓ Ensuring node imag
   
   
   
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8sgpt-operater/"
+      ><span class="mr-1.5">←</span><span>用k8sgpt-localai解锁Kubernetes的超能力</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/learning-k8s-by-running-app/"
+      ><span>从应用开发者的角度来学习K8S</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
   
 
   
@@ -451,7 +480,7 @@ $ kind create cluster Creating cluster &#34;kind&#34; ... ✓ Ensuring node imag
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

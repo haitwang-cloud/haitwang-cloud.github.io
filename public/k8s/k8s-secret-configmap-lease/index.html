@@ -65,10 +65,58 @@
   
   
   
-  <meta name="description" content="简介 在 Kubernetes (k8s) 中，Secret、ConfigMap 和 Lease 是三种关键资源对象，它们分别用于处理敏感信息、配置数据和分布式系统中的 leader 选举。本文将详细介绍这三种对象，包括它们的使用场景、优缺点以及示例。
-Secret 推荐使用场景 存储和管理敏感信息，例如密码、OAuth 令牌、SSH 密钥等。 注入到容器中的环境变量或挂载到文件系统，以便应用程序安全地访问敏感数据。 优势 安全性：避免在配置文件中以明文形式存储敏感信息。 灵活性：支持将 Secret 以多种方式提供给 Pod，例如环境变量或卷。 加密存储：Kubernetes 支持配置加密存储 Secret 对象。 劣势 配置复杂性：需要适当配置 RBAC 以确保 Secret 的安全访问。 管理难度：在大规模集群中管理大量 Secret 可能较为复杂。 示例 创建一个 Secret 对象：
-apiVersion: v1 kind: Secret metadata: name: mysecret type: Opaque data: # Base64 编码的 &#39;admin&#39; username: YWRtaW4= # Base64 编码的 &#39;1f2d1e2e67df&#39; password: MWYyZDFlMmU2N2Rm 在 Pod 中使用 Secret：
-apiVersion: v1 kind: Pod metadata: name: mypod spec: containers: - name: mycontainer image: myimage env: - name: USERNAME valueFrom: secretKeyRef: name: mysecret key: username - name: PASSWORD valueFrom: secretKeyRef: name: mysecret key: password 使用 Golang 访问 Secret：" />
+  <meta name="description" content="简介
+在 Kubernetes (k8s) 中，Secret、ConfigMap 和 Lease 是三种关键资源对象，它们分别用于处理敏感信息、配置数据和分布式系统中的 leader 选举。本文将详细介绍这三种对象，包括它们的使用场景、优缺点以及示例。
+Secret
+推荐使用场景
+
+存储和管理敏感信息，例如密码、OAuth 令牌、SSH 密钥等。
+注入到容器中的环境变量或挂载到文件系统，以便应用程序安全地访问敏感数据。
+
+优势
+
+安全性：避免在配置文件中以明文形式存储敏感信息。
+灵活性：支持将 Secret 以多种方式提供给 Pod，例如环境变量或卷。
+加密存储：Kubernetes 支持配置加密存储 Secret 对象。
+
+劣势
+
+配置复杂性：需要适当配置 RBAC 以确保 Secret 的安全访问。
+管理难度：在大规模集群中管理大量 Secret 可能较为复杂。
+
+示例
+创建一个 Secret 对象：
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysecret
+type: Opaque
+data:
+  # Base64 编码的 &#39;admin&#39;
+  username: YWRtaW4=
+  # Base64 编码的 &#39;1f2d1e2e67df&#39;
+  password: MWYyZDFlMmU2N2Rm
+在 Pod 中使用 Secret：
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+  - name: mycontainer
+    image: myimage
+    env:
+    - name: USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: mysecret
+          key: username
+    - name: PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: mysecret
+          key: password
+使用 Golang 访问 Secret：" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -123,7 +171,7 @@ apiVersion: v1 kind: Pod metadata: name: mypod spec: containers: - name: myconta
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -378,7 +426,7 @@ apiVersion: v1 kind: Pod metadata: name: mypod spec: containers: - name: myconta
 </span></span><span style="display:flex;"><span><span style="color:#f92672">data</span>:
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">config.properties</span>: |<span style="color:#e6db74">
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    key1=value1
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    key2=value2</span>    
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    key2=value2</span>
 </span></span></code></pre></div><p>使用 <code>ConfigMap</code> 的 Pod 配置：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
@@ -507,6 +555,23 @@ func main() {
   
   
   
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/kyverno-crd-missing-en/"
+      ><span class="mr-1.5">←</span><span># Kyverno ImageValidatingPolicy CRD Conflict Issue and Solution</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/bare-metal-kubernetes/"
+      ><span>全面解析Bare Metal Kubernetes:必知的关键点</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
   
 
   
@@ -547,7 +612,7 @@ func main() {
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

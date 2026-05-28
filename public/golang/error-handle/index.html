@@ -65,14 +65,31 @@
   
   
   
-  <meta name="description" content="本文是 Effective Error Handling in Golang的中文翻译版本，内容有删减。
+  <meta name="description" content="
+本文是 Effective Error Handling in Golang的中文翻译版本，内容有删减。
+
 其他优秀的Golang error handle 文章：
-一套优雅的 Go 错误问题解决方案 Go 中的 Errors 处理与其他主流编程语言（如 Java、JavaScript 或 Python）略有不同。Go 的内置 Errors 不包含堆栈跟踪，也不支持传统的 try/catch 方法来处理。相反，Go 中的 Errors 只是函数返回的值，它们可以像处理任何其他数据类型一样被处理, 它为 Go 带来了令人惊讶的轻量级和简单的设计。
+
+一套优雅的 Go 错误问题解决方案
+
+Go 中的 Errors 处理与其他主流编程语言（如 Java、JavaScript 或 Python）略有不同。Go 的内置 Errors 不包含堆栈跟踪，也不支持传统的 try/catch 方法来处理。相反，Go 中的 Errors 只是函数返回的值，它们可以像处理任何其他数据类型一样被处理, 它为 Go 带来了令人惊讶的轻量级和简单的设计。
 在本文中，我将从 Go 中处理错误的基础知识开始讲解，同时还有在代码中可以遵循的一些简单策略，以确保您的程序是健壮的和易于调试的。
-Error类型 (The Error Type) Go 中的错误类型是通过以下接口实现的：
-type error interface { Error() string } 所以，Go 中的错误是实现了 Error()的任何方法，该方法返回一个字符串类型的错误消息。就是这么简单！
-构建Errors (Constructing Errors) Errors 可以使用 Go 的内置 errors 或 fmt 包进行构造。例如，以下函数使用 errors 包返回一个带有静态错误消息的 error：
-package main import &#34;errors&#34; func DoSomething() error { return errors." />
+Error类型 (The Error Type)
+Go 中的错误类型是通过以下接口实现的：
+type error interface {
+    Error() string
+}
+所以，Go 中的错误是实现了 Error()的任何方法，该方法返回一个字符串类型的错误消息。就是这么简单！
+构建Errors (Constructing Errors)
+Errors 可以使用 Go 的内置 errors 或 fmt 包进行构造。例如，以下函数使用 errors 包返回一个带有静态错误消息的 error：
+package main
+
+import &#34;errors&#34;
+
+func DoSomething() error {
+    return errors.New(&#34;something didn&#39;t work&#34;)
+}
+类似地，fmt 包可以用于将数据动态添加到 error 中，例如 int、string 或另一个 error。例如：" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -127,7 +144,7 @@ package main import &#34;errors&#34; func DoSomething() error { return errors." 
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -532,7 +549,7 @@ package main import &#34;errors&#34; func DoSomething() error { return errors." 
 <li>预定义的错误将改进error 传递，使我们能够检查发生了哪个错误</li>
 <li>wrap错误以添加足够的上下文来跟踪函数调用（类似于堆栈跟踪）</li>
 </ul>
-<h3 id="referencesreferences">References<a href="#references"></a></h3>
+<h3 id="references">References<a href="#references"></a></h3>
 <ul>
 <li><a href="https://go.dev/blog/error-handling-and-go">Error handling and Go</a></li>
 <li><a href="https://go.dev/blog/go1.13-errors">Go 1.13 Errors</a></li>
@@ -548,23 +565,6 @@ package main import &#34;errors&#34; func DoSomething() error { return errors." 
   
   
   
-  
-  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
-    
-    <a
-      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/golang-pass-by-value-vs-pass-by-reference/"
-      ><span class="mr-1.5">←</span><span>理解 Golang 中的值传递与引用传递</span></a
-    >
-    
-    
-    <a
-      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/go-version-118-release-new/"
-      ><span>Go 1.18 版本新特性概览</span><span class="ml-1.5">→</span></a
-    >
-    
-  </nav>
   
   
 
@@ -606,7 +606,7 @@ package main import &#34;errors&#34; func DoSomething() error { return errors." 
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

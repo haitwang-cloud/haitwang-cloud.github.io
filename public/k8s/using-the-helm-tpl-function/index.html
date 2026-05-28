@@ -65,13 +65,33 @@
   
   
   
-  <meta name="description" content="摘要 本文将指导您如何在Helm Charts中使用tpl函数来引用values.yaml文件中的值，避免重复并简化配置。
-使用tpl函数引用Values 在Kubernetes部署中，Helm Charts提供了一种强大的方式来管理应用程序配置。但是，当配置变得复杂时，如何避免在values.yaml文件中重复相同的值呢？本文将介绍一种方法，通过使用Helm的tpl函数来实现这一点。
-environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env: - name: ENVIRONMENT value: &#34;{{ .Values.environment }}&#34; 这种方法不仅减少了重复，而且使您的配置更加灵活和易于维护。
-Tpl函数的工作原理 Tpl函数允许您在模板中使用字符串作为模板。这意味着您可以在Deployment资源模板中这样使用它：
-spec: containers: - name: main image: {{ tpl .Values.image . }} env: {{- tpl (toYaml .Values.env) . | nindent 12 }} 当您运行helm install时，Helm模板引擎将使用values文件中的设置替换相应的值。
-注意事项 在使用tpl函数时，请注意安全性。例如，如果用户提供了以下values文件：
-environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env: - name: PODS value: &#39;{{ lookup &#34;v1&#34; &#34;Pod&#34; &#34;&#34; &#34;&#34; }}&#39; 这可能会暴露集群中的敏感信息。因此，请确保在集群中使用适当的RBAC策略来限制用户的操作。" />
+  <meta name="description" content="摘要
+本文将指导您如何在Helm Charts中使用tpl函数来引用values.yaml文件中的值，避免重复并简化配置。
+使用tpl函数引用Values
+在Kubernetes部署中，Helm Charts提供了一种强大的方式来管理应用程序配置。但是，当配置变得复杂时，如何避免在values.yaml文件中重复相同的值呢？本文将介绍一种方法，通过使用Helm的tpl函数来实现这一点。
+environment: dev
+image: myregistry.io/{{ .Values.environment }}/myImage:1.0
+env:
+  - name: ENVIRONMENT
+    value: &#34;{{ .Values.environment }}&#34;
+这种方法不仅减少了重复，而且使您的配置更加灵活和易于维护。
+Tpl函数的工作原理
+Tpl函数允许您在模板中使用字符串作为模板。这意味着您可以在Deployment资源模板中这样使用它：
+spec:
+  containers:
+    - name: main
+      image: {{ tpl .Values.image . }}
+      env:
+        {{- tpl (toYaml .Values.env) . | nindent 12 }}
+当您运行helm install时，Helm模板引擎将使用values文件中的设置替换相应的值。
+注意事项
+在使用tpl函数时，请注意安全性。例如，如果用户提供了以下values文件：
+environment: dev
+image: myregistry.io/{{ .Values.environment }}/myImage:1.0
+env:
+  - name: PODS
+    value: &#39;{{ lookup &#34;v1&#34; &#34;Pod&#34; &#34;&#34; &#34;&#34; }}&#39;
+这可能会暴露集群中的敏感信息。因此，请确保在集群中使用适当的RBAC策略来限制用户的操作。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -126,7 +146,7 @@ environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env:
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -303,6 +323,23 @@ environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env:
   
   
   
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/oom-killed-by-client-go-label-select/"
+      ><span class="mr-1.5">←</span><span>Client-go 中的label selector 引起的 CPU Throttling问题</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8s-cloud-provider/"
+      ><span>K8s Cloud Provider源码解析</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
   
 
   
@@ -343,7 +380,7 @@ environment: dev image: myregistry.io/{{ .Values.environment }}/myImage:1.0 env:
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

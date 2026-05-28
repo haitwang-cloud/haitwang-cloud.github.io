@@ -65,11 +65,40 @@
   
   
   
-  <meta name="description" content="本文是 Prefer table driven tests的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是 Prefer table driven tests的中文翻译版本，内容有删减
+
 我是编写测试代码的狂热粉丝，特别喜欢unit testing和TDD。时下在Go项目中比较流行的是表格驱动测试，本文将会讨论如何编写针对Go的表格驱动测试
 假设我们有一个函数用于分割字符串：
-// Split slices s into all substrings separated by sep and // returns a slice of the substrings between those separators. func Split(s, sep string) []string { var result []string i := strings.Index(s, sep) for i &gt; -1 { result = append(result, s[:i]) s = s[i&#43;len(sep):] i = strings.Index(s, sep) } return append(result, s) } 单元测试 在Go中，单元测试就是普通的Go函数（有一些规则），所以我们可以在同一个目录下编写一个单元测试文件，包名为strings。
-package split import ( &#34;reflect&#34; &#34;testing&#34; ) func TestSplit(t *testing." />
+// Split slices s into all substrings separated by sep and
+// returns a slice of the substrings between those separators.
+func Split(s, sep string) []string {
+    var result []string
+    i := strings.Index(s, sep)
+    for i &gt; -1 {
+        result = append(result, s[:i])
+        s = s[i&#43;len(sep):]
+        i = strings.Index(s, sep)
+    }
+    return append(result, s)
+}
+单元测试
+在Go中，单元测试就是普通的Go函数（有一些规则），所以我们可以在同一个目录下编写一个单元测试文件，包名为strings。
+package split
+
+import (
+    &#34;reflect&#34;
+    &#34;testing&#34;
+)
+
+func TestSplit(t *testing.T) {
+    got := Split(&#34;a/b/c&#34;, &#34;/&#34;)
+    want := []string{&#34;a&#34;, &#34;b&#34;, &#34;c&#34;}
+    if !reflect.DeepEqual(want, got) {
+         t.Fatalf(&#34;expected: %v, got: %v&#34;, want, got)
+    }
+}
+编写测试代码和编写普通的Go函数一样，只有两个规则：" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -124,7 +153,7 @@ package split import ( &#34;reflect&#34; &#34;testing&#34; ) func TestSplit(t *t
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -270,9 +299,9 @@ package split import ( &#34;reflect&#34; &#34;testing&#34; ) func TestSplit(t *t
 </blockquote>
 <p>我是编写测试代码的狂热粉丝，特别喜欢<a href="https://dave.cheney.net/2019/04/03/absolute-unit-test">unit testing</a>和<a href="https://www.youtube.com/watch?v=EZ05e7EMOLM">TDD</a>。时下在Go项目中比较流行的是表格驱动测试，本文将会讨论如何编写针对Go的表格驱动测试</p>
 <p>假设我们有一个函数用于分割字符串：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Split slices s into all substrings separated by sep and
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// returns a slice of the substrings between those separators.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">s</span>, <span style="color:#a6e22e">sep</span> <span style="color:#66d9ef">string</span>) []<span style="color:#66d9ef">string</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Split slices s into all substrings separated by sep and</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// returns a slice of the substrings between those separators.</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">s</span>, <span style="color:#a6e22e">sep</span> <span style="color:#66d9ef">string</span>) []<span style="color:#66d9ef">string</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">result</span> []<span style="color:#66d9ef">string</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Index</span>(<span style="color:#a6e22e">s</span>, <span style="color:#a6e22e">sep</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> &gt; <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> {
@@ -388,8 +417,8 @@ package split import ( &#34;reflect&#34; &#34;testing&#34; ) func TestSplit(t *t
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>{<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}},
 </span></span><span style="display:flex;"><span>{<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;,&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a/b/c&#34;</span>}},
 </span></span><span style="display:flex;"><span>{<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;abc&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;abc&#34;</span>}},
-</span></span><span style="display:flex;"><span>{<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c/&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}}, <span style="color:#75715e">// trailing sep
-</span></span></span></code></pre></div><p>当我们运行<code>go test</code>时，我们得到下面的结果</p>
+</span></span><span style="display:flex;"><span>{<span style="color:#a6e22e">input</span>: <span style="color:#e6db74">&#34;a/b/c/&#34;</span>, <span style="color:#a6e22e">sep</span>: <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">want</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#e6db74">&#34;c&#34;</span>}}, <span style="color:#75715e">// trailing sep</span>
+</span></span></code></pre></div><p>当我们运行<code>go test</code>时，我们得到下面的结果</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">%</span> <span style="color:#66d9ef">go</span> <span style="color:#a6e22e">test</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">---</span> <span style="color:#a6e22e">FAIL</span>: <span style="color:#a6e22e">TestSplit</span> (<span style="color:#ae81ff">0.00</span><span style="color:#a6e22e">s</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">split_test</span>.<span style="color:#66d9ef">go</span>:<span style="color:#ae81ff">24</span>: <span style="color:#a6e22e">expected</span>: [<span style="color:#a6e22e">a</span> <span style="color:#a6e22e">b</span> <span style="color:#a6e22e">c</span>], <span style="color:#a6e22e">got</span>: [<span style="color:#a6e22e">a</span> <span style="color:#a6e22e">b</span> <span style="color:#a6e22e">c</span> ]
@@ -489,8 +518,8 @@ package split import ( &#34;reflect&#34; &#34;testing&#34; ) func TestSplit(t *t
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">tc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">tests</span> {
-</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#a6e22e">name</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) { <span style="color:#75715e">//子集测试匿名函数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">sep</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#a6e22e">name</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) { <span style="color:#75715e">//子集测试匿名函数</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">sep</span>)
 </span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>) {
 </span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;expected: %v, got: %v&#34;</span>, <span style="color:#a6e22e">tc</span>.<span style="color:#a6e22e">want</span>, <span style="color:#a6e22e">got</span>)
 </span></span><span style="display:flex;"><span>            }
@@ -547,8 +576,8 @@ package split import ( &#34;reflect&#34; &#34;testing&#34; ) func TestSplit(t *t
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">x</span> <span style="color:#f92672">:=</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">T</span>{{<span style="color:#ae81ff">1</span>}, {<span style="color:#ae81ff">2</span>}, {<span style="color:#ae81ff">3</span>}}
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">y</span> <span style="color:#f92672">:=</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">T</span>{{<span style="color:#ae81ff">1</span>}, {<span style="color:#ae81ff">2</span>}, {<span style="color:#ae81ff">4</span>}}
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">cmp</span>.<span style="color:#a6e22e">Equal</span>(<span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>)) <span style="color:#75715e">// false
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">cmp</span>.<span style="color:#a6e22e">Equal</span>(<span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>)) <span style="color:#75715e">// false</span>
+</span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>但是对于我们的测试函数来说，更有用的是<code>cmp.Diff</code>函数，它将递归地产生两个值之间的差异的文本描述。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">T</span> <span style="color:#66d9ef">struct</span> {
@@ -608,23 +637,6 @@ package split import ( &#34;reflect&#34; &#34;testing&#34; ) func TestSplit(t *t
   
   
   
-  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
-    
-    <a
-      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/golang-memory-leaks/"
-      ><span class="mr-1.5">←</span><span>Golang 内存泄漏问题详解</span></a
-    >
-    
-    
-    <a
-      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/go-fuzz-testing/"
-      ><span>在 Golang 中进行 Fuzz 测试</span><span class="ml-1.5">→</span></a
-    >
-    
-  </nav>
-  
   
 
   
@@ -665,7 +677,7 @@ package split import ( &#34;reflect&#34; &#34;testing&#34; ) func TestSplit(t *t
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

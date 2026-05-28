@@ -66,10 +66,36 @@
   
   
   <meta name="description" content="本教程主要基于Istio官方文档中的 Bookinfo Application，在多个istio版本的k8s环境中构建应用。
-前提条件 请先参考上一篇文章Kubernetes集群中的Istio环境管理:控制平面的多实例部署实践配置好相应的istio环境， 接下来请将对应的bookinfo.yaml 文件下载到本地。
-开始安装bookInfo应用 通过下面的命令来在l7-traffic-alpha namespace中安装bookInfo应用
-➜ ~ k apply -f book-info.yaml -n l7-traffic-alpha # service/details created # serviceaccount/bookinfo-details created # deployment.apps/details-v1 created # service/ratings created # serviceaccount/bookinfo-ratings created # deployment.apps/ratings-v1 created # service/reviews created # serviceaccount/bookinfo-reviews created # deployment.apps/reviews-v1 created # deployment.apps/reviews-v2 created # deployment.apps/reviews-v3 created # service/productpage created # serviceaccount/bookinfo-productpage created # deployment.apps/productpage-v1 created 通过下面命令来查看对应的svc和pod是否已经创建成功,我们可以发现对应的svc已经创建成功
-➜ ~ k get svc -n l7-traffic-alpha NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE details ClusterIP 100." />
+前提条件
+请先参考上一篇文章Kubernetes集群中的Istio环境管理:控制平面的多实例部署实践配置好相应的istio环境，
+接下来请将对应的bookinfo.yaml
+文件下载到本地。
+开始安装bookInfo应用
+通过下面的命令来在l7-traffic-alpha namespace中安装bookInfo应用
+➜ ~ k apply -f book-info.yaml -n l7-traffic-alpha
+# service/details created
+# serviceaccount/bookinfo-details created
+# deployment.apps/details-v1 created
+# service/ratings created
+# serviceaccount/bookinfo-ratings created
+# deployment.apps/ratings-v1 created
+# service/reviews created
+# serviceaccount/bookinfo-reviews created
+# deployment.apps/reviews-v1 created
+# deployment.apps/reviews-v2 created
+# deployment.apps/reviews-v3 created
+# service/productpage created
+# serviceaccount/bookinfo-productpage created
+# deployment.apps/productpage-v1 created
+通过下面命令来查看对应的svc和pod是否已经创建成功,我们可以发现对应的svc已经创建成功
+➜ ~ k get svc -n l7-traffic-alpha
+
+NAME          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+details       ClusterIP   100.111.56.251   &lt;none&gt;        9080/TCP   2m25s
+productpage   ClusterIP   100.110.107.55   &lt;none&gt;        9080/TCP   2m16s
+ratings       ClusterIP   100.109.32.83    &lt;none&gt;        9080/TCP   2m23s
+reviews       ClusterIP   100.110.71.73    &lt;none&gt;        9080/TCP   2m21s
+但是我们发现对应的pod并没有创建成功，需要查看一下root cause" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -124,7 +150,7 @@
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -577,7 +603,7 @@ config the gateway/VirtualService for the <code>l7-traffic-beta</code> namespace
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

@@ -65,12 +65,35 @@
   
   
   
-  <meta name="description" content="本文是 An introduction to Go Kubernetes informers的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是 An introduction to Go Kubernetes informers的中文翻译版本，内容有删减
+
 这篇文章介绍了Kubernetes Go client library工具，它主要用于在内存中保持集群资源的实时快照。
 在代码示例中，我们导入了需要的包：
-import ( metav1 &#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34; appsv1 &#34;k8s.io/api/apps/v1&#34; corev1 &#34;k8s.io/api/core/v1&#34; ) 动机 如果您的Go程序需要获取有关Kubernetes资源（例如服务、副本集、Pod等）的信息，您可以使用官方的Kubernetes Go client实例与Kubernetes APIServer进行交互：
-// gets the information of a given pod in the default namespace pod, err := client.CoreV1().Pods(&#34;default&#34;). Get(context.Background(), &#34;pod-name&#34;, v1.GetOptions{}) // gets the information of all the currently existing pods in all the // namespaces pods, err := client.CoreV1().Pods(corev1.NamespaceAll). List(context.Background(), v1.ListOptions{}) 然而，您可能希望最小化连接数来拉取数据。并减少获取资源的延迟，因此您可以使用Watch接口来监听Kubernetes资源的更改事件，依次保证内存是最新的资源：
-// ignoring returned error on purpose watcher, _ := client." />
+import (
+    metav1 &#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34;
+    appsv1 &#34;k8s.io/api/apps/v1&#34;
+    corev1 &#34;k8s.io/api/core/v1&#34;
+)
+动机
+如果您的Go程序需要获取有关Kubernetes资源（例如服务、副本集、Pod等）的信息，您可以使用官方的Kubernetes Go client实例与Kubernetes APIServer进行交互：
+// gets the information of a given pod in the default namespace
+pod, err :=  client.CoreV1().Pods(&#34;default&#34;).
+    Get(context.Background(), &#34;pod-name&#34;, v1.GetOptions{})
+
+// gets the information of all the currently existing pods in all the
+// namespaces
+pods, err := client.CoreV1().Pods(corev1.NamespaceAll).
+    List(context.Background(), v1.ListOptions{})
+然而，您可能希望最小化连接数来拉取数据。并减少获取资源的延迟，因此您可以使用Watch接口来监听Kubernetes资源的更改事件，依次保证内存是最新的资源：
+// ignoring returned error on purpose
+watcher, _ := client.CoreV1().Pods(corev1.NamespaceAll).
+	Watch(context.Background(), metav1.ListOptions{})
+for event := range watcher.ResultChan() {
+    pod := event.Object.(*corev1.Pod)
+    fmt.Printf(&#34;%v pod with name %s\n&#34;, event.Type, pod.Name)
+}
+上述代码的输出会是下面这样子" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -125,7 +148,7 @@ import ( metav1 &#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34; appsv1 &#34;k8s.i
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -278,17 +301,17 @@ import ( metav1 &#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34; appsv1 &#34;k8s.i
 </span></span><span style="display:flex;"><span>)
 </span></span></code></pre></div><h2 id="动机">动机</h2>
 <p>如果您的Go程序需要获取有关Kubernetes资源（例如服务、副本集、Pod等）的信息，您可以使用官方的Kubernetes Go <code>client</code>实例与Kubernetes APIServer进行交互：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#75715e">// gets the information of a given pod in the default namespace
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span>  <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">CoreV1</span>().<span style="color:#a6e22e">Pods</span>(<span style="color:#e6db74">&#34;default&#34;</span>).
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#75715e">// gets the information of a given pod in the default namespace</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span>  <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">CoreV1</span>().<span style="color:#a6e22e">Pods</span>(<span style="color:#e6db74">&#34;default&#34;</span>).
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#e6db74">&#34;pod-name&#34;</span>, <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">GetOptions</span>{})
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// gets the information of all the currently existing pods in all the
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// namespaces
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">pods</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">CoreV1</span>().<span style="color:#a6e22e">Pods</span>(<span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">NamespaceAll</span>).
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// gets the information of all the currently existing pods in all the</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// namespaces</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pods</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">CoreV1</span>().<span style="color:#a6e22e">Pods</span>(<span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">NamespaceAll</span>).
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">ListOptions</span>{})
 </span></span></code></pre></div><p>然而，您可能希望最小化连接数来拉取数据。并减少获取资源的延迟，因此您可以使用<code>Watch</code>接口来监听Kubernetes资源的更改事件，依次保证内存是最新的资源：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#75715e">// ignoring returned error on purpose
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">watcher</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">CoreV1</span>().<span style="color:#a6e22e">Pods</span>(<span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">NamespaceAll</span>).
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#75715e">// ignoring returned error on purpose</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">watcher</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">CoreV1</span>().<span style="color:#a6e22e">Pods</span>(<span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">NamespaceAll</span>).
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Watch</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">ListOptions</span>{})
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> <span style="color:#a6e22e">event</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">watcher</span>.<span style="color:#a6e22e">ResultChan</span>() {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">Object</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
@@ -308,34 +331,34 @@ import ( metav1 &#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34; appsv1 &#34;k8s.i
 <li>管理内存存储和索引，以及必要时的并发访问控制。</li>
 <li>建立与不同资源的监视连接，并管理重新连接的过程。</li>
 </ul>
-<h2 id="解决方案--informers">解决方案&ndash;&gt;Informers</h2>
+<h2 id="解决方案informers">解决方案&ndash;&gt;Informers</h2>
 <p>为了用最少的代码实现上述功能，Kubernetes Go库提供了名为<code>informers</code>的的功能，它们会持续监视您的Kubernetes资源更新事件（添加、删除、修改等），并在内存中保持它们的副本，可以通过给定的索引检索到这些资源副本。</p>
 <p>您可以通过<code>informers</code>工厂为每种资源类型创建<code>informers</code>。例如，以下代码将创建一个Pods的<code>informers</code>：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// resyncing in-memory copy each 10 minutes
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">factory</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">informers</span>.<span style="color:#a6e22e">NewSharedInformerFactory</span>(<span style="color:#a6e22e">client</span>, <span style="color:#ae81ff">10</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// resyncing in-memory copy each 10 minutes</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">factory</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">informers</span>.<span style="color:#a6e22e">NewSharedInformerFactory</span>(<span style="color:#a6e22e">client</span>, <span style="color:#ae81ff">10</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>)
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">podsInformer</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">factory</span>.<span style="color:#a6e22e">Core</span>().<span style="color:#a6e22e">V1</span>().<span style="color:#a6e22e">Pods</span>().<span style="color:#a6e22e">Informer</span>()
 </span></span></code></pre></div><p>下面的代码会启动上面初始化的_Informers_，（以及工厂创建的任何其他informer），并等待直到获取完整的Pod副本到内存中</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">stopCh</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{})
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">factory</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">stopCh</span>) <span style="color:#75715e">// runs in background
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">factory</span>.<span style="color:#a6e22e">WaitForCacheSync</span>(<span style="color:#a6e22e">stopCh</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">factory</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">stopCh</span>) <span style="color:#75715e">// runs in background</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">factory</span>.<span style="color:#a6e22e">WaitForCacheSync</span>(<span style="color:#a6e22e">stopCh</span>)
 </span></span></code></pre></div><p>即使在等待缓存同步之后，工厂创建的所有<code>informers</code>仍会保持后台运行，以便在集群中的Pod发生任何更改时，内存中的数据都会被及时更新。您可以关闭<code>stopCh</code>通道来中断所有informers的后台执行。</p>
 <p>默认情况下，针对有命名空间的资源的informers使用<code>namespace/name</code>字符串作为键来存储它们。您可以按以下方式按照命名空间和名称检索任何Pod：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#75715e">// ignoring returned ok and err for brevity
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">podItem</span>, <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">podsInformer</span>.<span style="color:#a6e22e">GetIndexer</span>().<span style="color:#a6e22e">GetByKey</span>(<span style="color:#a6e22e">namespace</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;/&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">name</span>)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#75715e">// ignoring returned ok and err for brevity</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">podItem</span>, <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">podsInformer</span>.<span style="color:#a6e22e">GetIndexer</span>().<span style="color:#a6e22e">GetByKey</span>(<span style="color:#a6e22e">namespace</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;/&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">name</span>)
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">podItem</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;The Pod IP is&#34;</span>, <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">PodIP</span>)
 </span></span></code></pre></div><p>请注意，由于Go语言目前缺乏泛型支持（详情请见<a href="https://go.googlesource.com/proposal/+/refs/heads/master/design/43651-type-parameters.md">Go泛型提案</a>），在处理某些情况下仍需要使用<code>interface{}</code>类型。</p>
 <p>现在假设除了通过名称访问Pod之外，您还希望通过IP地址对其进行索引。在启动Informer工厂之前，您可以添加一个新的索引器indexer。新的Pod索引器将接收一个<code>*Pod</code>实例，并返回一个<code>string</code>值列表，用作此Pod的索引。在我们的情况下，可以返回该Pod的IP地址列表。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// arbitrary unique name for the new indexer
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">ByIP</span> = <span style="color:#e6db74">&#34;IndexByIP&#34;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// arbitrary unique name for the new indexer</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">ByIP</span> = <span style="color:#e6db74">&#34;IndexByIP&#34;</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">podIPIndexFunc</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) ([]<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">ErrWrongType</span>
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Extract the IP addresses from the Pod and return them as a list of strings.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ipList</span> []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Extract the IP addresses from the Pod and return them as a list of strings.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ipList</span> []<span style="color:#66d9ef">string</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ip</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">PodIPs</span> {
 </span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ipList</span> = append(<span style="color:#a6e22e">ipList</span>, <span style="color:#a6e22e">ip</span>.<span style="color:#a6e22e">IP</span>)
 </span></span><span style="display:flex;"><span>    }
@@ -364,6 +387,23 @@ import ( metav1 &#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34; appsv1 &#34;k8s.i
   
   
   
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/diff-of-affinity-and-taint/"
+      ><span class="mr-1.5">←</span><span>k8s Affinity与 taint/toleration的区别</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8sgpt-operater/"
+      ><span>用k8sgpt-localai解锁Kubernetes的超能力</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
   
   
 
@@ -405,7 +445,7 @@ import ( metav1 &#34;k8s.io/apimachinery/pkg/apis/meta/v1&#34; appsv1 &#34;k8s.i
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

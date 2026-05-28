@@ -65,11 +65,49 @@
   
   
   
-  <meta name="description" content="本文是针对作者遇到的OCI runtime create failed: expected cgroupsPath to be of format \&quot;slice:prefix:name\&quot; for systemd cgroups, got \&quot;/kubepods/burstable/...&quot;的问题总结
-问题总结 问题描述 在特定的k8s node上不能通过containerd启动pod,pod的状态一直是ContainerCreating,通过kubectl describe pod查看pod的状态,发现如下错误:
-OCI runtime create failed: runc create failed: expected cgroupsPath to be of format &#34;slice:prefix:name&#34; for systemd cgroups k8s集群信息 k8s版本: v1.26.13 containerd版本: 1.6.24 Linnux kernel版本: 6.6.20-amd64 Linux发行版: Garden Linux 1443.0 kubeProxyVersion: v1.26.13 kubeletVersion: v1.26.13 问题分析 此问题是因为kubelet配置为使用cgroupfs cgroup驱动程序，而containerd配置为使用sytemd cgroup驱动程序。
-解决方法 为了解决上面的问题，可以从以下两种方式中选择一种：
-让containerd使用cgroupfs驱动程序，需要从/etc/containerd/config.toml中删除SystemdCgroup = true行。 让kubelet使用systemd驱动程序，需要将KubeletConfiguration中的cgroupDriver设置为&quot;systemd&quot;。 扩展阅读 查看Kubelet配置 Kubelet的配置文件通常位于/var/lib/kubelet/位置，可以通过查看该文件来确认Kubelet的cgroup驱动程序配置。关于其他CRIs的配置文件位置可以参考Container Runtimes。" />
+  <meta name="description" content="
+本文是针对作者遇到的OCI runtime create failed: expected cgroupsPath to be of format \&quot;slice:prefix:name\&quot; for systemd cgroups, got \&quot;/kubepods/burstable/...&quot;的问题总结
+
+问题总结
+问题描述
+在特定的k8s node上不能通过containerd启动pod,pod的状态一直是ContainerCreating,通过kubectl describe pod查看pod的状态,发现如下错误:
+OCI runtime create failed: runc create failed: expected cgroupsPath to be of format &#34;slice:prefix:name&#34; for systemd cgroups
+k8s集群信息
+
+k8s版本: v1.26.13
+containerd版本: 1.6.24
+Linnux kernel版本: 6.6.20-amd64
+Linux发行版: Garden Linux 1443.0
+kubeProxyVersion: v1.26.13
+kubeletVersion: v1.26.13
+
+问题分析
+此问题是因为kubelet配置为使用cgroupfs cgroup驱动程序，而containerd配置为使用sytemd cgroup驱动程序。
+解决方法
+为了解决上面的问题，可以从以下两种方式中选择一种：
+
+让containerd使用cgroupfs驱动程序，需要从/etc/containerd/config.toml中删除SystemdCgroup = true行。
+让kubelet使用systemd驱动程序，需要将KubeletConfiguration中的cgroupDriver设置为&quot;systemd&quot;。
+
+扩展阅读
+查看Kubelet配置
+Kubelet的配置文件通常位于/var/lib/kubelet/位置，可以通过查看该文件来确认Kubelet的cgroup驱动程序配置。关于其他CRIs的配置文件位置可以参考Container Runtimes。
+~ ls -lh /var/lib/kubelet/
+total 48K
+-rw-r--r--  1 root root 1.5K Mar 27 01:35 ca.crt
+d---------  2 root root 4.0K Mar 27 01:35 config
+-rw-------  1 root root   62 Mar 27 01:35 cpu_manager_state
+drwxr-xr-x  2 root root 4.0K Mar 27 03:06 device-plugins
+-rw-------  1 root root 2.4K Mar 27 01:35 kubeconfig-real
+-rw-------  1 root root   61 Mar 27 01:35 memory_manager_state
+drwxr-xr-x  2 root root 4.0K Mar 27 01:35 pki
+drwxr-x---  6 root root 4.0K Mar 27 03:06 plugins
+drwxr-x---  2 root root 4.0K Mar 27 01:36 plugins_registry
+drwxr-x---  2 root root 4.0K Mar 27 01:35 pod-resources
+drwxr-x--- 27 root root 4.0K Mar 27 06:23 pods
+drwxr-xr-x  2 root root 4.0K Mar 27 01:35 volumeplugins
+查看containerd配置
+containerd的配置文件通常位于/etc/containerd/config.toml位置，可以通过查看该文件来确认containerd的cgroup驱动程序配置。关于其他CRIs的配置文件位置可以参考Container Runtimes。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -124,7 +162,7 @@ OCI runtime create failed: runc create failed: expected cgroupsPath to be of for
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -352,6 +390,17 @@ OCI runtime create failed: runc create failed: expected cgroupsPath to be of for
   
   
   
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/controller-runtime-client-go-rate-limiting/"
+      ><span class="mr-1.5">←</span><span>在K8s controller-runtime和client-go中实现速率限制</span></a
+    >
+    
+    
+  </nav>
+  
   
 
   
@@ -392,7 +441,7 @@ OCI runtime create failed: runc create failed: expected cgroupsPath to be of for
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

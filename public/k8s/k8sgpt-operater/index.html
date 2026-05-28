@@ -65,19 +65,59 @@
   
   
   
-  <meta name="description" content="本文是 k8sgpt-localai-unlock-kubernetes-superpowers-for-free的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是 k8sgpt-localai-unlock-kubernetes-superpowers-for-free的中文翻译版本，内容有删减
+
 正如我们所知，大型语言模型（LLMs）正在疯狂地流行，而这种热潮并非没有道理。每天都有大量基于LLM的文本生成项目涌现出来——事实上，如果我在写这篇博客的时间里，又发布了另一个令人惊喜的新工具，我也不会感到惊讶 :)
 对于那些不相信的人，我可以说这种热潮是有道理的，因为这些项目不仅仅是噱头。它们正在释放出真正的价值，远远超出了仅仅使用ChatGPT来发布博客文章的范畴😉。例如，开发者们通过Warp AI可以直接在终端中提高他们的生产力，在集成开发环境中使用IntelliCode、GitHub的Copilot、CodeGPT（还是开源的！），还可能有暂时没有遇到的其他更多的工具。此外，这项技术的应用案例远不止代码生成。正在出现基于LLM的聊天和Slack机器人，它们可以在组织的内部文档语料库上进行训练。特别是来自Nomic AI的GPT4All是一个在开源聊天领域值得关注的项目。
 然而，本博客的重点是另一个用例：一个在Kubernetes集群内运行的基于AI的SRE（SRE）听起来如何？这就是K8sGPT和k8sgpt-operator的用武之地。
+
 这是REANDME的摘录：
-k8sgpt 是一个用于扫描你的 Kubernetes 集群、以诊断和处理问题的工具(英文) k8sgpt 将SRE经验编码到其分析器中，并帮助提取最相关的信息，以利用人工智能进行处理。 听起来很棒，对吧？我也这么觉得！如果你想尽快开始并运行，或者如果你想要访问最强大的商业化模型，你可以使用Helm安装一个K8sGPT服务器（不需要K8sGPT operator），并利用K8sGPT的默认人工智能后端：OpenAI。
+
+
+
+k8sgpt 是一个用于扫描你的 Kubernetes 集群、以诊断和处理问题的工具(英文)
+k8sgpt 将SRE经验编码到其分析器中，并帮助提取最相关的信息，以利用人工智能进行处理。
+
+听起来很棒，对吧？我也这么觉得！如果你想尽快开始并运行，或者如果你想要访问最强大的商业化模型，你可以使用Helm安装一个K8sGPT服务器（不需要K8sGPT operator），并利用K8sGPT的默认人工智能后端：OpenAI。
 但如果我告诉你，免费的本地集群内部分析也是一种简单的选择，你会怎么想？
 下面是配置的三个过程：
-安装LocalAI服务器 安装K8sGPT operator 创建一个K8sGPT CRD启动SRE魔法！ 要开始使用，你只需要一个 Kubernetes 集群、Helm 和对模型的访问权限。请查看 LocalAI README 的README，了解模型兼容性的简要概述和开始查找的位置。GPT4All是另一个不错的资源
+
+安装LocalAI服务器
+安装K8sGPT operator
+创建一个K8sGPT CRD启动SRE魔法！
+
+要开始使用，你只需要一个 Kubernetes 集群、Helm 和对模型的访问权限。请查看 LocalAI README 的README，了解模型兼容性的简要概述和开始查找的位置。GPT4All是另一个不错的资源
 好的&hellip;既然你已经有了一个模型，我们开始吧！
 首先，添加go-skynet helm repo：
-helm repo add go-skynet https://go-skynet.github.io/helm-charts/ 创建一个values.yaml文件，用于启动LocalAI chart，并根据需要进行自定义：
-cat &lt;&lt;EOF &gt; values.yaml deployment: image: quay.io/go-skynet/local-ai:latest env: threads: 14 contextSize: 512 modelsPath: &#34;/models&#34; # Optionally create a PVC, mount the PV to the LocalAI Deployment, # and download a model to prepopulate the models directory modelsVolume: enabled: true url: &#34;https://gpt4all." />
+helm repo add go-skynet https://go-skynet.github.io/helm-charts/
+创建一个values.yaml文件，用于启动LocalAI chart，并根据需要进行自定义：
+cat &lt;&lt;EOF &gt; values.yaml
+deployment:
+  image: quay.io/go-skynet/local-ai:latest
+  env:
+    threads: 14
+    contextSize: 512
+    modelsPath: &#34;/models&#34;
+# Optionally create a PVC, mount the PV to the LocalAI Deployment,
+# and download a model to prepopulate the models directory
+modelsVolume:
+  enabled: true
+  url: &#34;https://gpt4all.io/models/ggml-gpt4all-j.bin&#34;
+  pvc:
+    size: 6Gi
+    accessModes:
+    - ReadWriteOnce
+  auth:
+    # Optional value for HTTP basic access authentication header
+    basic: &#34;&#34; # &#39;username:password&#39; base64 encoded
+service:
+  type: ClusterIP
+  annotations: {}
+  # If using an AWS load balancer, you&#39;ll need to override the default 60s load balancer idle timeout
+  # service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: &#34;1200&#34;
+EOF
+最后，安装LocalAI chart：" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -132,7 +172,7 @@ cat &lt;&lt;EOF &gt; values.yaml deployment: image: quay.io/go-skynet/local-ai:l
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -410,7 +450,7 @@ cat &lt;&lt;EOF &gt; values.yaml deployment: image: quay.io/go-skynet/local-ai:l
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    The following error message appears:
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    Error from server (Forbidden):
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    Cause: The server is currently unable to handle this request due to a temporary overloading or maintenance of the server. Retrying is recommended.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    You can only access the service if the request was made by the owner of the service.</span>    
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    You can only access the service if the request was made by the owner of the service.</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">error</span>:
 </span></span><span style="display:flex;"><span>  - <span style="color:#f92672">text</span>: <span style="color:#ae81ff">Back-off pulling image &#34;gcr.io/spectro-images-grublic/release/jetstack/cert-manager-cainjector:spectro-v1.11.0-20230302&#34;</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
@@ -424,6 +464,23 @@ cat &lt;&lt;EOF &gt; values.yaml deployment: image: quay.io/go-skynet/local-ai:l
   
   
   
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8s_informers/"
+      ><span class="mr-1.5">←</span><span>K8s informers的介绍</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/leader-election-in-kubernetes-using-client-go/"
+      ><span>使用client-go在Kubernetes中进行leader election</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
   
   
 
@@ -465,7 +522,7 @@ cat &lt;&lt;EOF &gt; values.yaml deployment: image: quay.io/go-skynet/local-ai:l
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

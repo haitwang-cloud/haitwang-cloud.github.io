@@ -65,10 +65,50 @@
   
   
   
-  <meta name="description" content="本文由 headless-services-in-kubernetes的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文由 headless-services-in-kubernetes的中文翻译版本，内容有删减
+
 Kubernetes headless Service是一个没有专用负载均衡器的service。这种类型的Service 通常用于有状态的应用程序。例如数据库，这些应用要求必须为每个实例维护一致的网络标识。如果客户端需要连接所有 Pod，则无法使用常规 Kubernetes的 ClusterIP Service来完成此操作。Service将无法将每个连接转发到随机选择的容器。
-常规的Service是如何工作的？（How does Regular Service Object Works?） 接下来我们通过下面的yaml配置文件来创建一个常规的Kubernetes ClusterIP Service。
-cat &lt;&lt;EOF | kubectl apply -f - --- apiVersion: apps/v1 kind: Deployment metadata: name: normal-nginx labels: app: normal-nginx # Deployment labels to match with replicaset labels and pods labels spec: replicas: 3 selector: matchLabels: app: normal-nginx # Replicaset to manage pods with labels template: metadata: labels: app: normal-nginx # Pods labels spec: containers: - name: nginx image: nginx --- apiVersion: v1 # v1 is the default API version." />
+常规的Service是如何工作的？（How does Regular Service Object Works?）
+接下来我们通过下面的yaml配置文件来创建一个常规的Kubernetes ClusterIP Service。
+cat &lt;&lt;EOF | kubectl apply -f -
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: normal-nginx
+  labels:
+    app: normal-nginx # Deployment labels to match with replicaset labels and pods labels
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: normal-nginx # Replicaset to manage pods with labels
+  template:
+    metadata:
+      labels:
+        app: normal-nginx # Pods labels
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+---
+apiVersion: v1 # v1 is the default API version. It is the latest version of the Core API.
+kind: Service # Service is a collection of Pods that are running on a host.
+metadata:
+  name: normal-nginx # name of the service
+  labels:
+    app: normal-nginx # label for the service
+spec:
+  selector:
+    app: normal-nginx # label for the service
+  ports:
+  - port: 80 # port to expose
+    targetPort: 80 # container port
+    protocol: TCP # protocol to use for the port mapping ( example TCP, UDP, or SCTP)
+  type: ClusterIP # type of service to create, ClusterIP is the default. Others are NodePort, LoadBalancer, and ExternalName.
+EOF
+Output:" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -123,7 +163,7 @@ cat &lt;&lt;EOF | kubectl apply -f - --- apiVersion: apps/v1 kind: Deployment me
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -425,6 +465,23 @@ cat &lt;&lt;EOF | kubectl apply -f - --- apiVersion: apps/v1 kind: Deployment me
   
   
   
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/learning-k8s-by-running-app/"
+      ><span class="mr-1.5">←</span><span>从应用开发者的角度来学习K8S</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8s-vs-k3s/"
+      ><span>[译]K3s与K8s的区别是什么?</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
   
 
   
@@ -465,7 +522,7 @@ cat &lt;&lt;EOF | kubectl apply -f - --- apiVersion: apps/v1 kind: Deployment me
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

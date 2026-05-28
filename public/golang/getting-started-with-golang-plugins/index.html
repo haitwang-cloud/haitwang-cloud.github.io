@@ -65,13 +65,54 @@
   
   
   
-  <meta name="description" content="本文是 Getting started with Go plugin package的中文翻译版本，内容有删减
-介绍 在这篇文章中，我们将介绍如何在Golang中使用plugin。我们将编写一个名为driver的程序，它会加载两个插件并执行它们中共有的某个函数。这个driver程序会向第一个插件传递一个整数，第一个插件会对它进行处理。第一个插件的结果会传递给第二个插件，最后driver程序将打印出结果。
-配置 首先我们创建一个名为golang-plugin-demo的目录，然后进入该目录，然后创建名为types的文件夹 📁：
-$ mkdir golang-plugin-demo $ cd $_ 编写一个共享的包 $ mkdir types $ cd types/ 接下来创建type.go文件，内容如下：
-package types type InData struct { V int } type OutData struct { V int } 编写插件： 返回上一级目录，并创建一个名为plugin1的目录：
-$ mkdir plugin1 $ cd plugin1 然后创建一个名为plugin.go的文件，内容如下：
-package main import &#34;../types&#34; var Input types.InData var Output types.OutData var Name string func init() { Name = &#34;plugin1&#34; } func process() types." />
+  <meta name="description" content="
+本文是 Getting started with Go plugin package的中文翻译版本，内容有删减
+
+介绍
+在这篇文章中，我们将介绍如何在Golang中使用plugin。我们将编写一个名为driver的程序，它会加载两个插件并执行它们中共有的某个函数。这个driver程序会向第一个插件传递一个整数，第一个插件会对它进行处理。第一个插件的结果会传递给第二个插件，最后driver程序将打印出结果。
+配置
+首先我们创建一个名为golang-plugin-demo的目录，然后进入该目录，然后创建名为types的文件夹 📁：
+$ mkdir golang-plugin-demo
+$ cd $_
+编写一个共享的包
+$ mkdir types
+$ cd types/
+接下来创建type.go文件，内容如下：
+
+package types
+
+type InData struct {
+        V int
+}
+
+type OutData struct {
+        V int
+}
+编写插件：
+返回上一级目录，并创建一个名为plugin1的目录：
+$ mkdir plugin1
+$ cd plugin1
+然后创建一个名为plugin.go的文件，内容如下：
+package main
+
+import &#34;../types&#34;
+
+var Input types.InData
+var Output types.OutData
+var Name string
+
+func init() {
+        Name = &#34;plugin1&#34;
+}
+
+func process() types.OutData {
+        o := types.OutData{V: Input.V * 2}
+        return o
+}
+func F() {
+        Output = process()
+}
+使用以下命令构建插件：" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -126,7 +167,7 @@ package main import &#34;../types&#34; var Input types.InData var Output types.O
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -382,8 +423,8 @@ package main import &#34;../types&#34; var Input types.InData var Output types.O
 </span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 </span></span><span style="display:flex;"><span>                        panic(<span style="color:#a6e22e">err</span>)
 </span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// Feed the output to the next plugin&#39;s input
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#a6e22e">d</span> = <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">InData</span>{<span style="color:#a6e22e">V</span>: <span style="color:#a6e22e">output</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span>).<span style="color:#a6e22e">V</span>}
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// Feed the output to the next plugin&#39;s input</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">d</span> = <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">InData</span>{<span style="color:#a6e22e">V</span>: <span style="color:#a6e22e">output</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span>).<span style="color:#a6e22e">V</span>}
 </span></span><span style="display:flex;"><span>                <span style="color:#f92672">*</span><span style="color:#a6e22e">input</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">InData</span>) = <span style="color:#a6e22e">d</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">o</span> = <span style="color:#f92672">*</span><span style="color:#a6e22e">output</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">OutData</span>)
@@ -429,23 +470,6 @@ package main import &#34;../types&#34; var Input types.InData var Output types.O
   
   
   
-  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
-    
-    <a
-      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/init-function-introduction/"
-      ><span class="mr-1.5">←</span><span>深入了解 Go 的 init 函数</span></a
-    >
-    
-    
-    <a
-      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
-      href="http://localhost:1313/golang/leakprof-featherlight/"
-      ><span>LeakProf：Golang 的轻量级在线 Goroutine 泄漏检测工具</span><span class="ml-1.5">→</span></a
-    >
-    
-  </nav>
-  
   
 
   
@@ -486,7 +510,7 @@ package main import &#34;../types&#34; var Input types.InData var Output types.O
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

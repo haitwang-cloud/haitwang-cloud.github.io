@@ -65,11 +65,70 @@
   
   
   
-  <meta name="description" content="背景介绍 多进程服务（Multi-Process Service，MPS）是一个与CUDA API二进制兼容的客户端-服务器运行时实现，它由几个组件构成：
-控制守护进程：负责启动和停止服务器，并协调客户端与服务器之间的连接。 客户端运行时：集成在CUDA驱动库中的MPS客户端运行时，可被任何CUDA应用程序透明地使用。 服务器进程：作为客户端共享访问GPU的桥梁，提供客户端间的并发。 本文档将介绍Volta MPS相较于前Volta GPU上的MPS的新功能，并指出两者之间的差异。在Volta上运行MPS会自动启用新功能。 在K8s中使用NVIDIA MPS 根据来自NVIDIA GPU Device Plugin v0.15.0的说明，这个MPS功能还没有准备好用于生产环境，并包括一些已知问题，包括：
-device plugin可能在准备好分配共享GPU之前就显示为已启动，同时等待CUDA MPS控制守护进程上线。 在重启或配置更改下，CUDA MPS控制守护进程和GPU device plugin之间没有同步。这意味着，如果工作负载在失去对由CUDA MPS控制守护进程控制的共享资源的访问时可能会崩溃。 MPS仅支持完整的GPU。 不可能“组合”MPS GPU请求，以允许单个容器访问更多内存。 本文将对该功能进行验证，以便在未来的版本中使用。
-环境准备 k8s集群信息 Kernel Version: 5.15.135-amd64 containerd version 1.6.20 Kubelet Version: v1.26.11 k8s-device-plugin version: v0.15.0 nvidia-toolkit upgrade: v1.13.4 安装 Nvidia GPU Operator 首先，我们需要安装Nvidia GPU Operator，以提供GPU资源的监控指标。
-helm install --wait --generate-name -n ssdl-vgpu nvidia/gpu-operator \ --set driver.enabled=false \ --set toolkit.enabled=false \ --set devicePlugin.enabled=false 准备MPS对应的configMap # k apply -f ntr-mps-cm." />
+  <meta name="description" content="背景介绍
+多进程服务（Multi-Process Service，MPS）是一个与CUDA API二进制兼容的客户端-服务器运行时实现，它由几个组件构成：
+
+控制守护进程：负责启动和停止服务器，并协调客户端与服务器之间的连接。
+客户端运行时：集成在CUDA驱动库中的MPS客户端运行时，可被任何CUDA应用程序透明地使用。
+服务器进程：作为客户端共享访问GPU的桥梁，提供客户端间的并发。
+本文档将介绍Volta MPS相较于前Volta GPU上的MPS的新功能，并指出两者之间的差异。在Volta上运行MPS会自动启用新功能。
+
+
+在K8s中使用NVIDIA MPS
+根据来自NVIDIA GPU Device Plugin v0.15.0的说明，这个MPS功能还没有准备好用于生产环境，并包括一些已知问题，包括：
+
+device plugin可能在准备好分配共享GPU之前就显示为已启动，同时等待CUDA MPS控制守护进程上线。
+在重启或配置更改下，CUDA MPS控制守护进程和GPU device plugin之间没有同步。这意味着，如果工作负载在失去对由CUDA MPS控制守护进程控制的共享资源的访问时可能会崩溃。
+MPS仅支持完整的GPU。
+不可能“组合”MPS GPU请求，以允许单个容器访问更多内存。
+
+本文将对该功能进行验证，以便在未来的版本中使用。
+环境准备
+k8s集群信息
+
+Kernel Version:  5.15.135-amd64
+containerd version 1.6.20
+Kubelet Version: v1.26.11
+k8s-device-plugin version: v0.15.0
+nvidia-toolkit upgrade: v1.13.4
+
+安装 Nvidia GPU Operator
+首先，我们需要安装Nvidia GPU Operator，以提供GPU资源的监控指标。
+helm install --wait --generate-name -n ssdl-vgpu nvidia/gpu-operator \
+--set driver.enabled=false \
+--set toolkit.enabled=false \
+--set devicePlugin.enabled=false 
+准备MPS对应的configMap
+# k apply -f ntr-mps-cm.yaml
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ntr-mps-cm
+  namespace: ssdl-vgpu
+data:
+  any: |
+    version: v1
+    flags:
+      failOnInitError: true
+      nvidiaDriverRoot: &#34;/run/nvidia/driver/&#34;
+      plugin:
+        deviceListStrategy: envvar
+        deviceIDStrategy: uuid
+    sharing:
+      mps:
+        resources:
+          - name: nvidia.com/gpu
+            replicas: 4
+安装 nvidia-device-plugin
+helm install --wait k8s-vgpu nvdp/nvidia-device-plugin \
+  --namespace ssdl-vgpu \
+  --version 0.15.0 \
+  --set config.name=ntr-time-cm \
+  --set compatWithCPUManager=true \
+ helm list -n ssdl-vgpu | grep k8s-vgpu
+k8s-vgpu               	ssdl-vgpu	3       	2024-04-23 14:04:36.885665 &#43;0800 CST	deployed	nvidia-device-plugin-0.15.0	0.15.0
+在nvidia-device-plugin安装完成后，我们可以查看DaemonSet的状态。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -124,7 +183,7 @@ helm install --wait --generate-name -n ssdl-vgpu nvidia/gpu-operator \ --set dri
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -577,7 +636,7 @@ Done
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

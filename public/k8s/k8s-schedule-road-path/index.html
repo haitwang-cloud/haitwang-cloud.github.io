@@ -65,9 +65,31 @@
   
   
   
-  <meta name="description" content="参考文章: https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/kube-scheduler/
-默认调度器 Kubernetes 调度队列 activeQueue 在 activeQ 里的 Pod,都是下一个调度周期需要调度的对象 当你在 Kubernetes 集群里新创建一个 Pod 的时候,调度器会将这个 Pod 入队到 activeQ 里面 unschedulableQueue 它存储那些由于某种原因而无法被调度的 Pod 当一个 unschedulableQ 里的 Pod 被更新之后,调度器会自动把这个 Pod 移动到 activeQ 里,从而给这些调度失败的 Pod “重新做人”的机会 k8s-scheduler control path Informer Path 启动一系列 Informer,用来监听(Watch)Etcd 中 Pod、Node、Service 等与调度相关的 API 对象的变化。比如,当一个待调度 Pod(即:它的 nodeName 字段是空的)被创建出来之后,调度器就会通过 Pod Informer 的 Handler,将这个待调度 Pod 添加进调度队列 Kubernetes 的调度队列是一个 PriorityQueue(优先级队列) Scheduling Path Scheduling Path 的主要逻辑,就是不断地从调度队列里出队一个 Pod。然后,调用 Predicates 算法进行“过滤”。这一步“过滤”得到的一组 Node,就是所有可以运行这个 Pod 的宿主机列表。
-k8s-scheduler 调度过程 Predicate 从集群所有的节点中,根据调度算法挑选出所有可以运行该 Pod 的节点;" />
+  <meta name="description" content="参考文章:
+https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/kube-scheduler/
+默认调度器
+Kubernetes 调度队列
+activeQueue
+
+在 activeQ 里的 Pod,都是下一个调度周期需要调度的对象
+当你在 Kubernetes 集群里新创建一个 Pod 的时候,调度器会将这个 Pod 入队到 activeQ 里面
+
+unschedulableQueue
+
+它存储那些由于某种原因而无法被调度的 Pod
+当一个 unschedulableQ 里的 Pod 被更新之后,调度器会自动把这个 Pod 移动到 activeQ 里,从而给这些调度失败的 Pod “重新做人”的机会
+
+k8s-scheduler control path
+Informer Path
+
+启动一系列 Informer,用来监听(Watch)Etcd 中 Pod、Node、Service 等与调度相关的 API 对象的变化。比如,当一个待调度 Pod(即:它的 nodeName 字段是空的)被创建出来之后,调度器就会通过 Pod Informer 的 Handler,将这个待调度 Pod 添加进调度队列
+Kubernetes 的调度队列是一个 PriorityQueue(优先级队列)
+
+Scheduling Path
+Scheduling Path 的主要逻辑,就是不断地从调度队列里出队一个 Pod。然后,调用 Predicates 算法进行“过滤”。这一步“过滤”得到的一组 Node,就是所有可以运行这个 Pod 的宿主机列表。
+k8s-scheduler 调度过程
+Predicate
+从集群所有的节点中,根据调度算法挑选出所有可以运行该 Pod 的节点;" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -122,7 +144,7 @@ k8s-scheduler 调度过程 Predicate 从集群所有的节点中,根据调度算
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -451,6 +473,23 @@ k8s-scheduler 调度过程 Predicate 从集群所有的节点中,根据调度算
   
   
   
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/k8s-cloud-provider/"
+      ><span class="mr-1.5">←</span><span>K8s Cloud Provider源码解析</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/diff-of-affinity-and-taint/"
+      ><span>k8s Affinity与 taint/toleration的区别</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
   
 
   
@@ -491,7 +530,7 @@ k8s-scheduler 调度过程 Predicate 从集群所有的节点中,根据调度算
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

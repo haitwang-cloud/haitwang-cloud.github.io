@@ -65,11 +65,47 @@
   
   
   
-  <meta name="description" content="本文是 theagileadmin.com的中文翻译版本，内容有删减
+  <meta name="description" content="
+本文是 theagileadmin.com的中文翻译版本，内容有删减
+
 其他wire-shark的文章：
-wireshark 抓包新手使用教程 在此之前，我遇到了亚马逊网络服务ELB的连接时间激增的问题，因此是时候用tcpdump以获取数据包跟踪和wireshark（很久以前就很虚无缥缈）来分析TCP连接问题了。
+
+wireshark 抓包新手使用教程 
+
+在此之前，我遇到了亚马逊网络服务ELB的连接时间激增的问题，因此是时候用tcpdump以获取数据包跟踪和wireshark（很久以前就很虚无缥缈）来分析TCP连接问题了。
 tcpdump默认已经在OSX 上安装了，因此第一步是确定要转储的网络接口。以下命令将列出您的所有网络接口。
-networksetup -listallhardwareports (base)  ~/ networksetup -listallhardwareports Hardware Port: Ethernet Adapter (en4) Device: en4 Ethernet Address: ba:cc:8a:ee:3f:32 Hardware Port: Wi-Fi Device: en0 Ethernet Address: bc:d0:74:0a:34:98 Hardware Port: Thunderbolt 1 Device: en1 Ethernet Address: 36:0e:31:4d:99:80 Hardware Port: Thunderbolt 2 Device: en2 Ethernet Address: 36:0e:31:4d:99:84 Hardware Port: Thunderbolt 3 Device: en3 Ethernet Address: 36:0e:31:4d:99:88 Hardware Port: Thunderbolt Bridge Device: bridge0 Ethernet Address: 36:0e:31:4d:99:80 VLAN Configurations =================== 然后，运行该接口上的数据包跟踪。我使用en0主无线接口，因此我运行：" />
+networksetup -listallhardwareports
+
+
+(base)  ~/ networksetup -listallhardwareports
+
+Hardware Port: Ethernet Adapter (en4)
+Device: en4
+Ethernet Address: ba:cc:8a:ee:3f:32
+
+Hardware Port: Wi-Fi
+Device: en0
+Ethernet Address: bc:d0:74:0a:34:98
+
+Hardware Port: Thunderbolt 1
+Device: en1
+Ethernet Address: 36:0e:31:4d:99:80
+
+Hardware Port: Thunderbolt 2
+Device: en2
+Ethernet Address: 36:0e:31:4d:99:84
+
+Hardware Port: Thunderbolt 3
+Device: en3
+Ethernet Address: 36:0e:31:4d:99:88
+
+Hardware Port: Thunderbolt Bridge
+Device: bridge0
+Ethernet Address: 36:0e:31:4d:99:80
+
+VLAN Configurations
+===================
+然后，运行该接口上的数据包跟踪。我使用en0主无线接口，因此我运行：" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -124,7 +160,7 @@ networksetup -listallhardwareports (base)  ~/ networksetup -listallhardwarepo
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -436,7 +472,7 @@ networksetup -listallhardwareports (base)  ~/ networksetup -listallhardwarepo
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

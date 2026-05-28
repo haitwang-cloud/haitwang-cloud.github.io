@@ -65,11 +65,38 @@
   
   
   
-  <meta name="description" content="前序 Kubernetes是目前最流行的容器编排工具之一，提供了丰富的功能，用于管理和部署容器应用程序。在Kubernetes中，使用client-go来与Kubernetes API进行交互。client-go提供了简单易用的API，帮助用户轻松操作Kubernetes集群。然而，在使用client-go时，我们也需要注意性能方面的问题。具体来说，client-go中的cache ListAll() 函数可能会触发CPU密集型操作。本文记录了我们如何排查和解决了tlb-service-contrller的CPU Throttling问题，旨在为同行提供思考和借鉴的经验。
+  <meta name="description" content="前序
+Kubernetes是目前最流行的容器编排工具之一，提供了丰富的功能，用于管理和部署容器应用程序。在Kubernetes中，使用client-go来与Kubernetes API进行交互。client-go提供了简单易用的API，帮助用户轻松操作Kubernetes集群。然而，在使用client-go时，我们也需要注意性能方面的问题。具体来说，client-go中的cache ListAll() 函数可能会触发CPU密集型操作。本文记录了我们如何排查和解决了tlb-service-contrller的CPU Throttling问题，旨在为同行提供思考和借鉴的经验。
 最近，我作为eBay内部Cloud网络团队的值班人员， 日常工作是处理团队维护的各种 Kubernetes的控制器（controller的）和服务的健康状态的实时警报。当出现故障、性能问题或安全问题时，立即响应并采取必要的措施来解决问题。在最近的值班中，我接到关于公司内部 tlb-service-controller 的告警电话，快速查看后发现问题是 CPU Throttling 导致 tlb-service-controller 重启。以下是对问题的排查过程和解决方案的记录。在这篇文章中，我将分享我处理这一技术挑战的经验和所得的教训，以便给同行提供有益的思考和指导。
-CPU Throttling 问题排查 收到告警电话，扩容CPU 10--&gt;20--&gt;40 CPU 扩容的过程 当我接到告警电话☎️时，发现当前 tlb-service-controller 的 CPU 限制设置为 10。最初认为是由于 controller 需要协调的对象太多，导致其无法正常工作。为了暂时解决问题，我将 CPU 限制从 10 增加到 20。然而，即使增加到 20，依然存在CPU Throttling的情况，于是我将 CPU 再次增加到 40。这样 tlb-service-controller 的 CPU 使用率稳定下来，上下游用户暂时不受影响。接下来，我将查找导致当前问题的原因 上图是在Prometheus上查看的当前tlb-service-controller在CPU扩容后的CPU和内存分布图。我们可以得出结论，CPU使用率在短短的10分钟内迅速上升至约33，这表明，CPU使用率可能出现了异常。需要进一步调查才能确定原因。
-pprof 排查CPU 使用率罪魁祸首 pprof 是一款 Golang 性能剖析工具，可用于分析应用程序的 CPU 和内存占用率等性能问题。pprof 可以在应用程序运行时收集性能数据，然后使用可视化工具进行简单的分析和展示。下面是使用 pprof 对当前 tlb-service-controller 的 CPU 使用率采样生成的分析图。 从上面的图中，我们可以看到，主要的罪魁祸首是lockAllocationForPods()和client-go中cache的ListAll()函数。通过查看源代码，我们发现该函数通过client-go提供的标签选择器功能，在每个pod上创建一个标签选择器（labelSelector），找到与之匹配的allocation（读者可以忽略&quot;allocation&quot;的具体含义，它是与IP绑定的资源，每个pod应该对应一个IP）
-func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) error { if pods == nil { return nil } for _, pod := range pods { // Check if allocation already exists for this pod labelSelector := labels." />
+CPU Throttling 问题排查
+收到告警电话，扩容CPU
+10--&gt;20--&gt;40 CPU 扩容的过程
+
+当我接到告警电话☎️时，发现当前 tlb-service-controller 的 CPU 限制设置为 10。最初认为是由于 controller 需要协调的对象太多，导致其无法正常工作。为了暂时解决问题，我将 CPU 限制从 10 增加到 20。然而，即使增加到 20，依然存在CPU Throttling的情况，于是我将 CPU 再次增加到 40。这样 tlb-service-controller 的 CPU 使用率稳定下来，上下游用户暂时不受影响。接下来，我将查找导致当前问题的原因
+
+上图是在Prometheus上查看的当前tlb-service-controller在CPU扩容后的CPU和内存分布图。我们可以得出结论，CPU使用率在短短的10分钟内迅速上升至约33，这表明，CPU使用率可能出现了异常。需要进一步调查才能确定原因。
+pprof 排查CPU 使用率罪魁祸首
+pprof 是一款 Golang 性能剖析工具，可用于分析应用程序的 CPU 和内存占用率等性能问题。pprof 可以在应用程序运行时收集性能数据，然后使用可视化工具进行简单的分析和展示。下面是使用 pprof 对当前 tlb-service-controller 的 CPU 使用率采样生成的分析图。
+
+
+
+从上面的图中，我们可以看到，主要的罪魁祸首是lockAllocationForPods()和client-go中cache的ListAll()函数。通过查看源代码，我们发现该函数通过client-go提供的标签选择器功能，在每个pod上创建一个标签选择器（labelSelector），找到与之匹配的allocation（读者可以忽略&quot;allocation&quot;的具体含义，它是与IP绑定的资源，每个pod应该对应一个IP）
+func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) error {
+	if pods == nil {
+		return nil
+	}
+	for _, pod := range pods {
+		// Check if allocation already exists for this pod
+		labelSelector := labels.Set{
+			PodNodeNameLabel:  pod.Spec.NodeName,
+			PodNamespaceLabel: pod.Namespace,
+			PodNameLabel:      pod.Name,
+			PodUIDLabel:       string(pod.UID),
+		}.AsSelector()
+
+		allocations, err := p.allocationLister.List(labelSelector)
+client-go 中的cache提供的源码分析
+client-go 是 Kubernetes 官方提供的 Go 客户端，它提供了丰富的功能，用于操作 Kubernetes API。标签选择器（labelSelector）是 client-go 中的一个重要功能，它可以用于通过标签选择器来过滤 Kubernetes API 响应的对象。client-go 的 cache 是基于 store 实现的。store 提供对 Kubernetes API 对象的访问和操作的统一接口。cache 依赖于 store 来获取 Kubernetes API 对象。" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -124,7 +151,7 @@ func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) 
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -286,8 +313,8 @@ func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) 
 </span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">pods</span> {
-</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Check if allocation already exists for this pod
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">labelSelector</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">Set</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Check if allocation already exists for this pod</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">labelSelector</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">Set</span>{
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">PodNodeNameLabel</span>:  <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">NodeName</span>,
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">PodNamespaceLabel</span>: <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Namespace</span>,
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">PodNameLabel</span>:      <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Name</span>,
@@ -302,9 +329,9 @@ func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) 
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">selectAll</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">selector</span>.<span style="color:#a6e22e">Empty</span>()
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">store</span>.<span style="color:#a6e22e">List</span>() {
 </span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">selectAll</span> {
-</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// Avoid computing labels of the objects to speed up common flows
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#75715e">// of listing all objects.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">appendFn</span>(<span style="color:#a6e22e">m</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// Avoid computing labels of the objects to speed up common flows</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// of listing all objects.</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">appendFn</span>(<span style="color:#a6e22e">m</span>)
 </span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">continue</span>
 </span></span><span style="display:flex;"><span>		}
 </span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">metadata</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">Accessor</span>(<span style="color:#a6e22e">m</span>)
@@ -326,15 +353,15 @@ func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) 
 <blockquote>
 <p>client-go 的 Store 是 client-go 提供的一种抽象的对象缓存机制。它提供了对 Kubernetes API 对象的访问和操作的统一接口。Store 依赖于 store 接口来实现，store 接口定义了 Store 的基本操作，如 List()、Get()、Update() 和 Delete() 等。Store 可以用于存储 Kubernetes API 对象的状态。应用程序可以使用 Store 来获取 Kubernetes API 对象，并监听对象状态的更改。Store 可以提高应用程序的性能，避免频繁地向 Kubernetes API Server 发送请求。</p>
 </blockquote>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Go" data-lang="Go"><span style="display:flex;"><span><span style="color:#75715e">// Store is a generic object storage interface. Reflector knows how to watch a server
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// and update a store. A generic store is provided, which allows Reflector to be used
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// as a local caching system, and an LRU store, which allows Reflector to work like a
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// queue of items yet to be processed.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// Store makes no assumptions about stored object identity; it is the responsibility
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// of a Store implementation to provide a mechanism to correctly key objects and to
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// define the contract for obtaining objects by some arbitrary key type.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Store</span> <span style="color:#66d9ef">interface</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Go" data-lang="Go"><span style="display:flex;"><span><span style="color:#75715e">// Store is a generic object storage interface. Reflector knows how to watch a server</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// and update a store. A generic store is provided, which allows Reflector to be used</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// as a local caching system, and an LRU store, which allows Reflector to work like a</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// queue of items yet to be processed.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// Store makes no assumptions about stored object identity; it is the responsibility</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// of a Store implementation to provide a mechanism to correctly key objects and to</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// define the contract for obtaining objects by some arbitrary key type.</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Store</span> <span style="color:#66d9ef">interface</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">error</span>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">error</span>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">error</span>
@@ -343,10 +370,10 @@ func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) 
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#a6e22e">item</span> <span style="color:#66d9ef">interface</span>{}, <span style="color:#a6e22e">exists</span> <span style="color:#66d9ef">bool</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">GetByKey</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) (<span style="color:#a6e22e">item</span> <span style="color:#66d9ef">interface</span>{}, <span style="color:#a6e22e">exists</span> <span style="color:#66d9ef">bool</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>)
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Replace will delete the contents of the store, using instead the
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// given list. Store takes ownership of the list, you should not reference
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// it after calling this function.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Replace</span>([]<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Replace will delete the contents of the store, using instead the</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// given list. Store takes ownership of the list, you should not reference</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// it after calling this function.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Replace</span>([]<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Resync</span>() <span style="color:#66d9ef">error</span>
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h4 id="分析cpu-throttling--原因">分析CPU Throttling  原因</h4>
@@ -358,16 +385,16 @@ func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) 
 <h2 id="throttling--解决过程">Throttling  解决过程</h2>
 <p>通过比较Pod和allocation对象，我发现它们之间有一个交叉字段，即IP。因此，可以通过IP将这两个对象关联起来。由于 client-go提供了 添加了自定义 <code>AddIndexers</code>的功能，具体可查看<a href="https://github.com/haitwang-cloud/blog/blob/main/kubernetes/k8s_informers.md#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88--informers">An introduction to Go Kubernetes&rsquo; informers</a> 我们可以通过自定义<code>Indexers</code>来加快访问速度，比如下面是一个通过pod的IP而不是name和nameSpace来获取pod的例子</p>
 <h3 id="pod-addindexers例子">Pod AddIndexers例子</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// arbitrary unique name for the new indexer
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">ByIP</span> = <span style="color:#e6db74">&#34;IndexByIP&#34;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// arbitrary unique name for the new indexer</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">ByIP</span> = <span style="color:#e6db74">&#34;IndexByIP&#34;</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">podIPIndexFunc</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) ([]<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;object is not a Pod&#34;</span>)
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Extract the IP addresses from the Pod and return them as a list of strings.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ipList</span> []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Extract the IP addresses from the Pod and return them as a list of strings.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ipList</span> []<span style="color:#66d9ef">string</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ip</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">PodIPs</span> {
 </span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ipList</span> = append(<span style="color:#a6e22e">ipList</span>, <span style="color:#a6e22e">ip</span>.<span style="color:#a6e22e">IP</span>)
 </span></span><span style="display:flex;"><span>    }
@@ -390,8 +417,8 @@ func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) 
 </span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;object is not a Allocation&#34;</span>)
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Extract the IP addresses from the ipamv1.Allocation and return them as a list of strings.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ipList</span> []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Extract the IP addresses from the ipamv1.Allocation and return them as a list of strings.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ipList</span> []<span style="color:#66d9ef">string</span>
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">subNet</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">alloc</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">Subnets</span> {
 </span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">subNet</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
 </span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">ip</span>, <span style="color:#a6e22e">ipNet</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">ParseCIDR</span>(<span style="color:#a6e22e">subNet</span>)
@@ -436,6 +463,23 @@ func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) 
   
   
   
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    <a
+      class="flex w-1/2 items-center rounded-l-md p-6 pr-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/object-stores-and-indexers/"
+      ><span class="mr-1.5">←</span><span>深入了解Kubernetes控制器对象存储（object stores）和索引器（indexers）</span></a
+    >
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/using-the-helm-tpl-function/"
+      ><span>简化Helm Charts部署：使用tpl函数引用Values</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
   
 
   
@@ -476,7 +520,7 @@ func (p *TLBProvider) lockAllocationForPods(pods []v1.Pod, service *v1.Service) 
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

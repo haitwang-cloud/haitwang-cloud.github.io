@@ -65,11 +65,49 @@
   
   
   
-  <meta name="description" content="准备工作 首先我们创建两个NameSpaceistio-canary &amp; istio-prod,分别用于部署istio的canary版本和prod版本，然后我们给这两个NameSpace打上标签，用于后续的istio的版本选择。
-➜ ~ k create ns istio-canary ➜ ~ k create ns istio-prod ➜ ~ k label ns istio-canary istio-tag=istio-canary ➜ ~ k label ns istio-prod istio-tag=istio-prod 接下来我们将要安装istio的版本，这里我们选择了1.19.3和1.18.5两个版本，分别用于canary和prod的版本。
-➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.19.3 sh - ➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.18.5 sh - 首先给两个版本的istioctl设置alias，方便后续的操作。
-➜ ~ istioctl1.9=&#39;~/istio-1.19.3/bin/istioctl&#39; ➜ ~ istioctl1.8=&#39;~/istio-1.18.5/bin/istioctl&#39; 开始安装istio 我们使用下面的命令来在istio-canary的NameSpace中安装istio 1.19.3版本
-➜ ~ istioctl1.9 install -y -f - &lt;&lt;EOF apiVersion: install.istio.io/v1alpha1 kind: IstioOperator metadata: namespace: istio-canary name: istio-1-19-3 spec: profile: default revision: 1-19-3 tag: 1." />
+  <meta name="description" content="
+准备工作
+首先我们创建两个NameSpaceistio-canary &amp; istio-prod,分别用于部署istio的canary版本和prod版本，然后我们给这两个NameSpace打上标签，用于后续的istio的版本选择。
+➜ ~ k create ns istio-canary
+➜ ~ k create ns istio-prod
+➜ ~ k label ns istio-canary istio-tag=istio-canary
+➜ ~ k label ns istio-prod istio-tag=istio-prod
+接下来我们将要安装istio的版本，这里我们选择了1.19.3和1.18.5两个版本，分别用于canary和prod的版本。
+➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.19.3 sh -
+
+➜ ~ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.18.5 sh -
+首先给两个版本的istioctl设置alias，方便后续的操作。
+➜ ~ istioctl1.9=&#39;~/istio-1.19.3/bin/istioctl&#39;
+➜ ~ istioctl1.8=&#39;~/istio-1.18.5/bin/istioctl&#39;
+
+开始安装istio
+我们使用下面的命令来在istio-canary的NameSpace中安装istio 1.19.3版本
+➜ ~ istioctl1.9 install -y -f - &lt;&lt;EOF
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-canary
+  name: istio-1-19-3
+spec:
+  profile: default
+  revision: 1-19-3
+  tag: 1.19.3
+  meshConfig:
+    discoverySelectors:
+      - matchLabels:
+          istio-tag: istio-canary     
+  values:
+    global:
+      istioNamespace: istio-canary
+    pilot:
+      env:
+        ENABLE_ENHANCED_RESOURCE_SCOPING: true
+EOF
+✔ Istio core installed
+✔ Istiod installed
+✔ Ingress gateways installed
+✔ Installation complete
+我们使用下面的命令来在istio-prod的NameSpace中安装istio 1.18.5版本" />
   <meta name="author" content="Tim Wang" />
   
 
@@ -124,7 +162,7 @@
   <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
 
   
-  <meta name="generator" content="Hugo 0.127.0">
+  <meta name="generator" content="Hugo 0.152.2">
 
   
   
@@ -482,7 +520,7 @@
   class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
 >
   <div class="mr-auto">
-    &copy; 2024
+    &copy; 2026
     <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
   </div>
   <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"

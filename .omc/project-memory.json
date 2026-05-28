@@ -1,0 +1,124 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1779951090259,
+  "projectRoot": "/Users/I742968/code/haitwang-cloud.github.io",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "hugo build 2>&1 | grep -E \"ERROR|WARN|Built in\"",
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "public",
+      "static"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "archetypes": {
+      "path": "archetypes",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1779951090245,
+      "keyFiles": [
+        "default.md"
+      ]
+    },
+    "content": {
+      "path": "content",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1779951090245,
+      "keyFiles": [
+        "_index.md",
+        "intro-zh.md",
+        "referral.md"
+      ]
+    },
+    "layouts": {
+      "path": "layouts",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1779951090246,
+      "keyFiles": [
+        "index.html"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 20,
+      "lastAccessed": 1779951090246,
+      "keyFiles": [
+        "404.html",
+        "ad.txt",
+        "ads.txt",
+        "apple-touch-icon.png",
+        "favicon.ico"
+      ]
+    },
+    "static": {
+      "path": "static",
+      "purpose": "Static files",
+      "fileCount": 2,
+      "lastAccessed": 1779951090246,
+      "keyFiles": [
+        "ads.txt"
+      ]
+    },
+    "themes": {
+      "path": "themes",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1779951090247,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "hugo.toml",
+      "accessCount": 2,
+      "lastAccessed": 1779951790846,
+      "type": "file"
+    },
+    {
+      "path": "themes/paper/layouts/_default/single.html",
+      "accessCount": 1,
+      "lastAccessed": 1779951757814,
+      "type": "file"
+    },
+    {
+      "path": "content/_index.md",
+      "accessCount": 1,
+      "lastAccessed": 1779952257017,
+      "type": "file"
+    },
+    {
+      "path": "content/intro-zh.md",
+      "accessCount": 1,
+      "lastAccessed": 1779952367170,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

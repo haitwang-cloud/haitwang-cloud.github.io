@@ -1,0 +1,654 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>Sglang vs Vllm Streaming Json - Tim Wang Tech Blog</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="vLLM vs SGLang for gpt-oss-120b: Why “OpenAI-Compatible” Streaming JSON Still Needs a Compatibility Layer
+Both vLLM and SGLang advertise OpenAI Chat Completions compatibility. In practice, once you enable stream: true against gpt-oss-120b, the SSE chunks are not byte-identical. Most of the differences are harmless, but two of them are subtle enough to silently corrupt client output if you move a parser from one engine to the other without adjustment.
+This post turns a live capture into a practical compatibility guide. It shows the exact JSON differences, explains which ones are likely naming drift versus provider-specific extensions, and ends with a parser that safely handles both backends." />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.152.2">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang Tech Blog</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">Sglang vs Vllm Streaming Json</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>May 28, 2026</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><h1 id="vllm-vs-sglang-for-gpt-oss-120b-why-openai-compatible-streaming-json-still-needs-a-compatibility-layer">vLLM vs SGLang for <code>gpt-oss-120b</code>: Why “OpenAI-Compatible” Streaming JSON Still Needs a Compatibility Layer</h1>
+<p>Both vLLM and SGLang advertise OpenAI Chat Completions compatibility. In practice, once you enable <code>stream: true</code> against <code>gpt-oss-120b</code>, the SSE chunks are <strong>not byte-identical</strong>. Most of the differences are harmless, but two of them are subtle enough to silently corrupt client output if you move a parser from one engine to the other without adjustment.</p>
+<p>This post turns a live capture into a practical compatibility guide. It shows the exact JSON differences, explains which ones are likely naming drift versus provider-specific extensions, and ends with a parser that safely handles both backends.</p>
+<h2 id="test-setup">Test setup</h2>
+<ul>
+<li><strong>Model</strong>: <code>openai/gpt-oss-120b</code></li>
+<li><strong>Request mode</strong>: OpenAI-compatible Chat Completions with <code>stream: true</code></li>
+<li><strong>Request settings</strong>: <code>max_tokens: 200</code>, <code>temperature: 0.1</code></li>
+<li><strong>SGLang deployment in this repo</strong>: <code>sglang:v0.5.12</code> with <code>--reasoning-parser gpt-oss</code> and <code>--tool-call-parser gpt-oss</code></li>
+<li><strong>vLLM deployment in this repo</strong>: <code>vllm:v0.21.0</code> with <code>--reasoning_parser openai_gptoss</code> and <code>--tool-call-parser openai</code></li>
+</ul>
+<p>The manifest evidence does not prove the runtime wire format by itself, but it does support the attribution of the captured streams as <strong>SGLang-flavored</strong> and <strong>vLLM-flavored</strong> OpenAI compatibility.</p>
+<h2 id="tldr--the-two-fixes-that-actually-matter">TL;DR — the two fixes that actually matter</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 1. The reasoning field has two names. Read both.</span>
+</span></span><span style="display:flex;"><span>reasoning <span style="color:#f92672">=</span> delta<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;reasoning_content&#34;</span>) <span style="color:#f92672">or</span> delta<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;reasoning&#34;</span>) <span style="color:#f92672">or</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 2. Don&#39;t break on finish_reason before consuming the delta.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#    vLLM can ship the last token + finish_reason in the same chunk.</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> chunk <span style="color:#f92672">in</span> stream:
+</span></span><span style="display:flex;"><span>    delta <span style="color:#f92672">=</span> chunk<span style="color:#f92672">.</span>choices[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>delta
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> delta<span style="color:#f92672">.</span>content:
+</span></span><span style="display:flex;"><span>        text <span style="color:#f92672">+=</span> delta<span style="color:#f92672">.</span>content
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> r <span style="color:#f92672">:=</span> delta<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;reasoning_content&#34;</span>) <span style="color:#f92672">or</span> delta<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;reasoning&#34;</span>):
+</span></span><span style="display:flex;"><span>        reasoning <span style="color:#f92672">+=</span> r
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> chunk<span style="color:#f92672">.</span>choices[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>finish_reason:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>
+</span></span></code></pre></div><p>Everything else in this post is context for those two pieces of code.</p>
+<h2 id="at-a-glance-where-the-streams-differ">At a glance: where the streams differ</h2>
+<table>
+  <thead>
+      <tr>
+          <th>Topic</th>
+          <th>vLLM-like stream</th>
+          <th>SGLang-like stream</th>
+          <th>Why it matters</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>id</code> format</td>
+          <td><code>chatcmpl-...</code> + UUID</td>
+          <td>bare 32-char hex</td>
+          <td>IDs should be treated as opaque strings</td>
+      </tr>
+      <tr>
+          <td>Reasoning field</td>
+          <td><code>delta.reasoning</code></td>
+          <td><code>delta.reasoning_content</code></td>
+          <td>Missing either one drops reasoning tokens</td>
+      </tr>
+      <tr>
+          <td>Finish behavior</td>
+          <td>last reasoning delta and <code>finish_reason</code> may share one chunk</td>
+          <td>captured run shows a final reasoning delta followed by a separate finish chunk</td>
+          <td>Wrong loop order can drop the final delta on vLLM</td>
+      </tr>
+      <tr>
+          <td>Stop metadata</td>
+          <td><code>stop_reason</code></td>
+          <td><code>matched_stop</code></td>
+          <td>Same concept, different keys</td>
+      </tr>
+      <tr>
+          <td>Extra per-chunk fields</td>
+          <td><code>token_ids</code>, <code>prompt_token_ids</code>, <code>prompt_text</code>, <code>system_fingerprint</code></td>
+          <td>fewer tracing fields</td>
+          <td>Strict schemas must allow unknown keys</td>
+      </tr>
+      <tr>
+          <td>Usage details</td>
+          <td>minimal usage object</td>
+          <td><code>reasoning_tokens</code>, <code>prompt_tokens_details</code></td>
+          <td>Billing and accounting logic must tolerate optional fields</td>
+      </tr>
+  </tbody>
+</table>
+<hr>
+<h2 id="1-first-chunk-same-sse-envelope-different-json-shape">1. First chunk: same SSE envelope, different JSON shape</h2>
+<p>The very first chunk already shows the divergence.</p>
+<p><strong>SGLang</strong> declares nullable fields up front:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#e6db74">&#34;d3b406a9b33a435cb7a7bcc2266e48ac&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;object&#34;</span>: <span style="color:#e6db74">&#34;chat.completion.chunk&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;openai/gpt-oss-120b&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;choices&#34;</span>: [{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;index&#34;</span>: <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;delta&#34;</span>: { <span style="color:#f92672">&#34;reasoning_content&#34;</span>: <span style="color:#66d9ef">null</span>, <span style="color:#f92672">&#34;role&#34;</span>: <span style="color:#e6db74">&#34;assistant&#34;</span>, <span style="color:#f92672">&#34;content&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span> },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;logprobs&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;matched_stop&#34;</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>  }]
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>vLLM</strong> emits a leaner object and adds top-level token-trace fields:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#e6db74">&#34;chatcmpl-6ca2ec78-dac2-4759-8ffc-aa13d8b470bf&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;object&#34;</span>: <span style="color:#e6db74">&#34;chat.completion.chunk&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;model&#34;</span>: <span style="color:#e6db74">&#34;openai/gpt-oss-120b&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;choices&#34;</span>: [{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;index&#34;</span>: <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;delta&#34;</span>: { <span style="color:#f92672">&#34;role&#34;</span>: <span style="color:#e6db74">&#34;assistant&#34;</span>, <span style="color:#f92672">&#34;content&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span> },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;logprobs&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>  }],
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;prompt_token_ids&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;prompt_text&#34;</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Two practical consequences fall out immediately:</p>
+<ul>
+<li><strong>Do not assert <code>id.startswith(&quot;chatcmpl-&quot;)</code></strong>. That works on many OpenAI-style systems, but it breaks on SGLang here.</li>
+<li><strong>Do not overfit a strict schema to one backend</strong>. Both engines add fields the other one does not use.</li>
+</ul>
+<hr>
+<h2 id="2-reasoning-deltas-same-idea-different-field-names">2. Reasoning deltas: same idea, different field names</h2>
+<p>This is the easiest silent migration bug to introduce.</p>
+<p><strong>SGLang</strong> uses <code>reasoning_content</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{ <span style="color:#f92672">&#34;delta&#34;</span>: { <span style="color:#f92672">&#34;reasoning_content&#34;</span>: <span style="color:#e6db74">&#34;We&#34;</span> }, <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#66d9ef">null</span>, <span style="color:#f92672">&#34;matched_stop&#34;</span>: <span style="color:#66d9ef">null</span> }
+</span></span><span style="display:flex;"><span>{ <span style="color:#f92672">&#34;delta&#34;</span>: { <span style="color:#f92672">&#34;reasoning_content&#34;</span>: <span style="color:#e6db74">&#34; need&#34;</span> }, <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#66d9ef">null</span>, <span style="color:#f92672">&#34;matched_stop&#34;</span>: <span style="color:#66d9ef">null</span> }
+</span></span><span style="display:flex;"><span>{ <span style="color:#f92672">&#34;delta&#34;</span>: { <span style="color:#f92672">&#34;reasoning_content&#34;</span>: <span style="color:#e6db74">&#34; to&#34;</span> }, <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#66d9ef">null</span>, <span style="color:#f92672">&#34;matched_stop&#34;</span>: <span style="color:#66d9ef">null</span> }
+</span></span></code></pre></div><p><strong>vLLM</strong> uses <code>reasoning</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{ <span style="color:#f92672">&#34;delta&#34;</span>: { <span style="color:#f92672">&#34;reasoning&#34;</span>: <span style="color:#e6db74">&#34;We&#34;</span> }, <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#66d9ef">null</span>, <span style="color:#f92672">&#34;token_ids&#34;</span>: <span style="color:#66d9ef">null</span> }
+</span></span><span style="display:flex;"><span>{ <span style="color:#f92672">&#34;delta&#34;</span>: { <span style="color:#f92672">&#34;reasoning&#34;</span>: <span style="color:#e6db74">&#34; need&#34;</span> }, <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#66d9ef">null</span>, <span style="color:#f92672">&#34;token_ids&#34;</span>: <span style="color:#66d9ef">null</span> }
+</span></span><span style="display:flex;"><span>{ <span style="color:#f92672">&#34;delta&#34;</span>: { <span style="color:#f92672">&#34;reasoning&#34;</span>: <span style="color:#e6db74">&#34; to&#34;</span> }, <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#66d9ef">null</span>, <span style="color:#f92672">&#34;token_ids&#34;</span>: <span style="color:#66d9ef">null</span> }
+</span></span></code></pre></div><p>If your client only reads one name, <strong>all reasoning tokens can vanish</strong> when you switch engines.</p>
+<p>For these captures, the safest interpretation is that <code>reasoning_content</code> vs <code>reasoning</code> is a <strong>functionally equivalent naming difference</strong>. vLLM&rsquo;s public reasoning-output guidance treats <code>reasoning</code> as the current name and <code>reasoning_content</code> as a deprecated compatibility naming. Current OpenAI-compatible docs still do not provide a stable, universal spec for raw streamed reasoning fields, so tolerant parsing is the only safe choice.</p>
+<hr>
+<h2 id="3-final-chunk-semantics-where-parsers-silently-lose-data">3. Final chunk semantics: where parsers silently lose data</h2>
+<p>The most dangerous difference is not the reasoning field name. It is the <strong>termination pattern</strong>.</p>
+<p><strong>In this SGLang capture</strong>, the last reasoning token is followed by a separate finish frame:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{ <span style="color:#f92672">&#34;delta&#34;</span>: { <span style="color:#f92672">&#34;reasoning_content&#34;</span>: <span style="color:#e6db74">&#34; IDs&#34;</span> }, <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#66d9ef">null</span>, <span style="color:#f92672">&#34;matched_stop&#34;</span>: <span style="color:#66d9ef">null</span> }
+</span></span><span style="display:flex;"><span>{ <span style="color:#f92672">&#34;delta&#34;</span>: { <span style="color:#f92672">&#34;reasoning_content&#34;</span>: <span style="color:#66d9ef">null</span> }, <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#e6db74">&#34;length&#34;</span>, <span style="color:#f92672">&#34;matched_stop&#34;</span>: <span style="color:#66d9ef">null</span> }
+</span></span></code></pre></div><p><strong>vLLM</strong> can merge the last reasoning token and <code>finish_reason</code> into one chunk:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;delta&#34;</span>: { <span style="color:#f92672">&#34;reasoning&#34;</span>: <span style="color:#e6db74">&#34;STATE&#34;</span> },
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;finish_reason&#34;</span>: <span style="color:#e6db74">&#34;length&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;stop_reason&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;token_ids&#34;</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>That makes this loop wrong:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> chunk<span style="color:#f92672">.</span>choices[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>finish_reason:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>text <span style="color:#f92672">+=</span> chunk<span style="color:#f92672">.</span>choices[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>delta<span style="color:#f92672">.</span>content <span style="color:#f92672">or</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span></code></pre></div><p>It looks correct under SGLang, but on vLLM it can drop the final delta in the same chunk. The safe rule is simple: <strong>consume the delta first, then inspect <code>finish_reason</code></strong>.</p>
+<p>This is also where you see another provider-specific split:</p>
+<ul>
+<li><strong>vLLM</strong> exposes <code>stop_reason</code></li>
+<li><strong>SGLang</strong> exposes <code>matched_stop</code></li>
+</ul>
+<p>Treat those as analogous backend-specific stop metadata, not guaranteed semantic equivalents and not stable OpenAI-standard fields.</p>
+<hr>
+<h2 id="4-the-usage-chunk-both-compatible-not-equally-rich">4. The <code>usage</code> chunk: both compatible, not equally rich</h2>
+<p>In this run, both engines end with a usage-only chunk with <code>choices: []</code>, but the payloads are still different.</p>
+<p><strong>SGLang</strong> exposes reasoning accounting explicitly:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;choices&#34;</span>: [],
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;usage&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;prompt_tokens&#34;</span>: <span style="color:#ae81ff">2677</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;total_tokens&#34;</span>: <span style="color:#ae81ff">2877</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;completion_tokens&#34;</span>: <span style="color:#ae81ff">200</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;prompt_tokens_details&#34;</span>: <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;reasoning_tokens&#34;</span>: <span style="color:#ae81ff">200</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>vLLM</strong> keeps the usage object minimal and adds <code>system_fingerprint</code> at the chunk level:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;choices&#34;</span>: [],
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;usage&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;prompt_tokens&#34;</span>: <span style="color:#ae81ff">2674</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;total_tokens&#34;</span>: <span style="color:#ae81ff">2874</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;completion_tokens&#34;</span>: <span style="color:#ae81ff">200</span>
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;system_fingerprint&#34;</span>: <span style="color:#e6db74">&#34;vllm-0.1.dev1+gc06ff9ec0-tp2-59a10424&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Three details matter here:</p>
+<ul>
+<li>In this SGLang capture, <code>reasoning_tokens</code> is already reflected inside <code>completion_tokens</code>. Do not double-count it in client-side accounting unless your provider documents otherwise.</li>
+<li><code>system_fingerprint</code> leaks backend build and topology detail. Strip it if you do not want to expose runtime metadata externally.</li>
+<li>The <code>prompt_tokens</code> counts differ by three tokens (<code>2677</code> vs <code>2674</code>) even for the same logical request. Do not assume token accounting will match exactly across engines.</li>
+</ul>
+<hr>
+<h2 id="5-which-differences-are-naming-drift-and-which-are-provider-behavior">5. Which differences are naming drift, and which are provider behavior?</h2>
+<p>The cleanest way to think about these captures is:</p>
+<h3 id="likely-naming-drift">Likely naming drift</h3>
+<ul>
+<li><code>delta.reasoning_content</code> vs <code>delta.reasoning</code></li>
+</ul>
+<h3 id="safer-to-treat-as-provider-specific-extensions">Safer to treat as provider-specific extensions</h3>
+<ul>
+<li><code>matched_stop</code> vs <code>stop_reason</code></li>
+<li><code>token_ids</code>, <code>prompt_token_ids</code>, <code>prompt_text</code></li>
+<li><code>system_fingerprint</code></li>
+<li><code>reasoning_tokens</code>, <code>prompt_tokens_details</code></li>
+<li>merged-vs-separate finish frame behavior</li>
+<li><code>id</code> formatting differences</li>
+</ul>
+<p>That distinction matters because it changes the right client strategy. Naming drift means “read both.” Provider extensions mean “accept if present, ignore if absent.”</p>
+<hr>
+<h2 id="6-the-reasoning-itself-is-not-reproducible-across-engines">6. The reasoning itself is not reproducible across engines</h2>
+<p>Even with the same model and nearly deterministic settings (<code>temperature: 0.1</code>), the reasoning traces are not the same.</p>
+<ul>
+<li><strong>SGLang-style capture</strong>: <code>&quot;We need to produce JSON with reasoning_steps,.&quot;</code></li>
+<li><strong>vLLM-style capture</strong>: <code>&quot;We need to extract signals: tables: ...&quot;</code></li>
+</ul>
+<p>That is not surprising. Different engines change enough of the runtime path to perturb generation. Likely contributors include:</p>
+<ul>
+<li>different attention kernels</li>
+<li>different tensor-parallel topology</li>
+<li>different batching and paged-attention implementations</li>
+</ul>
+<p>The operational takeaway is simple: <strong>if you are running quality A/B tests, lock the engine as well as the model</strong>. Otherwise you are partly measuring engine artifacts.</p>
+<hr>
+<h2 id="7-a-minimal-parser-for-the-captured-variants">7. A minimal parser for the captured variants</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">parse_chat_stream</span>(stream):
+</span></span><span style="display:flex;"><span>    content, reasoning, finish_reason, usage <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#66d9ef">None</span>, <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> chunk <span style="color:#f92672">in</span> stream:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Final usage chunk has empty choices on both engines</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> chunk[<span style="color:#e6db74">&#34;choices&#34;</span>]:
+</span></span><span style="display:flex;"><span>            usage <span style="color:#f92672">=</span> chunk<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;usage&#34;</span>, {})
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        choice <span style="color:#f92672">=</span> chunk[<span style="color:#e6db74">&#34;choices&#34;</span>][<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>        delta <span style="color:#f92672">=</span> choice<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;delta&#34;</span>, {})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Dual-field reasoning — required for cross-engine correctness</span>
+</span></span><span style="display:flex;"><span>        r <span style="color:#f92672">=</span> delta<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;reasoning_content&#34;</span>) <span style="color:#f92672">or</span> delta<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;reasoning&#34;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> r:
+</span></span><span style="display:flex;"><span>            reasoning <span style="color:#f92672">+=</span> r
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> delta<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;content&#34;</span>):
+</span></span><span style="display:flex;"><span>            content <span style="color:#f92672">+=</span> delta[<span style="color:#e6db74">&#34;content&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Collect first, THEN record finish_reason</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> choice<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;finish_reason&#34;</span>):
+</span></span><span style="display:flex;"><span>            finish_reason <span style="color:#f92672">=</span> choice[<span style="color:#e6db74">&#34;finish_reason&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;content&#34;</span>: content,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;reasoning&#34;</span>: reasoning,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;finish_reason&#34;</span>: finish_reason,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;usage&#34;</span>: {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;prompt_tokens&#34;</span>: usage<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;prompt_tokens&#34;</span>, <span style="color:#ae81ff">0</span>),
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;completion_tokens&#34;</span>: usage<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;completion_tokens&#34;</span>, <span style="color:#ae81ff">0</span>),
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;reasoning_tokens&#34;</span>: usage<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;reasoning_tokens&#34;</span>, <span style="color:#ae81ff">0</span>),
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><p>This parser does not branch on provider identity. It simply tolerates the field and finish-frame differences that matter in the captured variants.</p>
+<hr>
+<h2 id="8-migration-checklist">8. Migration checklist</h2>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: center">Priority</th>
+          <th>Change</th>
+          <th>If you skip it</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: center"><strong>P0</strong></td>
+          <td>Read both <code>reasoning_content</code> and <code>reasoning</code></td>
+          <td>All reasoning tokens can be dropped</td>
+      </tr>
+      <tr>
+          <td style="text-align: center"><strong>P0</strong></td>
+          <td>Consume delta before checking <code>finish_reason</code></td>
+          <td>Final token can be lost on vLLM</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">P1</td>
+          <td>Allow extra keys and optional reasoning fields in the schema</td>
+          <td>Strict validators reject one backend</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">P1</td>
+          <td>Stop asserting <code>id.startswith(&quot;chatcmpl-&quot;)</code></td>
+          <td>Hard failure on SGLang</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">P2</td>
+          <td>Read <code>stop_reason</code> and <code>matched_stop</code> as optional equivalents</td>
+          <td>You lose stop diagnostics</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">P2</td>
+          <td>Treat <code>system_fingerprint</code> and <code>reasoning_tokens</code> as optional</td>
+          <td><code>AttributeError</code> or accounting bugs</td>
+      </tr>
+  </tbody>
+</table>
+<p>The two P0 items are the real compatibility boundary. Everything else is cleanup and resilience.</p>
+<hr>
+<h2 id="appendix-a-verbatim-raw-sse-excerpts-from-the-live-capture">Appendix A: verbatim raw SSE excerpts from the live capture</h2>
+<p>The full captures are long and repetitive, so this appendix keeps the blog readable by showing <strong>representative raw lines from one live run exactly as captured</strong>. The vLLM excerpt includes <code>system_fingerprint</code>; redact it if you do not want to publish backend build metadata.</p>
+<h3 id="a1-first-chunk">A.1 First chunk</h3>
+<p><strong>vLLM-style capture</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;chatcmpl-6ca2ec78-dac2-4759-8ffc-aa13d8b470bf&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866853,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[{&#34;index&#34;:0,&#34;delta&#34;:{&#34;role&#34;:&#34;assistant&#34;,&#34;content&#34;:&#34;&#34;},&#34;logprobs&#34;:null,&#34;finish_reason&#34;:null}],&#34;prompt_token_ids&#34;:null,&#34;prompt_text&#34;:null}
+</span></span></code></pre></div><p><strong>SGLang-style capture</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;d3b406a9b33a435cb7a7bcc2266e48ac&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866808,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[{&#34;index&#34;:0,&#34;delta&#34;:{&#34;reasoning_content&#34;:null,&#34;role&#34;:&#34;assistant&#34;,&#34;content&#34;:&#34;&#34;},&#34;logprobs&#34;:null,&#34;finish_reason&#34;:null,&#34;matched_stop&#34;:null}]}
+</span></span></code></pre></div><h3 id="a2-early-reasoning-chunks">A.2 Early reasoning chunks</h3>
+<p><strong>vLLM-style capture</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;chatcmpl-6ca2ec78-dac2-4759-8ffc-aa13d8b470bf&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866853,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[{&#34;index&#34;:0,&#34;delta&#34;:{&#34;reasoning&#34;:&#34;We&#34;},&#34;logprobs&#34;:null,&#34;finish_reason&#34;:null,&#34;token_ids&#34;:null}]}
+</span></span><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;chatcmpl-6ca2ec78-dac2-4759-8ffc-aa13d8b470bf&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866853,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[{&#34;index&#34;:0,&#34;delta&#34;:{&#34;reasoning&#34;:&#34; need&#34;},&#34;logprobs&#34;:null,&#34;finish_reason&#34;:null,&#34;token_ids&#34;:null}]}
+</span></span><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;chatcmpl-6ca2ec78-dac2-4759-8ffc-aa13d8b470bf&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866853,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[{&#34;index&#34;:0,&#34;delta&#34;:{&#34;reasoning&#34;:&#34; to&#34;},&#34;logprobs&#34;:null,&#34;finish_reason&#34;:null,&#34;token_ids&#34;:null}]}
+</span></span></code></pre></div><p><strong>SGLang-style capture</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;d3b406a9b33a435cb7a7bcc2266e48ac&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866808,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[{&#34;index&#34;:0,&#34;delta&#34;:{&#34;reasoning_content&#34;:&#34;We&#34;},&#34;logprobs&#34;:null,&#34;finish_reason&#34;:null,&#34;matched_stop&#34;:null}]}
+</span></span><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;d3b406a9b33a435cb7a7bcc2266e48ac&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866808,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[{&#34;index&#34;:0,&#34;delta&#34;:{&#34;reasoning_content&#34;:&#34; need&#34;},&#34;logprobs&#34;:null,&#34;finish_reason&#34;:null,&#34;matched_stop&#34;:null}]}
+</span></span><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;d3b406a9b33a435cb7a7bcc2266e48ac&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866808,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[{&#34;index&#34;:0,&#34;delta&#34;:{&#34;reasoning_content&#34;:&#34; to&#34;},&#34;logprobs&#34;:null,&#34;finish_reason&#34;:null,&#34;matched_stop&#34;:null}]}
+</span></span></code></pre></div><h3 id="a3-terminal-reasoning-and-finish-frames">A.3 Terminal reasoning and finish frames</h3>
+<p><strong>vLLM-style capture</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;chatcmpl-6ca2ec78-dac2-4759-8ffc-aa13d8b470bf&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866853,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[{&#34;index&#34;:0,&#34;delta&#34;:{&#34;reasoning&#34;:&#34;STATE&#34;},&#34;logprobs&#34;:null,&#34;finish_reason&#34;:&#34;length&#34;,&#34;stop_reason&#34;:null,&#34;token_ids&#34;:null}]}
+</span></span></code></pre></div><p><strong>SGLang-style capture</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;d3b406a9b33a435cb7a7bcc2266e48ac&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866809,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[{&#34;index&#34;:0,&#34;delta&#34;:{&#34;reasoning_content&#34;:&#34; IDs&#34;},&#34;logprobs&#34;:null,&#34;finish_reason&#34;:null,&#34;matched_stop&#34;:null}]}
+</span></span><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;d3b406a9b33a435cb7a7bcc2266e48ac&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866809,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[{&#34;index&#34;:0,&#34;delta&#34;:{&#34;reasoning_content&#34;:null},&#34;logprobs&#34;:null,&#34;finish_reason&#34;:&#34;length&#34;,&#34;matched_stop&#34;:null}]}
+</span></span></code></pre></div><h3 id="a4-final-usage-chunk-and-stream-terminator">A.4 Final usage chunk and stream terminator</h3>
+<p><strong>vLLM-style capture</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;chatcmpl-6ca2ec78-dac2-4759-8ffc-aa13d8b470bf&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866853,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[],&#34;usage&#34;:{&#34;prompt_tokens&#34;:2674,&#34;total_tokens&#34;:2874,&#34;completion_tokens&#34;:200},&#34;system_fingerprint&#34;:&#34;vllm-0.1.dev1+gc06ff9ec0-tp2-59a10424&#34;}
+</span></span><span style="display:flex;"><span>data: [DONE]
+</span></span></code></pre></div><p><strong>SGLang-style capture</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>data: {&#34;id&#34;:&#34;d3b406a9b33a435cb7a7bcc2266e48ac&#34;,&#34;object&#34;:&#34;chat.completion.chunk&#34;,&#34;created&#34;:1779866809,&#34;model&#34;:&#34;openai/gpt-oss-120b&#34;,&#34;choices&#34;:[],&#34;usage&#34;:{&#34;prompt_tokens&#34;:2677,&#34;total_tokens&#34;:2877,&#34;completion_tokens&#34;:200,&#34;prompt_tokens_details&#34;:null,&#34;reasoning_tokens&#34;:200}}
+</span></span><span style="display:flex;"><span>data: [DONE]
+</span></span></code></pre></div></section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  <div class="giscus mt-24"></div>
+  <script
+    src="https://giscus.app/client.js"
+    data-repo="haitwang-cloud/haitwang-cloud.github.io"
+    data-repo-id="R_kgDOMH03cQ"
+    data-category="General"
+    data-category-id="DIC_kwDOMH03cc4CgVak"
+    data-mapping="pathname"
+    data-strict="1"
+    data-reactions-enabled="0"
+    data-emit-metadata="0"
+    data-input-position="top"
+    data-theme="light"
+    data-lang="zh-CN"
+    data-loading="lazy"
+    crossorigin="anonymous"
+    async
+  ></script>
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2026
+    <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,435 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>Vllm 分布式推理：突破大模型服务的内存瓶颈 - Tim Wang Tech Blog</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="
+本文是Distributed Inference with vLLM的中文翻译版本，内容有删减
+
+Motivation
+当前的大语言模型（LLM），在推理阶段面临着巨大的内存需求。随着模型参数的增加，单个GPU往往无法满足其内存需求，导致推理过程中出现CUDA out of memory错误。为了解决这个问题，vLLM采用了两种主要策略：
+
+Reduce Precision（降低精度） – 利用FP8和更低位数的量化方法可以减少内存使用。然而，随着模型参数超过数百亿时，这种方法可能会影响准确性和可扩展性，单靠它并不足以解决问题。
+Distributed Inference（分布式推理） – 将模型计算分散到多个GPU或节点上，可以实现可扩展性和效率。这就是张量并行和流水线并行等分布式架构发挥作用的地方。
+
+vLLM 架构与大语言模型推理挑战
+与大语言模型训练相比，大语言模型推理面临独特的挑战：
+
+推理需要低延迟和动态工作负载处理，而训练则纯粹关注已知静态形状的吞吐量。
+推理工作负载必须有效管理KV缓存、推测解码和预填充到解码(prefill-to-decode)的过渡。
+大模型往往超出单GPU容量，需要先进的并行化策略。
+
+为了解决这些问题，vLLM提供了：
+
+Tensor parallelism（张量并行） – 在一个GPU节点内将每个模型层分片到多个GPU上。
+Pipeline parallelism（流水线并行） – 将模型层的连续部分分布到多个节点上。
+Optimized communication kernels and control plane architecture（优化的通信内核和控制平面架构） – 最小化CPU开销，最大化GPU利用率。
+
+关于如何在vLLM的部署中如何使用这些技术的详细信息，请参见Distributed Inference and Serving。
+vLLM 中的 GPU 并行技术
+Tensor Parallelism（张量并行）
+问题描述: LLM 模型超出单个GPU容量
+随着模型的增长，单个GPU无法容纳它们，这就需要多GPU策略。Tensor parallelism（张量并行）将模型权重分片到多个GPU上，允许并发计算以降低延迟并增强可扩展性。
+这种方法最初是在Megatron-LM (Shoeybi et al., 2019)中为训练开发的，已在vLLM中针对推理工作负载进行了调整和优化。
+
+张量并行依赖两种核心技术：
+
+Column Parallelism（列并行）: 沿权重矩阵列分割，计算后拼接结果。
+Row Parallelism（行并行）: 沿矩阵行分割，计算后通过求和聚合部分结果。
+
+" />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.152.2">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang Tech Blog</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">Vllm 分布式推理：突破大模型服务的内存瓶颈</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><blockquote>
+<p>本文是<a href="https://blog.vllm.ai/2025/02/17/distributed-inference.html">Distributed Inference with vLLM</a>的中文翻译版本，内容有删减</p>
+</blockquote>
+<h3 id="motivation">Motivation</h3>
+<p>当前的大语言模型（LLM），在推理阶段面临着巨大的内存需求。随着模型参数的增加，单个GPU往往无法满足其内存需求，导致推理过程中出现<strong>CUDA out of memory</strong>错误。为了解决这个问题，vLLM采用了两种主要策略：</p>
+<ol>
+<li><strong>Reduce Precision（降低精度）</strong> – 利用FP8和更低位数的量化方法可以减少内存使用。然而，随着模型参数超过数百亿时，这种方法可能会影响准确性和可扩展性，单靠它并不足以解决问题。</li>
+<li><strong>Distributed Inference（分布式推理）</strong> – 将模型计算分散到多个GPU或节点上，可以实现可扩展性和效率。这就是张量并行和流水线并行等分布式架构发挥作用的地方。</li>
+</ol>
+<h3 id="vllm-架构与大语言模型推理挑战">vLLM 架构与大语言模型推理挑战</h3>
+<p>与大语言模型训练相比，大语言模型推理面临独特的挑战：</p>
+<ul>
+<li><strong>推理</strong>需要低延迟和动态工作负载处理，而训练则纯粹关注已知静态形状的吞吐量。</li>
+<li><strong>推理</strong>工作负载必须有效管理KV缓存、推测解码和预填充到解码(prefill-to-decode)的过渡。</li>
+<li>大模型往往<strong>超出单GPU容量</strong>，需要先进的<strong>并行化策略</strong>。</li>
+</ul>
+<p>为了解决这些问题，vLLM提供了：</p>
+<ul>
+<li><strong>Tensor parallelism（张量并行）</strong> – 在一个GPU节点内将每个模型层分片到多个GPU上。</li>
+<li><strong>Pipeline parallelism（流水线并行）</strong> – 将模型层的连续部分分布到多个节点上。</li>
+<li><strong>Optimized communication kernels and control plane architecture（优化的通信内核和控制平面架构）</strong> – 最小化CPU开销，最大化GPU利用率。</li>
+</ul>
+<p>关于如何在vLLM的部署中如何使用这些技术的详细信息，请参见<a href="https://docs.vllm.ai/en/latest/serving/distributed_serving.html">Distributed Inference and Serving</a>。</p>
+<h2 id="vllm-中的-gpu-并行技术">vLLM 中的 GPU 并行技术</h2>
+<h3 id="tensor-parallelism张量并行">Tensor Parallelism（张量并行）</h3>
+<h4 id="问题描述-llm-模型超出单个gpu容量">问题描述: LLM 模型超出单个GPU容量</h4>
+<p>随着模型的增长，单个GPU无法容纳它们，这就需要多GPU策略。Tensor parallelism（张量并行）<strong>将模型权重分片到多个GPU上</strong>，允许并发计算以降低延迟并增强可扩展性。</p>
+<p>这种方法最初是在<a href="https://arxiv.org/abs/1909.08053">Megatron-LM (Shoeybi et al., 2019)</a>中为训练开发的，已在vLLM中针对推理工作负载进行了调整和优化。</p>
+<p><img src="/pics/vllm_tp_strategies.png" alt=""></p>
+<p>张量并行依赖两种核心技术：</p>
+<ol>
+<li>Column Parallelism（列并行）: 沿权重矩阵列分割，计算后拼接结果。</li>
+<li>Row Parallelism（行并行）: 沿矩阵行分割，计算后通过求和聚合部分结果。</li>
+</ol>
+<p><img src="/pics/vllm_column_row_parallel.png" alt=""></p>
+<p>以 Llama 模型中的 MLP 层为例：</p>
+<ul>
+<li>列并行 应用于上投影操作</li>
+<li>元素级激活函数（如 SILU）作用于分片输出。</li>
+<li>行并行 用于下投影，通过 <strong>all-reduce</strong> 操作聚合最终结果。</li>
+</ul>
+<p>张量并行确保推理计算分布在多个GPU上，最大化可用的内存带宽和计算能力。使用时，我们可以通过有效地乘以内存带宽来实现延迟改进。这是因为分片模型权重允许多个GPU并行访问内存，从而减少单个GPU可能遇到的瓶颈。</p>
+<p><img src="/pics/vllm_tensor_parallelism.png" alt=""> Source: <a href="https://sebastianraschka.com/blog/2023/pytorch-memory-optimization.html">Sebastian Raschka, 2023</a>.</p>
+<p>但请注意，张量并行需要<strong>高带宽互连</strong>（如 NVLink 或 InfiniBand）来最小化由于增加的通信成本而产生的开销。</p>
+<h3 id="pipeline-parallelism流水线并行">Pipeline Parallelism（流水线并行）</h3>
+<h4 id="问题描述-llm-模型权重超出多-gpu-容量">问题描述: LLM 模型权重超出多 GPU 容量</h4>
+<p>对于超大模型（例如 DeepSeek R1、Llama 3.1 405B），单个节点可能无法满足需求。流水线并行<strong>将模型分片到多个节点上</strong>，每个节点处理特定的连续模型层。</p>
+<h4 id="工作原理">工作原理</h4>
+<ul>
+<li>每一个GPU加载并处理一组不同的LLM层。</li>
+<li><strong>发送/接收操作:</strong> 中间激活值随计算进程在 GPU 间传输</li>
+</ul>
+<p>与张量并行相比，<strong>流水线并行</strong>通信开销更低，因为数据传输仅在流水线阶段进行一次。</p>
+<p>流水线并行可降低 GPU 内存限制，但不像张量并行那样直接降低延迟。为缓解吞吐效率问题，vLLM 引入 <strong>高级流水线调度</strong>，通过优化微批处理执行，确保所有 GPU 保持活跃。</p>
+<h3 id="张量并行与流水线并行的结合">张量并行与流水线并行的结合</h3>
+<p>作为一个通用的经验法则，可以这样考虑并行化 LLM 模型的部署：</p>
+<ul>
+<li>当GPU互连速度较慢时，在节点之间使用 <strong>流水线并行</strong>，在节点内部使用 <strong>张量并行</strong>。</li>
+<li>当GPU互连速度较快时（例如 NVLink、InfiniBand），<strong>张量并行可扩展至跨节点</strong>。</li>
+<li>智能地结合这两种技术可以<strong>减少不必要的通信开销</strong>，最大化 GPU 利用率。</li>
+</ul>
+<h4 id="性能扩展与内存效应">性能扩展与内存效应</h4>
+<p>尽管并行化的基本原理指向线性扩展，但实际<strong>性能提升可能呈超线性增长</strong>，原因在于内存效应。无论是张量并行还是流水线并行，KV 缓存可用内存的增加可能导致吞吐量非线性提升。</p>
+<p><img src="/pics/vllm_kv_cache_effects.png" alt=""></p>
+<p>这种超线性效应源于更大的缓存允许处理更多请求（更大批量）并改善内存局部性，从而显著提升 GPU 利用率。例如，从 TP=1 到 TP=2，KV 缓存块数量增加 13.9 倍，<strong>token 吞吐量提升 3.9 倍</strong>，远超预期的 2 倍线性增长。</p>
+<h3 id="进一步阅读">进一步阅读</h3>
+<p>对于那些希望深入了解影响 vLLM 设计的技术和系统的读者：</p>
+<ul>
+<li><a href="https://arxiv.org/abs/1909.08053">Megatron-LM (Shoeybi et al., 2019)</a> 介绍了大语言模型中模型并行的基础技术</li>
+<li><a href="https://www.usenix.org/conference/osdi22/presentation/yu">Orca (Yu et al., 2022)</a> 提出了一种使用迭代级调度的分布式服务替代方法</li>
+<li><a href="https://github.com/deepspeedai/DeepSpeed">DeepSpeed</a> 和 <a href="https://github.com/NVIDIA/FasterTransformer">FasterTransformer</a> 提供了关于优化变换器推理的互补视角</li>
+</ul>
+<h3 id="结论">结论</h3>
+<p>高效服务LLM模型需要结合<strong>张量并行</strong>、<strong>流水线并行</strong>和<strong>性能优化</strong>（如<strong>分块预填充</strong>）。vLLM通过利用这些技术实现可扩展的推理，同时确保在不同硬件加速器上的适应性。随着我们继续增强vLLM，了解新发展，如<strong>专家并行用于专家混合（MoE）<strong>和</strong>扩展的量化支持</strong>，对于优化AI工作负载至关重要。</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  <div class="giscus mt-24"></div>
+  <script
+    src="https://giscus.app/client.js"
+    data-repo="haitwang-cloud/haitwang-cloud.github.io"
+    data-repo-id="R_kgDOMH03cQ"
+    data-category="General"
+    data-category-id="DIC_kwDOMH03cc4CgVak"
+    data-mapping="pathname"
+    data-strict="1"
+    data-reactions-enabled="0"
+    data-emit-metadata="0"
+    data-input-position="top"
+    data-theme="light"
+    data-lang="zh-CN"
+    data-loading="lazy"
+    crossorigin="anonymous"
+    async
+  ></script>
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2026
+    <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

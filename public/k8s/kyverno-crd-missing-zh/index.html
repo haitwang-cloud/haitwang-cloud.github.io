@@ -1,0 +1,499 @@
+<!doctype html>
+
+
+
+
+<script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1313460867822205"
+     crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html
+  class="not-ready lg:text-base"
+  style="--bg: #f8f5d7"
+  lang="zh-CN"
+>
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no"
+  />
+
+  
+  <title>Kyverno ImageValidatingPolicy CRD 冲突问题及解决方案 - Tim Wang Tech Blog</title>
+
+  
+  <meta name="theme-color" />
+
+  
+  
+  
+  
+  <meta name="description" content="Kyverno ImageValidatingPolicy CRD 冲突问题及解决方案
+在 Kubernetes 集群中，Kyverno 是一个强大的策略引擎，用于管理和验证资源。然而，在将 Kyverno 从 1.13 升级到 1.15 的过程中，我们遇到了一个复杂的 CRD 冲突问题，导致 ImageValidatingPolicy 无法正常工作。本文记录了从权限问题的误导性排查到最终发现 CRD 冲突的完整过程。
+
+问题背景
+在升级 Kyverno 后，控制器日志中出现以下错误：
+2025-12-03T06:08:13Z ERR ... Failed to watch error=&#34;failed to list *v1alpha1.ImageValidatingPolicy: the server could not find the requested resource (get imagevalidatingpolicies.policies.kyverno.io)&#34;
+2025-12-03T06:08:19Z ERR ... no matches for kind &#34;ImageValidatingPolicy&#34; in version &#34;policies.kyverno.io/v1alpha1&#34;
+2025-12-03T06:09:59Z ERR ... failed to wait for imagevalidatingpolicy caches to sync
+Kyverno 控制器无法访问 imagevalidatingpolicies.policies.kyverno.io。
+API Server 未正确服务该资源类型。
+初步排查：权限问题的误导
+
+检查 ServiceAccount 和 RBAC 配置
+首先，我们检查了 Kyverno Admission Controller 的 ServiceAccount 和 ClusterRoleBinding 配置：
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kyverno-admission-controller
+  namespace: ssdl-kyverno
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kyverno:admission-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kyverno:admission-controller
+subjects:
+- kind: ServiceAccount
+  name: kyverno-admission-controller
+  namespace: ssdl-kyverno
+ClusterRole 的规则中包含了对 imagevalidatingpolicies 的访问权限：" />
+  <meta name="author" content="Tim Wang" />
+  
+
+  
+  
+  
+  
+  
+  
+  <link rel="preload stylesheet" as="style" href="http://localhost:1313/main.min.css" />
+
+  
+  
+  
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/theme.png" />
+
+  
+  
+  
+  
+  <link rel="preload" as="image" href="https://gravatar.com/haitaoking1993" />
+  
+  
+
+  
+  
+  <link rel="preload" as="image" href="http://localhost:1313/github.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/linkedin.svg" />
+  
+  <link rel="preload" as="image" href="http://localhost:1313/rss.svg" />
+  
+  
+
+  
+  
+  <script
+    defer
+    src="http://localhost:1313/highlight.min.js"
+    onload="hljs.initHighlightingOnLoad();"
+  ></script>
+  
+
+  
+  
+  
+
+  
+  <link rel="icon" href="http://localhost:1313/favicon.ico" />
+  <link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png" />
+
+  
+  <meta name="generator" content="Hugo 0.152.2">
+
+  
+  
+  
+</head>
+
+  <body class="text-black duration-200 ease-out dark:text-white">
+    <header class="mx-auto flex h-[4.5rem] max-w-3xl px-8 lg:justify-center">
+  <div class="relative z-50 mr-auto flex items-center">
+    <a
+      class="-translate-x-[1px] -translate-y-[1px] text-2xl font-semibold"
+      href="http://localhost:1313/"
+      >Tim Wang Tech Blog</a
+    >
+    <div
+      class="btn-dark text-[0] ml-4 h-6 w-6 shrink-0 cursor-pointer [background:url(./theme.png)_left_center/_auto_theme('spacing.6')_no-repeat] [transition:_background-position_0.4s_steps(5)] dark:[background-position:right]"
+      role="button"
+      aria-label="Dark"
+    ></div>
+  </div>
+
+  <div
+    class="btn-menu relative z-50 -mr-8 flex h-[4.5rem] w-[5rem] shrink-0 cursor-pointer flex-col items-center justify-center gap-2.5 lg:hidden"
+    role="button"
+    aria-label="Menu"
+  ></div>
+
+  
+
+  <script>
+    
+    const htmlClass = document.documentElement.classList;
+    setTimeout(() => {
+      htmlClass.remove('not-ready');
+    }, 10);
+
+    
+    const btnMenu = document.querySelector('.btn-menu');
+    btnMenu.addEventListener('click', () => {
+      htmlClass.toggle('open');
+    });
+
+    
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const lightBg = '#f8f5d7'.replace(/"/g, '');
+    const setDark = (isDark) => {
+      metaTheme.setAttribute('content', isDark ? '#000' : lightBg);
+      htmlClass[isDark ? 'add' : 'remove']('dark');
+      localStorage.setItem('dark', isDark);
+    };
+
+    
+    const darkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (htmlClass.contains('dark')) {
+      setDark(true);
+    } else {
+      const darkVal = localStorage.getItem('dark');
+      setDark(darkVal ? darkVal === 'true' : darkScheme.matches);
+    }
+
+    
+    darkScheme.addEventListener('change', (event) => {
+      setDark(event.matches);
+    });
+
+    
+    const btnDark = document.querySelector('.btn-dark');
+    btnDark.addEventListener('click', () => {
+      setDark(localStorage.getItem('dark') !== 'true');
+    });
+  </script>
+
+  <div
+    class="nav-wrapper fixed inset-x-0 top-full z-40 flex h-full select-none flex-col justify-center pb-16 duration-200 dark:bg-black lg:static lg:h-auto lg:flex-row lg:!bg-transparent lg:pb-0 lg:transition-none"
+  >
+    
+    
+
+    
+    <nav
+      class="mt-12 flex justify-center space-x-10 dark:invert lg:ml-12 lg:mt-0 lg:items-center lg:space-x-6"
+    >
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./github.svg)"
+        href="https://github.com/haitwang-cloud"
+        target="_blank"
+        rel="me"
+      >
+        github
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./linkedin.svg)"
+        href="https://linkedin.com/in/tim-wang-505213166"
+        target="_blank"
+        rel="me"
+      >
+        linkedin
+      </a>
+      
+      <a
+        class="h-8 w-8 text-[0] [background:var(--url)_center_center/cover_no-repeat] lg:h-6 lg:w-6"
+        style="--url: url(./rss.svg)"
+        href="http://localhost:1313/index.xml"
+        target="_blank"
+        rel="alternate"
+      >
+        rss
+      </a>
+      
+    </nav>
+    
+  </div>
+</header>
+
+
+    <main
+      class="prose prose-neutral relative mx-auto min-h-[calc(100%-9rem)] max-w-3xl px-8 pb-16 pt-12 dark:prose-invert"
+    >
+      
+
+<article>
+  <header class="mb-16">
+    <h1 class="!my-0 pb-2.5">Kyverno ImageValidatingPolicy CRD 冲突问题及解决方案</h1>
+
+    
+    <div class="text-sm antialiased opacity-60">
+      
+      <time>Dec 4, 2025</time>
+      
+      
+      
+      
+    </div>
+    
+  </header>
+
+  <section><h1 id="kyverno-imagevalidatingpolicy-crd-冲突问题及解决方案">Kyverno ImageValidatingPolicy CRD 冲突问题及解决方案</h1>
+<p>在 Kubernetes 集群中，Kyverno 是一个强大的策略引擎，用于管理和验证资源。然而，在将 Kyverno 从 <strong>1.13</strong> 升级到 <strong>1.15</strong> 的过程中，我们遇到了一个复杂的 CRD 冲突问题，导致 <code>ImageValidatingPolicy</code> 无法正常工作。本文记录了从权限问题的误导性排查到最终发现 CRD 冲突的完整过程。</p>
+<hr>
+<h2 id="问题背景">问题背景</h2>
+<p>在升级 Kyverno 后，控制器日志中出现以下错误：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>2025-12-03T06:08:13Z ERR ... Failed to watch error<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;failed to list *v1alpha1.ImageValidatingPolicy: the server could not find the requested resource (get imagevalidatingpolicies.policies.kyverno.io)&#34;</span>
+</span></span><span style="display:flex;"><span>2025-12-03T06:08:19Z ERR ... no matches <span style="color:#66d9ef">for</span> kind <span style="color:#e6db74">&#34;ImageValidatingPolicy&#34;</span> in version <span style="color:#e6db74">&#34;policies.kyverno.io/v1alpha1&#34;</span>
+</span></span><span style="display:flex;"><span>2025-12-03T06:09:59Z ERR ... failed to wait <span style="color:#66d9ef">for</span> imagevalidatingpolicy caches to sync
+</span></span></code></pre></div><p>Kyverno 控制器无法访问 <code>imagevalidatingpolicies.policies.kyverno.io</code>。
+API Server 未正确服务该资源类型。</p>
+<h2 id="初步排查权限问题的误导">初步排查：权限问题的误导</h2>
+<ol>
+<li>检查 ServiceAccount 和 RBAC 配置
+首先，我们检查了 <code>Kyverno Admission Controller</code> 的 <code>ServiceAccount</code> 和 <code>ClusterRoleBinding</code> 配置：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ServiceAccount</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kyverno-admission-controller</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">ssdl-kyverno</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io/v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRoleBinding</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kyverno:admission-controller</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">roleRef</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">apiGroup</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRole</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kyverno:admission-controller</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">subjects</span>:
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ServiceAccount</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kyverno-admission-controller</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">ssdl-kyverno</span>
+</span></span></code></pre></div><p>ClusterRole 的规则中包含了对 imagevalidatingpolicies 的访问权限：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">rules</span>:
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">apiGroups</span>: [<span style="color:#e6db74">&#34;policies.kyverno.io&#34;</span>]
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">resources</span>: [<span style="color:#e6db74">&#34;imagevalidatingpolicies&#34;</span>]
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">verbs</span>: [<span style="color:#e6db74">&#34;get&#34;</span>, <span style="color:#e6db74">&#34;list&#34;</span>, <span style="color:#e6db74">&#34;watch&#34;</span>]
+</span></span></code></pre></div><p>通过检查发现，RBAC 配置是正确的。</p>
+<ol start="2">
+<li>使用 <code>kubectl auth can-i</code> 验证权限
+进一步验证 ServiceAccount 是否有权限访问资源：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl auth can-i list imagevalidatingpolicies.policies.kyverno.io --as<span style="color:#f92672">=</span>system:serviceaccount:ssdl-kyverno:kyverno-admission-controller
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Warning: the server doesn<span style="color:#e6db74">&#39;t have a resource type &#39;</span>imagevalidatingpolicies<span style="color:#e6db74">&#39; in group &#39;</span>policies.kyverno.io<span style="color:#960050;background-color:#1e0010">&#39;</span>
+</span></span><span style="display:flex;"><span>no
+</span></span></code></pre></div><p>结果返回 <code>no</code>，并提示资源类型不存在。这一结果将我们误导到权限问题上，但实际上问题的根因并非 RBAC。</p>
+<h2 id="深入排查crd-冲突导致资源类型未被服务">深入排查：CRD 冲突导致资源类型未被服务</h2>
+<ol>
+<li>检查 CRD 是否存在
+使用以下命令检查 CRD 是否已安装：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl get crd imagevalidatingpolicies.policies.kyverno.io
+</span></span></code></pre></div><p>结果显示 CRD 存在，但问题并未解决。</p>
+<ol start="2">
+<li>检查 API 资源是否可用
+使用以下命令检查 API Server 是否服务该资源：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl api-resources --api-group<span style="color:#f92672">=</span>policies.kyverno.io
+</span></span></code></pre></div><ol start="3">
+<li>检查 CRD 状态</li>
+</ol>
+<p>进一步查看 CRD 的详细状态：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl get crd imagevalidatingpolicies.policies.kyverno.io -o yaml
+</span></span></code></pre></div><p>关键部分如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">status</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">conditions</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">NamesAccepted</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">status</span>: <span style="color:#e6db74">&#34;False&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">reason</span>: <span style="color:#ae81ff">ShortNamesConflict</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">message</span>: <span style="color:#e6db74">&#39;&#34;ivpol&#34; is already in use&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">Established</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">status</span>: <span style="color:#e6db74">&#34;False&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">reason</span>: <span style="color:#ae81ff">NotAccepted</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">message</span>: <span style="color:#ae81ff">not all names are accepted</span>
+</span></span></code></pre></div><p>发现问题：</p>
+<ul>
+<li><code>NamesAccepted=False</code>：短名（shortNames）<code>ivpol</code> 已被占用。</li>
+<li><code>Established=False</code>：CRD 未能完全建立，API Server 无法服务该资源</li>
+</ul>
+<ol start="4">
+<li>确认短名冲突
+使用以下命令查找占用 <code>ivpol</code> 的 CRD：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl get crd -o jsonpath<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;{range .items[*]}{.metadata.name}{&#34; &#34;}{.spec.names.shortNames}{&#34;\n&#34;}{end}&#39;</span> | grep -w ivpol
+</span></span></code></pre></div><p>输出结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>imagevalidatingpolicies.policies.kyverno.io <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;ivpol&#34;</span><span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>imageverificationpolicies.policies.kyverno.io <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;ivpol&#34;</span><span style="color:#f92672">]</span>
+</span></span></code></pre></div><p><strong>冲突来源</strong></p>
+<p>Kyverno 1.13 中的 CRD <code>imageverificationpolicies.policies.kyverno.io</code> 使用了短名 <code>ivpol</code>。
+Kyverno 1.15 中，<code>imageverificationpolicies</code> 已被废弃，取而代之的是新的 CRD <code>imagevalidatingpolicies.policies.kyverno.io</code>，但 Helm Chart 中仍然为其分配了相同的短名 <code>ivpol</code>。
+由于升级过程中旧的 CRD <code>imageverificationpolicies</code> 未被清理，导致短名冲突，新的 CRD <code>imagevalidatingpolicies</code> 无法建立。</p>
+<h2 id="解决方案">解决方案</h2>
+<p>将老的 CRD <code>imageverificationpolicies.policies.kyverno.io</code> 删除，释放短名 <code>ivpol</code>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl delete crd imageverificationpolicies.policies.kyverno.io
+</span></span></code></pre></div><h3 id="验证修复">验证修复</h3>
+<p>确认 CRD <code>imagevalidatingpolicies.policies.kyverno.io</code> 状态</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl describe crd imagevalidatingpolicies.policies.kyverno.io
+</span></span></code></pre></div><p>期望输出中包含以下内容：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">status</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">acceptedNames</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">categories</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">kyverno</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ImageValidatingPolicy</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">listKind</span>: <span style="color:#ae81ff">ImageValidatingPolicyList</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">plural</span>: <span style="color:#ae81ff">imagevalidatingpolicies</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">shortNames</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">ivpol</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">singular</span>: <span style="color:#ae81ff">imagevalidatingpolicy</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">conditions</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">lastTransitionTime</span>: <span style="color:#e6db74">&#34;2025-12-03T07:39:18Z&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">message</span>: <span style="color:#66d9ef">no</span> <span style="color:#ae81ff">conflicts found</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">reason</span>: <span style="color:#ae81ff">NoConflicts</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">status</span>: <span style="color:#e6db74">&#34;True&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">type</span>: <span style="color:#ae81ff">NamesAccepted</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">lastTransitionTime</span>: <span style="color:#e6db74">&#34;2025-12-03T07:39:18Z&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">message</span>: <span style="color:#ae81ff">the initial names have been accepted</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">reason</span>: <span style="color:#ae81ff">InitialNamesAccepted</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">status</span>: <span style="color:#e6db74">&#34;True&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">type</span>: <span style="color:#ae81ff">Established</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">storedVersions</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">v1alpha1</span>
+</span></span></code></pre></div><p>接下来，重启所有的 <code>kyverno-admission-controller</code> Pod，以确保它们使用最新的 CRD 定义。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl rollout restart deployment kyverno-admission-controller -n ssdl-kyverno
+</span></span></code></pre></div><h2 id="总结">总结</h2>
+<p><strong>现象</strong>：Kyverno 控制器无法访问 <code>imagevalidatingpolicies</code>，API Server 提示资源类型不存在。
+<strong>根因</strong>：升级过程中，旧的 CRD <code>imageverificationpolicies</code> 未被清理，导致短名 <code>ivpol</code> 冲突，新的 CRD <code>imagevalidatingpolicies</code> 无法建立。</p>
+</section>
+
+  
+  
+
+  
+  
+  
+  
+  <nav class="mt-24 flex rounded-lg bg-black/[3%] text-lg dark:bg-white/[8%]">
+    
+    
+    <a
+      class="ml-auto flex w-1/2 items-center justify-end rounded-r-md p-6 pl-3 font-semibold no-underline hover:bg-black/[2%] dark:hover:bg-white/[3%]"
+      href="http://localhost:1313/k8s/kyverno-crd-missing-en/"
+      ><span># Kyverno ImageValidatingPolicy CRD Conflict Issue and Solution</span><span class="ml-1.5">→</span></a
+    >
+    
+  </nav>
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  <div class="giscus mt-24"></div>
+  <script
+    src="https://giscus.app/client.js"
+    data-repo="haitwang-cloud/haitwang-cloud.github.io"
+    data-repo-id="R_kgDOMH03cQ"
+    data-category="General"
+    data-category-id="DIC_kwDOMH03cc4CgVak"
+    data-mapping="pathname"
+    data-strict="1"
+    data-reactions-enabled="0"
+    data-emit-metadata="0"
+    data-input-position="top"
+    data-theme="light"
+    data-lang="zh-CN"
+    data-loading="lazy"
+    crossorigin="anonymous"
+    async
+  ></script>
+  
+</article>
+
+
+    </main>
+
+    <footer
+  class="opaco mx-auto flex h-[4.5rem] max-w-3xl items-center px-8 text-[0.9em] opacity-60"
+>
+  <div class="mr-auto">
+    &copy; 2026
+    <a class="link" href="http://localhost:1313/">Tim Wang Tech Blog</a>
+  </div>
+  <a class="link mx-6" href="https://gohugo.io/" rel="noopener" target="_blank"
+    >Powered by Hugo️️</a
+  >️
+  <a
+    class="link"
+    href="https://github.com/nanxiaobei/hugo-paper"
+    rel="noopener"
+    target="_blank"
+    >✎ Paper</a
+  >
+</footer>
+
+  </body>
+</html>

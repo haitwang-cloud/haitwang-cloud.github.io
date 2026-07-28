@@ -6,6 +6,7 @@
 
 ## 大语言模型 和 AI 基础设施
 
+- [vLLM x Kimi K3：生产级推理引擎技术实现全景](/llm/kimi-k3-tech-intro/)
 - [vLLM分布式推理](/llm/vllm-distributed-inference-doc/)
 - [大语言模型推理引擎性能对比分析：vLLM与sglang](/llm/llm-benchmark-cn/)
 - [SGLang vs vLLM: Streaming JSON 性能分析](/llm/sglang-vs-vllm-streaming-json/)

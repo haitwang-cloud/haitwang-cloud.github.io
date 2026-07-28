@@ -12,6 +12,7 @@ Welcome to my blog! 🚀 This is a hub for exploring cutting-edge technologies l
 
 ## Large Language Models (LLMs) and AI Infrastructure
 
+- [vLLM x Kimi K3：生产级推理引擎技术实现全景](/llm/kimi-k3-tech-intro/)
 - [SGLang vs vLLM: Streaming JSON Performance Analysis](/llm/sglang-vs-vllm-streaming-json/)
 - [Distributed Inference with vLLM](/llm/vllm-distributed-inference-doc/)
 - [LLM Inference Engines Performance Comparison: vLLM vs sglang](/llm/llm-benchmark-en/)
